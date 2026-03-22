@@ -6,11 +6,11 @@ const ServerError: React.FC = () => {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen px-4 bg-gray-100">
             <div>
-                <h1 className="text-8xl font-bold text-[#fa2727]">500</h1>
+                <h1 className="text-8xl font-bold text-[#fa2727]"></h1>
             </div>
 
             <div className="mt-6 text-center">
-                <h2 className="mb-3 text-2xl font-bold text-gray-900">Đã có lỗi xảy ra!</h2>
+                <h2 className="mb-3 text-2xl font-bold text-gray-900">Máy Chủ Đang Gặp Sự Cố!</h2>
                 <p className="mb-7 text-gray-500">
                     Máy chủ đang gặp sự cố ngoài ý muốn. Chúng tôi đang nỗ lực khắc phục, vui lòng quay lại sau ít phút
                 </p>
