@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { tenantService } from '../services/api/tenant.service';
+import { tenantApi } from '../api/tenant.api';
+import { QUERY_KEYS } from '../api/queryKeys';
 import { extractTenantId } from '../utils/tenant.utils';
 
 export const useTenantResolver = () => {
@@ -10,8 +11,8 @@ export const useTenantResolver = () => {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['tenantConfig', tenantId],
-    queryFn: () => tenantService.getTenantConfig(tenantId),
+    queryKey: QUERY_KEYS.TENANT.CONFIG(tenantId),
+    queryFn: () => tenantApi.getConfig(tenantId),
     retry: 1, // Only retry once to fail fast
     staleTime: 1000 * 60 * 60 * 24, // 24 hours caching
   });

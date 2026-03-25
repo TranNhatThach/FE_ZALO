@@ -1,8 +1,7 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation, Outlet } from 'react-router-dom';
 import { useAuthStore } from '../../stores/auth.store';
-import { useQuery } from '@tanstack/react-query';
-import { authService } from '../../services/api/auth.service';
+import { useGetMe } from '../../hooks/useAuth';
 import { Spin } from 'antd';
 
 interface ProtectedRouteProps {
@@ -15,11 +14,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
   const location = useLocation();
 
   // Fetch user if authenticated but no user info exists (e.g. page refresh)
-  const fetchUserQuery = useQuery({
-    queryKey: ['me'],
-    queryFn: authService.getMe,
+  const fetchUserQuery = useGetMe({
     enabled: isAuthenticated && !user,
-    retry: false,
   });
 
   useEffect(() => {
