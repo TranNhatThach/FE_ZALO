@@ -1,8 +1,7 @@
 import React from 'react';
 import { Form, Input, Button, Card, Typography, Alert, Layout } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import { useMutation } from '@tanstack/react-query';
-import { authService } from '../../services/api/auth.service';
+import { useLoginMutation } from '../../hooks/useAuth';
 import { useAuthStore } from '../../stores/auth.store';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTenantResolver } from '../../hooks/useTenantResolver';
@@ -17,19 +16,18 @@ export const LoginForm: React.FC = () => {
 
   const from = location.state?.from?.pathname || '/dashboard';
 
-  const loginMutation = useMutation({
-    mutationFn: authService.login,
-    onSuccess: (data) => {
-      login(data.user, data.accessToken, data.refreshToken);
-      navigate(from, { replace: true });
-    },
-  });
+  const loginMutation = useLoginMutation();
 
-  const onFinish = (values: any) => {
-    loginMutation.mutate({
-      email: values.email,
-      password: values.password,
-    });
+  const onFinish = (values: { email: string; password: string }) => {
+    loginMutation.mutate(
+      { email: values.email, password: values.password },
+      {
+        onSuccess: (data) => {
+          login(data.user, data.accessToken, data.refreshToken);
+          navigate(from, { replace: true });
+        },
+      }
+    );
   };
 
   if (tenantLoading) return null; // Or some global splash screen
@@ -55,7 +53,7 @@ export const LoginForm: React.FC = () => {
         {loginMutation.error && (
           <Alert
             message="Error"
-            description={(loginMutation.error as any)?.response?.data?.message || 'Invalid credentials. Please try again.'}
+            description={loginMutation.error.message || 'Invalid credentials. Please try again.'}
             type="error"
             showIcon
             style={{ marginBottom: 24 }}
