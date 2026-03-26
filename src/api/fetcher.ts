@@ -39,9 +39,11 @@ export async function fetchData<T>(
   const { _retry = false, ...fetchOptions } = options;
 
   const token = Cookies.get(ACCESS_TOKEN_KEY);
+  const tenantId = localStorage.getItem('tenant_id') || 'default';
 
   const headers: HeadersInit = {
     'Content-Type': 'application/json',
+    'X-Tenant-Id': tenantId,
     ...(fetchOptions.headers as Record<string, string>),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };

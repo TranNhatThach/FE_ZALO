@@ -45,6 +45,13 @@ export const menuConfig: MenuItem[] = [
     ],
   },
   {
+    key: 'branches',
+    icon: <TeamOutlined />, // or some other icon
+    label: 'Branch Management',
+    title: 'Branch Management',
+    path: '/branches',
+  },
+  {
     key: 'settings',
     icon: <SettingOutlined />,
     label: 'Settings',
