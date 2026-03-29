@@ -3,4 +3,5 @@ export interface TenantConfig {
   brandName: string;
   logo: string;
   primaryColor: string;
+  website?: string;
 }

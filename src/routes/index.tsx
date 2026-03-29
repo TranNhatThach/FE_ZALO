@@ -9,6 +9,9 @@ import { ServerErrorPage } from '../pages/error/ServerErrorPage';
 
 // Lazy load pages for performance
 const Dashboard = lazy(() => import('../pages/Dashboard'));
+const UsersPage = lazy(() => import('../pages/users/UsersPage'));
+const BranchesPage = lazy(() => import('../pages/branches/BranchesPage'));
+const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
 
 export const router = createBrowserRouter([
   {
@@ -36,15 +39,19 @@ export const router = createBrowserRouter([
           },
           {
             path: 'users',
-            element: <div>Users List</div>,
+            element: <UsersPage />,
           },
           {
             path: 'users/roles',
             element: <div>Roles List</div>,
           },
           {
+            path: 'branches',
+            element: <BranchesPage />,
+          },
+          {
             path: 'settings',
-            element: <div>Settings Page</div>,
+            element: <SettingsPage />,
           },
         ],
       },

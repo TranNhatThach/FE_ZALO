@@ -8,4 +8,6 @@ export const tenantApi = {
    */
   getConfig: (tenantId: string): Promise<TenantConfig> =>
     api.get<TenantConfig>(`/tenant/${tenantId}/config`),
+  updateConfig: (tenantId: string, data: Partial<TenantConfig>): Promise<TenantConfig> =>
+    api.put<TenantConfig>(`/tenant/${tenantId}/config`, data),
 };

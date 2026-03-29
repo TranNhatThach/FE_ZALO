@@ -4,6 +4,8 @@ export interface User {
   roles: string[];
   name?: string;
   avatar?: string;
+  phone?: string;
+  status?: 'ACTIVE' | 'INACTIVE';
 }
 
 export interface AuthState {

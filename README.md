@@ -47,4 +47,34 @@
 - [Community Support](https://mini.zalo.me/community)
 
 
-git checkout "feature/task2Auth&Muti"
+git checkout "feature/task4"
+
+Implementation Plan: Tasks 04.1 - 04.4 (Business Management)
+This plan outlines the steps to implement the management features for Users, Branches, and System Configuration with Tenant isolation.
+
+Proposed Changes
+[04.1] User/Employee Management
+BaseTable: Create a reusable table component using Tailwind if not already present.
+UsersPage: Refactor 
+src/pages/Users/index.tsx
+ to use BaseTable.
+UserModal: Update to support roles (ADMIN, STAFF) and better validation.
+API: Ensure userService calls include tenant_id where necessary.
+[04.2] Branch/Store Management
+NEW branch.service.ts: API service for Branch CRUD.
+NEW Pages/Branches: List and Modal for managing stores.
+Isolation: Filter branches by current tenantId.
+[04.3] System Configuration
+NEW Pages/Settings: Form for Name, Website, Logo, and Color.
+Logo Upload: Add a preview feature before uploading to the backend.
+Theme Sync: Use the tenantConfig hook to update ConfigProvider themes in real-time.
+[04.4] Integration & Quality
+E2E Check: Validate data isolation and responsive design.
+Verification Plan
+Automated Tests
+N/A
+Manual Verification
+User CRUD: Create/Edit/Delete users and verify status toggle.
+Branch CRUD: Manage multiple branches and check tenant isolation.
+Config: Change the primary color and logo; verify they apply globally.
+Responsive: Test on multiple screen sizes.
