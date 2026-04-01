@@ -16,7 +16,6 @@ const Layout = () => {
         <App theme={getSystemInfo().zaloTheme as AppProps['theme']}>
             <ZMPRouter>
                 <SnackbarProvider>
-                    <Sidebar />
                     <div className="min-h-screen pb-20">
                         <AnimationRoutes>
                             <Route path="/" element={<MembersPage />}></Route>
