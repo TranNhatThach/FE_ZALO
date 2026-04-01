@@ -28,20 +28,27 @@ export const menuConfig: MenuItem[] = [
     label: 'User Management',
     title: 'User Management',
     children: [
-      {
-        key: '/users',
-        icon: <TeamOutlined />,
-        label: 'All Users',
-        title: 'All Users',
-        path: '/users',
-      },
-      {
-        key: '/users/roles',
-        icon: <ProfileOutlined />,
-        label: 'Roles',
-        title: 'Roles',
-        path: '/users/roles',
-      },
+        {
+          key: '/users',
+          icon: <TeamOutlined />,
+          label: 'All Users',
+          title: 'All Users',
+          path: '/users',
+        },
+        {
+          key: '/members',
+          icon: <TeamOutlined />,
+          label: 'Members Dashboard',
+          title: 'Members Dashboard',
+          path: '/members',
+        },
+        {
+          key: '/users/roles',
+          icon: <ProfileOutlined />,
+          label: 'Roles',
+          title: 'Roles',
+          path: '/users/roles',
+        },
     ],
   },
   {

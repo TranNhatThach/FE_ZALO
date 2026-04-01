@@ -1,4 +1,4 @@
-import Cookies from 'js-cookie';
+
 import { useAuthStore } from '../stores/auth.store';
 
 // ---------------------------------------------------------------------------
@@ -38,7 +38,7 @@ export async function fetchData<T>(
 ): Promise<T> {
   const { _retry = false, ...fetchOptions } = options;
 
-  const token = Cookies.get(ACCESS_TOKEN_KEY);
+  const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   const tenantId = localStorage.getItem('tenant_id') || 'default';
 
   const headers: HeadersInit = {
@@ -55,7 +55,7 @@ export async function fetchData<T>(
 
   // ── 401 handling ─────────────────────────────────────────────────────────
   if (response.status === 401 && !_retry) {
-    const refreshToken = Cookies.get(REFRESH_TOKEN_KEY);
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
     if (!refreshToken) {
       useAuthStore.getState().logout();
@@ -101,10 +101,7 @@ export async function fetchData<T>(
       const newToken = refreshData.accessToken;
 
       // Persist new token
-      Cookies.set(ACCESS_TOKEN_KEY, newToken, {
-        secure: import.meta.env.PROD,
-        sameSite: 'strict',
-      });
+      localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
       useAuthStore.setState({ accessToken: newToken });
 
       flushQueue(null, newToken);

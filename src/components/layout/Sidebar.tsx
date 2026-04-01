@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Drawer } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { Layout, Menu, Drawer, Avatar, Typography, Button } from 'antd';
+import { useLocation, useNavigate } from 'zmp-ui';
 import { useThemeStore } from '../../stores/theme.store';
 import { useMobile } from '../../hooks/useMobile';
 import { menuConfig, MenuItem } from '../../configs/menu.config';
+import { LogoutOutlined } from '@ant-design/icons';
 
 const { Sider } = Layout;
+const { Title, Text } = Typography;
 
 export const Sidebar: React.FC = () => {
   const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
@@ -39,7 +41,7 @@ export const Sidebar: React.FC = () => {
         setOpenKeys(prev => Array.from(new Set([...prev, ...result.parents])));
       }
     } else {
-      setSelectedKeys(['dashboard']);
+      setSelectedKeys(['members']);
     }
   }, [location.pathname, isSidebarCollapsed]);
 
@@ -64,7 +66,7 @@ export const Sidebar: React.FC = () => {
     }
   };
 
-  const menuContent = (
+const menuContent = (
     <div className={`flex flex-col h-full border-r transition-colors duration-300 ${isDarkMode ? 'bg-[#141414] border-gray-800' : 'bg-white border-gray-200'}`}>
       <div className={`h-16 flex items-center justify-center font-bold text-lg tracking-wider border-b transition-colors duration-300 ${isDarkMode ? 'border-gray-800 text-white' : 'border-gray-200 text-gray-800'}`}>
         {!isSidebarCollapsed || isMobile ? 'ZMA ADMIN' : 'ZMA'}
@@ -82,7 +84,7 @@ export const Sidebar: React.FC = () => {
     </div>
   );
 
-  if (isMobile) {
+  if (isMobile || true) { // Kept 'true' for ZMA layout environment
     return (
       <Drawer
         placement="left"

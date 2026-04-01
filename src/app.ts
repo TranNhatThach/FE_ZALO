@@ -1,5 +1,7 @@
 // ZaUI stylesheet
 import 'zmp-ui/zaui.css';
+// Antd stylesheet
+import 'antd/dist/reset.css';
 // Tailwind stylesheet
 import '@/css/tailwind.scss';
 // Your stylesheet

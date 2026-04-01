@@ -1,25 +1,18 @@
 import { create } from 'zustand';
-import Cookies from 'js-cookie';
 import { AuthState, User } from '../types/auth.types';
 
 const ACCESS_TOKEN_KEY = 'zma_access_token';
 const REFRESH_TOKEN_KEY = 'zma_refresh_token';
 
-const cookieOptions: Cookies.CookieAttributes = {
-  // Use secure cookies in production, and standard strict SameSite
-  secure: import.meta.env.MODE === 'production',
-  sameSite: 'strict',
-};
-
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
-  accessToken: Cookies.get(ACCESS_TOKEN_KEY) || null,
-  refreshToken: Cookies.get(REFRESH_TOKEN_KEY) || null,
-  isAuthenticated: !!Cookies.get(ACCESS_TOKEN_KEY),
+  accessToken: localStorage.getItem(ACCESS_TOKEN_KEY) || null,
+  refreshToken: localStorage.getItem(REFRESH_TOKEN_KEY) || null,
+  isAuthenticated: !!localStorage.getItem(ACCESS_TOKEN_KEY),
 
   login: (userData: User, access: string, refresh: string) => {
-    Cookies.set(ACCESS_TOKEN_KEY, access, cookieOptions);
-    Cookies.set(REFRESH_TOKEN_KEY, refresh, cookieOptions);
+    localStorage.setItem(ACCESS_TOKEN_KEY, access);
+    localStorage.setItem(REFRESH_TOKEN_KEY, refresh);
 
     set({
       user: userData,
@@ -30,8 +23,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   logout: () => {
-    Cookies.remove(ACCESS_TOKEN_KEY, cookieOptions);
-    Cookies.remove(REFRESH_TOKEN_KEY, cookieOptions);
+    localStorage.removeItem(ACCESS_TOKEN_KEY);
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
 
     set({
       user: null,
@@ -46,8 +39,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   restoreSession: () => {
-    const access = Cookies.get(ACCESS_TOKEN_KEY);
-    const refresh = Cookies.get(REFRESH_TOKEN_KEY);
+    const access = localStorage.getItem(ACCESS_TOKEN_KEY);
+    const refresh = localStorage.getItem(REFRESH_TOKEN_KEY);
 
     if (access) {
       set({ accessToken: access, refreshToken: refresh || null, isAuthenticated: true });
@@ -56,3 +49,4 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
+
