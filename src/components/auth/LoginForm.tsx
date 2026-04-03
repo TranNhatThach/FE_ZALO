@@ -30,8 +30,7 @@ export const LoginForm: React.FC = () => {
     );
   };
 
-  if (tenantLoading) return null; // Or some global splash screen
-
+  if (tenantLoading) return null; 
   return (
     <Layout style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#f0f2f5' }}>
       <Card

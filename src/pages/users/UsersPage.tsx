@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
-import BaseTable from '../../components/BaseTable';
+import BaseTable from '@/components/BaseTable';
 import UserModal from './components/UserModal';
-import { User } from '../../types/auth.types';
-import { userService } from '../../services/user.service';
+import { User } from '@/types/auth.types';
+import { userService } from '@/services/user.service';
 
 const { Title } = Typography;
 

@@ -4,7 +4,7 @@ import { User } from '../../../types/auth.types';
 import { userService } from '../../../services/user.service';
 
 interface UserModalProps {
-  visible: boolean;
+  visible?: boolean;
   user: User | null;
   onClose: () => void;
   onSuccess: () => void;

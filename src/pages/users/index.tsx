@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react';
-import UserModal from './components/UserModal.tsx';
-import { userService } from '../../services/user.service.ts';
+import UserModal from './components/UserModal';
+import { User } from '@/types/auth.types';
+import { userService } from '@/services/user.service';
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-    role: string;
-    status: 'ACTIVE' | 'INACTIVE';
-}
 
 export default function Users() {
     const [users, setUsers] = useState<User[]>([]);
@@ -18,7 +11,7 @@ export default function Users() {
 
     const fetchUsers = async () => {
         const res = await userService.getAll();
-        setUsers(res.data);
+        setUsers(res);
     };
 
     useEffect(() => {
@@ -30,13 +23,13 @@ export default function Users() {
         setOpen(true);
     };
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = async (id: string) => {
         if (!confirm('Xóa user này?')) return;
         await userService.delete(id);
         fetchUsers();
     };
 
-    const handleToggle = async (id: number) => {
+    const handleToggle = async (id: string  ) => {
         await userService.toggleStatus(id);
         fetchUsers();
     };
@@ -50,7 +43,7 @@ export default function Users() {
                     <div>
                         <p className="font-medium">{u.name}</p>
                         <p className="text-sm text-gray-500">{u.email}</p>
-                        <p className="text-xs">{u.role}</p>
+                        <p className="text-xs">{u.roles}</p>
                     </div>
 
                     <div className="text-right space-y-1">

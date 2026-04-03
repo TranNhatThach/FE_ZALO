@@ -2,16 +2,14 @@ import { api } from './fetcher';
 import { LoginResponse, User } from '../types/auth.types';
 
 export const authApi = {
-  /**
-   * POST /auth/login
-   * Returns the user object + access/refresh tokens.
-   */
-  login: (credentials: { email: string; password: string }): Promise<LoginResponse> =>
+  login: (credentials: { email?: string; phone?: string; password: string }): Promise<LoginResponse> =>
     api.post<LoginResponse>('/auth/login', credentials),
 
-  /**
-   * GET /auth/me
-   * Returns the currently authenticated user's profile.
-   */
+  register: (data: { name: string; email?: string; phone?: string; password: string }): Promise<LoginResponse> =>
+    api.post<LoginResponse>('/auth/register', data),
+
+  zaloLogin: (data: { zaloId: string }): Promise<LoginResponse> =>
+    api.post<LoginResponse>('/auth/zalo-login', data),
+
   getMe: (): Promise<User> => api.get<User>('/auth/me'),
 };
