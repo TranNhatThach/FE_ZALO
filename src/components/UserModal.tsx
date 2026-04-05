@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { userService } from '..user.service.js';
+import { userService } from '../services/user.service';
 
 export default function UserModal({ user, onClose, onSuccess }: any) {
     const [form, setForm] = useState({
