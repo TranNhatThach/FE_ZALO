@@ -18,9 +18,10 @@ export const LoginForm: React.FC = () => {
 
   const loginMutation = useLoginMutation();
 
-  const onFinish = (values: { email: string; password: string }) => {
+  // const onFinish = (values: { email: string; password: string }) => {
+  const onFinish = (values: { username: string; password: string }) => {
     loginMutation.mutate(
-      { email: values.email, password: values.password },
+      { username: values.username, password: values.password },
       {
         onSuccess: (data) => {
           login(data.user, data.accessToken, data.refreshToken);
@@ -67,13 +68,12 @@ export const LoginForm: React.FC = () => {
           autoComplete="off"
         >
           <Form.Item
-            name="email"
+            name="username"
             rules={[
-              { required: true, message: 'Please input your Email!' },
-              { type: 'email', message: 'Please enter a valid email!' }
+              { required: true, message: 'Please input your Username!' },
             ]}
           >
-            <Input prefix={<UserOutlined />} placeholder="Email" size="large" />
+            <Input prefix={<UserOutlined />} placeholder="Username" size="large" />
           </Form.Item>
 
           <Form.Item

@@ -17,7 +17,7 @@ export function useGetMe(options: UseGetMeOptions = {}) {
 
 export function useLoginMutation() {
   return useMutation({
-    mutationFn: authApi.login,
+    mutationFn: authApi.loginBasic,
   });
 }
 

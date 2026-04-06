@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
-import BaseTable from '@/components/BaseTable';
+import { BaseTable } from '@/components/Table/BaseTable';
 import UserModal from './components/UserModal';
 import UserFilter, { FilterParams } from '@/components/Filter/UserFilter'; 
 import { User } from '@/types/auth.types';
@@ -110,8 +110,8 @@ const UsersPage: React.FC = () => {
 
   const columns = [
     {
-      header: 'Name',
-      key: 'name',
+      title: 'Name',
+      dataIndex: 'name',
       render: (name: string, record: User) => (
         <Space>
           <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
@@ -122,12 +122,12 @@ const UsersPage: React.FC = () => {
       ),
     },
     {
-      header: 'Email',
-      key: 'email',
+      title: 'Email',
+      dataIndex: 'email',
     },
     {
-      header: 'Roles',
-      key: 'roles',
+      title: 'Roles',
+      dataIndex: 'roles',
       render: (roles: string[]) => (
         <Space size={[0, 4]} wrap>
           {roles.map((role) => (
@@ -139,8 +139,8 @@ const UsersPage: React.FC = () => {
       ),
     },
     {
-      header: 'Status',
-      key: 'status',
+      title: 'Status',
+      dataIndex: 'status',
       render: (status: string, record: User) => (
         <Space>
           <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>{status}</Tag>
@@ -154,8 +154,8 @@ const UsersPage: React.FC = () => {
       ),
     },
     {
-      header: 'Actions',
-      key: 'actions',
+      title: 'Actions',
+      dataIndex: 'actions',
       className: 'text-right',
       render: (_: any, record: User) => (
         <Space>
@@ -200,8 +200,8 @@ const UsersPage: React.FC = () => {
       <BaseTable 
         columns={columns} 
         data={users} 
-        loading={loading} 
-        rowKey={(u) => u.id} 
+        isLoading={loading} 
+        rowKey="id" 
       />
 
       <UserModal 

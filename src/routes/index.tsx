@@ -3,7 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { MainLayout } from '../layouts/MainLayout';
 import { AuthLayout } from '../layouts/AuthLayout';
 import { ProtectedRoute } from '../components/auth/ProtectedRoute';
-import { LoginForm } from '../components/auth/LoginForm';
+import LoginPage from '../pages/auth/Login';
 import { NotFoundPage } from '../pages/error/NotFoundPage';
 import { ServerErrorPage } from '../pages/error/ServerErrorPage';
 
@@ -23,7 +23,7 @@ export const router = createBrowserRouter([
     children: [
       {
         path: 'login',
-        element: <LoginForm />,
+        element: <LoginPage />,
       },
     ],
   },

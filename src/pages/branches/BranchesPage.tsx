@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined, EnvironmentOutlined } from '@ant-design/icons';
-import BaseTable from '../../components/BaseTable';
+import { BaseTable } from '@/components/Table/BaseTable';
 import BranchModal from './components/BranchModal';
 import { Branch } from '../../types/branch.types';
 import { branchService } from '../../services/branch.service';
@@ -64,8 +64,8 @@ const BranchesPage: React.FC = () => {
 
   const columns = [
     {
-      header: 'Branch Name',
-      key: 'name',
+      title: 'Branch Name',
+      dataIndex: 'name',
       render: (name: string) => (
         <Space>
           <EnvironmentOutlined className="text-red-500" />
@@ -74,17 +74,17 @@ const BranchesPage: React.FC = () => {
       ),
     },
     {
-      header: 'Address',
-      key: 'address',
+      title: 'Address',
+      dataIndex: 'address',
     },
     {
-      header: 'Phone',
-      key: 'phone',
+      title: 'Phone',
+      dataIndex: 'phone',
       render: (phone: string) => phone || 'N/A',
     },
     {
-      header: 'Status',
-      key: 'status',
+      title: 'Status',
+      dataIndex: 'status',
       render: (status: string, record: Branch) => (
         <Space>
           <Tag color={status === 'ACTIVE' ? 'green' : 'red'}>{status}</Tag>
@@ -98,8 +98,8 @@ const BranchesPage: React.FC = () => {
       ),
     },
     {
-      header: 'Actions',
-      key: 'actions',
+      title: 'Actions',
+      dataIndex: 'actions',
       className: 'text-right',
       render: (_: any, record: Branch) => (
         <Space>
@@ -138,8 +138,8 @@ const BranchesPage: React.FC = () => {
       <BaseTable 
         columns={columns} 
         data={branches} 
-        loading={loading} 
-        rowKey={(b) => b.id} 
+        isLoading={loading} 
+        rowKey="id" 
       />
 
       <BranchModal 

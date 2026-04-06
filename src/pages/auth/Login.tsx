@@ -15,11 +15,12 @@ const LoginPage: React.FC = () => {
   const zaloLoginMutation = useZaloLoginMutation();
 
   const handleLogin = () => {
-    /* 
+    
+    const credentials = { username: phone, password };
+  /* 
     TẠM THỜI COMMENT API:
     const isEmail = phone.includes('@');
-    const credentials = isEmail ? { email: phone, password } : { phone: phone, password };
-
+    const credentials = isEmail ? { email: phone, password } : { phone: phone, password };*/
     loginMutation.mutate(credentials, {
       onSuccess: (data) => {
         login(data.user, data.accessToken, data.refreshToken);
@@ -29,15 +30,15 @@ const LoginPage: React.FC = () => {
         alert(error.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
       },
     });
-    */
+    
     
     // BYPASS VÀO LUÔN
-    login(
-      { id: 'dev-dummy', email: 'admin@renren.com', roles: ['ADMIN'], name: 'Tester' },
-      'dummy-access-token',
-      'dummy-refresh-token'
-    );
-    navigate('/dashboard');
+    // login(
+    //   { id: 'dev-dummy', email: 'admin@renren.com', roles: ['ADMIN'], name: 'Tester' },
+    //   'dummy-access-token',
+    //   'dummy-refresh-token'
+    // );
+    // navigate('/dashboard');
   };
 
   const handleZaloLogin = async () => {
@@ -47,21 +48,39 @@ const LoginPage: React.FC = () => {
       const { userInfo } = await getUserInfo({});
       const zaloId = userInfo.id;
 
-      /*
+            /*
       TẠM THỜI COMMENT API ZALO LOGIN:
-      zaloLoginMutation.mutate(
-        { zaloId: zaloId },
-        { ... }
-      );
-      */
+      // zaloLoginMutation.mutate(
+      //   { zaloId: zaloId },
+      //   { ... }
+      // );
+      // */
 
-      // BYPASS VÀO LUÔN VỚI INFO TỪ ZALO
-      login(
-        { id: zaloId, email: 'zalo-user@test.com', roles: ['USER'], name: userInfo.name, avatar: userInfo.avatar },
-        'dummy-zalo-token',
-        'dummy-refresh-token'
+      // // BYPASS VÀO LUÔN VỚI INFO TỪ ZALO
+      // login(
+      //   { id: zaloId, email: 'zalo-user@test.com', roles: ['USER'], name: userInfo.name, avatar: userInfo.avatar },
+      //   'dummy-zalo-token',
+      //   'dummy-refresh-token'
+      // );
+      // navigate('/dashboard');
+      // Gọi API Zalo Login thật
+      zaloLoginMutation.mutate(
+        { 
+          zaloId, 
+          fullName: userInfo.name, 
+          avatar: userInfo.avatar, 
+          phone: phone || '' // Lấy từ state nếu có
+        },
+        {
+          onSuccess: (data) => {
+            login(data.user, data.accessToken, data.refreshToken);
+            navigate('/dashboard');
+          },
+          onError: (error: any) => {
+             alert(error.message || 'Đăng nhập Zalo thất bại.');
+          }
+        }
       );
-      navigate('/dashboard');
     } catch (error) {
       console.error(error);
       alert('Không thể liên kết với Zalo Mini App. Hãy thử mở lại app nhé.');
