@@ -3,6 +3,7 @@ import { Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
 import BaseTable from '@/components/BaseTable';
 import UserModal from './components/UserModal';
+import UserFilter, { FilterParams } from '@/components/Filter/UserFilter'; 
 import { User } from '@/types/auth.types';
 import { userService } from '@/services/user.service';
 
@@ -14,22 +15,58 @@ const UsersPage: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  const fetchUsers = async () => {
+  // 2. Thêm state quản lý giá trị của bộ lọc
+  const [filters, setFilters] = useState<FilterParams>({
+    search: '',
+    role: '',
+    status: '',
+  });
+
+  // 3. Sửa hàm fetchUsers để nhận filter params
+  const fetchUsers = React.useCallback(async () => {
     setLoading(true);
     try {
-      const data = await userService.getAll();
-      setUsers(data);
+      // 1. Chỉ gọi hàm getAll() không có tham số
+      const data = await userService.getAll(); 
+      
+      // 2. Tự lọc dữ liệu ở Client dựa trên state `filters` hiện tại
+      let filteredData = data;
+
+       if (filters.search) {
+         const keyword = filters.search.toLowerCase();
+         filteredData = filteredData.filter(user => 
+           (user.name?.toLowerCase().includes(keyword)) || 
+           (user.email?.toLowerCase().includes(keyword))
+         );
+       }
+
+       if (filters.status) {
+         filteredData = filteredData.filter(user => 
+           user.status?.toLowerCase() === filters.status.toLowerCase()
+         );
+       }
+
+       if (filters.role) {
+         filteredData = filteredData.filter(user => 
+           user.roles.some(r => r.toLowerCase() === filters.role.toLowerCase())
+         );
+       }
+
+       // 3. Cập nhật state bằng danh sách đã lọc
+       setUsers(filteredData);
+      
     } catch (error) {
       console.error('Fetch users error:', error);
       message.error('Failed to fetch users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
+
 
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
@@ -60,6 +97,15 @@ const UsersPage: React.FC = () => {
     } catch (error) {
       message.error('Update status failed');
     }
+  };
+
+  // Các hàm xử lý từ UserFilter truyền lên
+  const handleFilterChange = (newFilters: FilterParams) => {
+    setFilters(newFilters);
+  };
+
+  const handleResetFilter = () => {
+    setFilters({ search: '', role: '', status: '' });
   };
 
   const columns = [
@@ -131,7 +177,7 @@ const UsersPage: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center mb-2">
         <Title level={3} style={{ margin: 0 }}>Employee Management</Title>
         <Button 
           type="primary" 
@@ -145,6 +191,12 @@ const UsersPage: React.FC = () => {
         </Button>
       </div>
 
+      {/* 4. CHÈN COMPONENT FILTER VÀO ĐÂY */}
+      <UserFilter 
+        onFilterChange={handleFilterChange} 
+        onReset={handleResetFilter} 
+      />
+
       <BaseTable 
         columns={columns} 
         data={users} 
@@ -156,7 +208,7 @@ const UsersPage: React.FC = () => {
         visible={modalVisible} 
         user={editingUser} 
         onClose={() => setModalVisible(false)} 
-        onSuccess={fetchUsers} 
+        onSuccess={() => fetchUsers()} 
       />
     </div>
   );
