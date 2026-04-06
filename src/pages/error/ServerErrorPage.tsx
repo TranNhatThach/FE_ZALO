@@ -1,0 +1,18 @@
+import React from 'react';
+import { Result, Button } from 'antd';
+import { useNavigate } from 'react-router-dom';
+
+export const ServerErrorPage: React.FC = () => {
+  const navigate = useNavigate();
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Result
+        status="500"
+        title="500"
+        subTitle="Sorry, something went wrong on our server."
+        extra={<Button type="primary" onClick={() => navigate('/')}>Back Home</Button>}
+      />
+    </div>
+  );
+};
