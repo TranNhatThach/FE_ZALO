@@ -1,72 +1,68 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined } from '@ant-design/icons';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { BaseTable } from '@/components/Table/BaseTable';
-import UserModal from './components/UserModal';
-import UserFilter, { FilterParams } from '@/components/Filter/UserFilter'; 
+import UserModal from '@/components/UserModal';
+import UserFilter, { FilterParams } from '@/components/Filter/UserFilter';
 import { User } from '@/types/auth.types';
 import { userService } from '@/services/user.service';
 
 const { Title } = Typography;
 
 const UsersPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(false);
+  const queryClient = useQueryClient();
   const [modalVisible, setModalVisible] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
 
-  // 2. Thêm state quản lý giá trị của bộ lọc
+  // 1. Quản lý filters
   const [filters, setFilters] = useState<FilterParams>({
     search: '',
     role: '',
     status: '',
   });
 
-  // 3. Sửa hàm fetchUsers để nhận filter params
-  const fetchUsers = React.useCallback(async () => {
-    setLoading(true);
-    try {
-      // 1. Chỉ gọi hàm getAll() không có tham số
-      const data = await userService.getAll(); 
-      
-      // 2. Tự lọc dữ liệu ở Client dựa trên state `filters` hiện tại
-      let filteredData = data;
-
-       if (filters.search) {
-         const keyword = filters.search.toLowerCase();
-         filteredData = filteredData.filter(user => 
-           (user.name?.toLowerCase().includes(keyword)) || 
-           (user.email?.toLowerCase().includes(keyword))
-         );
-       }
-
-       if (filters.status) {
-         filteredData = filteredData.filter(user => 
-           user.status?.toLowerCase() === filters.status.toLowerCase()
-         );
-       }
-
-       if (filters.role) {
-         filteredData = filteredData.filter(user => 
-           user.roles.some(r => r.toLowerCase() === filters.role.toLowerCase())
-         );
-       }
-
-       // 3. Cập nhật state bằng danh sách đã lọc
-       setUsers(filteredData);
-      
-    } catch (error) {
-      console.error('Fetch users error:', error);
-      message.error('Failed to fetch users');
-    } finally {
-      setLoading(false);
+  // 2. Sử dụng useQuery để fetch dữ liệu
+  const { data: users = [], isLoading } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => userService.getAll(),
+    // Client-side filtering logic
+    select: (data) => {
+      let filtered = [...data];
+      if (filters.search) {
+        const keyword = filters.search.toLowerCase();
+        filtered = filtered.filter(u => 
+          u.name?.toLowerCase().includes(keyword) || u.email?.toLowerCase().includes(keyword)
+        );
+      }
+      if (filters.status) {
+        filtered = filtered.filter(u => u.status?.toLowerCase() === filters.status.toLowerCase());
+      }
+      if (filters.role) {
+        filtered = filtered.filter(u => u.roles.some(r => r.toLowerCase() === filters.role.toLowerCase()));
+      }
+      return filtered;
     }
-  }, [filters]);
+  });
 
+  // 3. Sử dụng useMutation cho các hành động thay đổi dữ liệu
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => userService.delete(id),
+    onSuccess: () => {
+      message.success('Deleted successfully');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: () => message.error('Delete failed'),
+  });
 
-  useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+  const toggleStatusMutation = useMutation({
+    mutationFn: (id: string) => userService.toggleStatus(id),
+    onSuccess: () => {
+      message.success('Status updated');
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+    onError: () => message.error('Update status failed'),
+  });
 
   const handleEdit = (user: User) => {
     setEditingUser(user);
@@ -77,26 +73,12 @@ const UsersPage: React.FC = () => {
     Modal.confirm({
       title: 'Are you sure you want to delete this employee?',
       content: 'This action cannot be undone.',
-      onOk: async () => {
-        try {
-          await userService.delete(id);
-          message.success('Deleted successfully');
-          fetchUsers();
-        } catch (error) {
-          message.error('Delete failed');
-        }
-      },
+      onOk: () => deleteMutation.mutateAsync(id),
     });
   };
 
-  const handleToggleStatus = async (id: string) => {
-    try {
-      await userService.toggleStatus(id);
-      message.success('Status updated');
-      fetchUsers();
-    } catch (error) {
-      message.error('Update status failed');
-    }
+  const handleToggleStatus = (id: string) => {
+    toggleStatusMutation.mutate(id);
   };
 
   // Các hàm xử lý từ UserFilter truyền lên
@@ -200,7 +182,7 @@ const UsersPage: React.FC = () => {
       <BaseTable 
         columns={columns} 
         data={users} 
-        isLoading={loading} 
+        isLoading={isLoading} 
         rowKey="id" 
       />
 
@@ -208,7 +190,7 @@ const UsersPage: React.FC = () => {
         visible={modalVisible} 
         user={editingUser} 
         onClose={() => setModalVisible(false)} 
-        onSuccess={() => fetchUsers()} 
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })} 
       />
     </div>
   );

@@ -1,22 +1,30 @@
-import { useEffect, useState } from 'react';
-import UserModal from './components/UserModal';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import UserModal from '@/components/UserModal';
 import { User } from '@/types/auth.types';
 import { userService } from '@/services/user.service';
 
-
 export default function Users() {
-    const [users, setUsers] = useState<User[]>([]);
+    const queryClient = useQueryClient();
     const [open, setOpen] = useState(false);
     const [editingUser, setEditingUser] = useState<User | null>(null);
 
-    const fetchUsers = async () => {
-        const res = await userService.getAll();
-        setUsers(res);
-    };
+    // 1. Fetch data
+    const { data: users = [], isLoading } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => userService.getAll(),
+    });
 
-    useEffect(() => {
-        fetchUsers();
-    }, []);
+    // 2. Mutations
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => userService.delete(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    });
+
+    const toggleMutation = useMutation({
+        mutationFn: (id: string) => userService.toggleStatus(id),
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+    });
 
     const handleEdit = (user: User) => {
         setEditingUser(user);
@@ -25,14 +33,14 @@ export default function Users() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Xóa user này?')) return;
-        await userService.delete(id);
-        fetchUsers();
+        deleteMutation.mutate(id);
     };
 
-    const handleToggle = async (id: string  ) => {
-        await userService.toggleStatus(id);
-        fetchUsers();
+    const handleToggle = async (id: string) => {
+        toggleMutation.mutate(id);
     };
+
+    if (isLoading) return <div className="p-4 text-center">Đang tải data nhân viên...</div>;
 
     return (
         <div className="space-y-3">
@@ -43,7 +51,7 @@ export default function Users() {
                     <div>
                         <p className="font-medium">{u.name}</p>
                         <p className="text-sm text-gray-500">{u.email}</p>
-                        <p className="text-xs">{u.roles}</p>
+                        <p className="text-xs">{u.roles.join(', ')}</p>
                     </div>
 
                     <div className="text-right space-y-1">
@@ -52,9 +60,9 @@ export default function Users() {
                         </p>
 
                         <div className="flex gap-2 text-xs">
-                            <button onClick={() => handleEdit(u)}>Edit</button>
-                            <button onClick={() => handleDelete(u.id)}>Delete</button>
-                            <button onClick={() => handleToggle(u.id)}>Toggle</button>
+                            <button onClick={() => handleEdit(u)} className="text-blue-500 underline">Edit</button>
+                            <button onClick={() => handleDelete(u.id)} className="text-red-500 underline">Delete</button>
+                            <button onClick={() => handleToggle(u.id)} className="text-gray-500 underline">Toggle</button>
                         </div>
                     </div>
                 </div>
@@ -66,12 +74,17 @@ export default function Users() {
                     setEditingUser(null);
                     setOpen(true);
                 }}
-                className="fixed bottom-20 right-5 bg-blue-500 text-white w-12 h-12 rounded-full"
+                className="fixed bottom-20 right-5 bg-blue-500 text-white w-12 h-12 rounded-full text-2xl flex items-center justify-center shadow-lg"
             >
                 +
             </button>
 
-            {open && <UserModal user={editingUser} onClose={() => setOpen(false)} onSuccess={fetchUsers} />}
+            <UserModal 
+                visible={open} 
+                user={editingUser} 
+                onClose={() => setOpen(false)} 
+                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })} 
+            />
         </div>
     );
 }
