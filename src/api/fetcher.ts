@@ -30,12 +30,17 @@ export async function fetchData<T>(
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
   const tenantId = localStorage.getItem('tenant_id') || 'default';
 
-  const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+  const headers: Record<string, string> = {
     'X-Tenant-Id': tenantId,
     ...(fetchOptions.headers as Record<string, string>),
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
+
+  // Chỉ gắn Content-Type JSON nếu body không phải là FormData
+  if (!(fetchOptions.body instanceof FormData)) {
+    headers['Content-Type'] = 'application/json';
+  }
+
 
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     ...fetchOptions,
@@ -132,11 +137,11 @@ export const api = {
     return fetchData<T>(url, { ...options, method: 'GET' });
   },
 
-  post<T>(url: string, body: unknown, options?: RequestInit): Promise<T> {
+  post<T>(url: string, body: any, options?: RequestInit): Promise<T> {
     return fetchData<T>(url, {
       ...options,
       method: 'POST',
-      body: JSON.stringify(body),
+      body: body instanceof FormData ? body : JSON.stringify(body),
     });
   },
 

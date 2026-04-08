@@ -5,7 +5,9 @@ import {
   SettingOutlined,
   TeamOutlined,
   ProfileOutlined,
+  CameraOutlined,
 } from '@ant-design/icons';
+
 import type { MenuProps } from 'antd';
 
 export type MenuItem = Required<MenuProps>['items'][number] & {
@@ -57,5 +59,12 @@ export const menuConfig: MenuItem[] = [
     label: 'Settings',
     title: 'Settings',
     path: '/settings',
+  },
+  {
+    key: 'attendance',
+    icon: <CameraOutlined />,
+    label: 'Chấm công AI',
+    title: 'Chấm công AI',
+    path: '/attendance',
   },
 ];

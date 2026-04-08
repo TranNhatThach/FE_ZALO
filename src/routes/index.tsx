@@ -12,6 +12,8 @@ const Dashboard = lazy(() => import('../pages/Dashboard'));
 const UsersPage = lazy(() => import('../pages/users/UsersPage'));
 const BranchesPage = lazy(() => import('../pages/branches/BranchesPage'));
 const SettingsPage = lazy(() => import('../pages/settings/SettingsPage'));
+const AttendancePage = lazy(() => import('../pages/attendance/AttendancePage'));
+
 
 export const router = createBrowserRouter([
   {
@@ -53,8 +55,13 @@ export const router = createBrowserRouter([
             path: 'settings',
             element: <SettingsPage />,
           },
+          {
+            path: 'attendance',
+            element: <AttendancePage />,
+          },
         ],
       },
+
     ],
   },
   {
