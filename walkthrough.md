@@ -58,3 +58,25 @@ src/
 | Theme Sync | ✅ PASS | Colors update globally when changed in Settings. |
 | Tenant Isolation| ✅ PASS | Headers correctly include `X-Tenant-Id`. |
 | Responsive | ✅ PASS | Layout and forms adjust correctly for mobile screens. |
+
+
+Tái cấu trúc UserModal.tsx: Tôi đã viết lại hoàn toàn component này tại src/components/UserModal.tsx để biến nó thành một component dùng chung, chuyên nghiệp hơn.
+
+Sử dụng Ant Design Form để quản lý trạng thái và validation mạnh mẽ.
+Thiết kế giao diện hiện đại với Backdrop blur, các góc bo tròn lớn (rounded-2xl), và hiệu ứng đổ bóng sâu.
+Tích hợp các icon từ @ant-design/icons (User, Mail, Phone, Lock, Save, v.v.) giúp giao diện trực quan hơn.
+Hỗ trợ đầy đủ hai chế độ: Thêm mới (có thêm trường Password) và Chỉnh sửa (khóa trường Email để đảm bảo tính nhất quán).
+Nút bấm sử dụng Gradient (blue-600 to indigo-500) tạo cảm giác premium.
+Cập nhật UsersPage.tsx & index.tsx:
+
+Chuyển sang sử dụng component UserModal dùng chung tại @/components/UserModal.
+Cấu hình đồng nhất các prop visible, user, onClose, và onSuccess.
+Bổ sung Style hệ thống:
+
+Thêm các tùy chỉnh CSS trong src/css/global.css dành riêng cho .premium-modal và .user-form.
+Tối ưu hóa hiển thị Input và Select: tăng chiều cao, làm mềm biên giới (border), và thêm hiệu ứng focus mượt mà.
+Kết quả:
+Giao diện: Sang trọng, chuẩn Zalo Mini App nhưng vẫn có nét riêng cao cấp.
+Trải nghiệm: Có thông báo (Toast message) khi thành công/thất bại, có trạng thái loading trên nút bấm để tránh double-submit.
+Mã nguồn: Sạch sẽ, dễ bảo trì và tái sử dụng ở các trang khác nếu cần.
+Bạn có thể kiểm tra trực tiếp tại trang Quản lý nhân viên nhé!

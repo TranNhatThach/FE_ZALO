@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AuthState, User } from '../types/auth.types';
+import { AuthState, User } from '@/types/auth.types';
 
 const ACCESS_TOKEN_KEY = 'zma_access_token';
 const REFRESH_TOKEN_KEY = 'zma_refresh_token';
@@ -49,4 +49,3 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 }));
-

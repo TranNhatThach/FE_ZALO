@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
   const { isAuthenticated, user, setUser } = useAuthStore();
   const location = useLocation();
 
-  // Fetch user if authenticated but no user info exists (e.g. page refresh)
+  
   const fetchUserQuery = useGetMe({
     enabled: isAuthenticated && !user,
   });
@@ -25,7 +25,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
   }, [fetchUserQuery.data, setUser, user]);
 
   if (!isAuthenticated) {
-    // Save attempted route for post-login redirect
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

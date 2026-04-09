@@ -1,17 +1,21 @@
 import { api } from './fetcher';
-import { LoginResponse, User } from '../types/auth.types';
+import { 
+  LoginResponse, 
+  User, 
+  LoginBasicRequest, 
+  RegisterRequest, 
+  ZaloLoginRequest 
+} from '../types/auth.types';
 
 export const authApi = {
-  /**
-   * POST /auth/login
-   * Returns the user object + access/refresh tokens.
-   */
-  login: (credentials: { email: string; password: string }): Promise<LoginResponse> =>
-    api.post<LoginResponse>('/auth/login', credentials),
+  loginBasic: (credentials: LoginBasicRequest): Promise<LoginResponse> =>
+    api.post<LoginResponse>('/auth/login/basic', credentials),
 
-  /**
-   * GET /auth/me
-   * Returns the currently authenticated user's profile.
-   */
+  register: (data: RegisterRequest): Promise<LoginResponse> =>
+    api.post<LoginResponse>('/auth/register', data),
+
+  zaloLogin: (data: ZaloLoginRequest): Promise<LoginResponse> =>
+    api.post<LoginResponse>('/auth/login/zalo', data),
+
   getMe: (): Promise<User> => api.get<User>('/auth/me'),
 };

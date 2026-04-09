@@ -1,6 +1,6 @@
 import React from 'react';
 import { Typography, Card, Row, Col, Statistic } from 'antd';
-import { useAuthStore } from '../stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { UserOutlined, ArrowUpOutlined } from '@ant-design/icons';
 
 const { Title, Paragraph } = Typography;
