@@ -5,6 +5,10 @@ import { useAuthStore } from '@/stores/auth.store';
 import { getUserInfo } from 'zmp-sdk';
 
 const LoginPage: React.FC = () => {
+  // LẤY THÔNG TIN ADMIN MẶC ĐỊNH TỪ .ENV (Chỉ dùng để kiểm tra logic Bypass)
+  const DUMMY_ADMIN_USER = import.meta.env.VITE_DUMMY_ADMIN_USER || 'admin';
+  const DUMMY_ADMIN_PASS = import.meta.env.VITE_DUMMY_ADMIN_PASS || 'admin123';
+
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -15,12 +19,23 @@ const LoginPage: React.FC = () => {
   const zaloLoginMutation = useZaloLoginMutation();
 
   const handleLogin = () => {
-    
+    // ƯU TIÊN: Kiểm tra tài khoản Admin mặc định để VÀO LUÔN (Bypass BE)
+    if (phone === DUMMY_ADMIN_USER && password === DUMMY_ADMIN_PASS) {
+      login(
+        { id: 'admin-preview', email: 'admin@vanguard.com', name: 'Vanguard Admin', roles: ['ADMIN'], avatar: 'https://i.pravatar.cc/150?u=admin' },
+        'admin-token-bypass', 
+        'admin-refresh-bypass'
+      );
+      navigate('/dashboard');
+      return;
+    }
+
+    // NGƯỢC LẠI: Gọi API thực tế
     const credentials = { username: phone, password };
-  /* 
-    TẠM THỜI COMMENT API:
-    const isEmail = phone.includes('@');
-    const credentials = isEmail ? { email: phone, password } : { phone: phone, password };*/
+    /* 
+      TẠM THỜI COMMENT API:
+      const isEmail = phone.includes('@');
+      const credentials = isEmail ? { email: phone, password } : { phone: phone, password };*/
     loginMutation.mutate(credentials, {
       onSuccess: (data) => {
         login(data.user, data.accessToken, data.refreshToken);
@@ -30,15 +45,6 @@ const LoginPage: React.FC = () => {
         alert(error.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
       },
     });
-    
-    
-    // BYPASS VÀO LUÔN
-    // login(
-    //   { id: 'dev-dummy', email: 'admin@renren.com', roles: ['ADMIN'], name: 'Tester' },
-    //   'dummy-access-token',
-    //   'dummy-refresh-token'
-    // );
-    // navigate('/dashboard');
   };
 
   const handleZaloLogin = async () => {
@@ -48,7 +54,7 @@ const LoginPage: React.FC = () => {
       const { userInfo } = await getUserInfo({});
       const zaloId = userInfo.id;
 
-            /*
+      /*
       TẠM THỜI COMMENT API ZALO LOGIN:
       // zaloLoginMutation.mutate(
       //   { zaloId: zaloId },
@@ -63,12 +69,13 @@ const LoginPage: React.FC = () => {
       //   'dummy-refresh-token'
       // );
       // navigate('/dashboard');
+
       // Gọi API Zalo Login thật
       zaloLoginMutation.mutate(
-        { 
-          zaloId, 
-          fullName: userInfo.name, 
-          avatar: userInfo.avatar, 
+        {
+          zaloId,
+          fullName: userInfo.name,
+          avatar: userInfo.avatar,
           phone: phone || '' // Lấy từ state nếu có
         },
         {
@@ -77,7 +84,7 @@ const LoginPage: React.FC = () => {
             navigate('/dashboard');
           },
           onError: (error: any) => {
-             alert(error.message || 'Đăng nhập Zalo thất bại.');
+            alert(error.message || 'Đăng nhập Zalo thất bại.');
           }
         }
       );
@@ -109,28 +116,28 @@ const LoginPage: React.FC = () => {
 
       {/* Thêm class hide-scrollbar vào thẻ div bao ngoài cùng */}
       <div className="flex flex-col h-screen w-full bg-white relative max-w-[390px] mx-auto overflow-y-auto hide-scrollbar">
-        
+
         {/* 1. HEADER */}
         <div className="h-[56px] flex items-center justify-between px-4 bg-white shrink-0">
           <button className="p-2 -ml-2 cursor-pointer outline-none">
             <img src="/icons/arrow-left-black.svg" alt="back" className="w-6 h-6" />
           </button>
           <h1 className="text-[18px] font-semibold text-gray-900">Đăng nhập</h1>
-          <div className="w-10"></div> 
+          <div className="w-10"></div>
         </div>
 
         {/* 2. BODY CONTENT */}
         <div className="flex flex-col items-center w-full px-5 pt-6 pb-8 bg-white shrink-0">
-          
+
           {/* CẬP NHẬT: LOGO CHỈ CÓ ICON (Không có vòng tròn bao quanh) */}
-          <img 
-            src="/icons/login.svg" 
-            alt="Renren App Logo" 
-            className="w-[108px] h-[88px] object-contain mb-5 shrink-0" 
+          <img
+            src="/icons/login.svg"
+            alt="Renren App Logo"
+            className="w-[108px] h-[88px] object-contain mb-5 shrink-0"
           />
-          
+
           <h2 className="text-[22px] font-bold text-gray-900 mb-1.5 text-center shrink-0">
-            Chào mừng bạn đến với Renren
+            VANGUARD ENTERPRISE
           </h2>
           <p className="text-[15px] text-gray-500 text-center mb-8 shrink-0">
             Đăng nhập để sử dụng tiếp ứng dụng
@@ -141,12 +148,12 @@ const LoginPage: React.FC = () => {
             <label className="block text-[14px] font-medium text-gray-700 mb-2">
               Số điện thoại/Email <span className="text-red-500">*</span>
             </label>
-            
+
             <div className="flex items-center w-full h-[52px] border border-gray-300 rounded-[12px] px-3.5 focus-within:border-[#1E40AF] focus-within:ring-1 focus-within:ring-[#1E40AF] transition-colors bg-white overflow-hidden">
-              
+
               {/* Icon User đầu ô nhập */}
               <img src="/icons/user.svg" alt="user" className="w-5 h-5 mr-2.5 brightness-0" />
-              
+
               <input
                 type="text"
                 placeholder="Email hoặc số điện thoại"
@@ -154,7 +161,7 @@ const LoginPage: React.FC = () => {
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
               />
-              
+
               {phone.length > 0 && (
                 <button onClick={() => setPhone('')} className="p-1 outline-none">
                   <img src="/icons/close-circle.svg" alt="clear" className="w-5 h-5 opacity-40" />
@@ -173,9 +180,9 @@ const LoginPage: React.FC = () => {
                 Quên mật khẩu?
               </button>
             </div>
-            
+
             <div className="flex items-center w-full h-[52px] border border-gray-300 rounded-[12px] px-3.5 focus-within:border-[#1E40AF] focus-within:ring-1 focus-within:ring-[#1E40AF] transition-colors bg-white overflow-hidden">
-              
+
               <img src="/icons/lock.svg" alt="password-security-icon" className="w-5 h-5 mr-2.5 brightness-0" />
 
               <input
@@ -185,26 +192,25 @@ const LoginPage: React.FC = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-              
+
               <button onClick={() => setShowPassword(!showPassword)} className="p-1 ml-2 outline-none">
-                <img 
-                  src={showPassword ? "/icons/eye.svg" : "/icons/eye-slash.svg"} 
-                  alt="toggle password" 
-                  className="w-5 h-5 opacity-50 hover:opacity-80 transition-opacity" 
+                <img
+                  src={showPassword ? "/icons/eye.svg" : "/icons/eye-slash.svg"}
+                  alt="toggle password"
+                  className="w-5 h-5 opacity-50 hover:opacity-80 transition-opacity"
                 />
               </button>
             </div>
           </div>
 
           {/* NÚT ĐĂNG NHẬP */}
-          <button 
+          <button
             onClick={handleLogin}
             disabled={phone.length < 5 || password.length < 3}
-            className={`w-full h-[52px] rounded-[12px] font-semibold text-[16px] flex items-center justify-center transition-all shrink-0 outline-none ${
-              phone.length >= 5 && password.length >= 3
-                ? 'bg-[#1E40AF] text-white shadow-md active:bg-[#00288E]' 
-                : 'bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed'
-            }`}
+            className={`w-full h-[52px] rounded-[12px] font-semibold text-[16px] flex items-center justify-center transition-all shrink-0 outline-none ${phone.length >= 5 && password.length >= 3
+              ? 'bg-[#1E40AF] text-white shadow-md active:bg-[#00288E]'
+              : 'bg-[#F3F4F6] text-[#9CA3AF] cursor-not-allowed'
+              }`}
           >
             Đăng nhập
           </button>
@@ -217,38 +223,36 @@ const LoginPage: React.FC = () => {
           </div>
 
           {/* ĐĂNG NHẬP BẰNG ZALO */}
-          <button 
+          <button
             onClick={handleZaloLogin}
             disabled={zaloLoginMutation.isPending}
-            className={`w-full h-[52px] rounded-[12px] font-semibold text-[16px] flex items-center justify-center gap-3 text-white shadow-sm transition-all shrink-0 outline-none ${
-              zaloLoginMutation.isPending ? 'bg-blue-300 cursor-not-allowed' : 'bg-[#0068FF] active:bg-[#0054cc]'
-            }`}
+            className={`w-full h-[52px] rounded-[12px] font-semibold text-[16px] flex items-center justify-center gap-3 text-white shadow-sm transition-all shrink-0 outline-none ${zaloLoginMutation.isPending ? 'bg-blue-300 cursor-not-allowed' : 'bg-[#0068FF] active:bg-[#0054cc]'
+              }`}
           >
             <div className="flex items-center justify-center bg-white rounded-full p-2 aspect-square h-[34px]">
-               <span className="text-[#0068FF] font-bold text-[13px] leading-none">Zalo</span>
+              <span className="text-[#0068FF] font-bold text-[13px] leading-none">Zalo</span>
             </div>
             <span>{zaloLoginMutation.isPending ? 'Đang xử lý...' : 'Đăng nhập bằng Zalo'}</span>
           </button>
 
-          {/* LIÊN KẾT ĐĂNG KÝ */}
-          <div className="mt-8 flex items-center justify-center gap-1 text-[15px] shrink-0">
-            <span className="text-gray-500">Chưa có tài khoản?</span>
-            <button onClick={() => navigate('/register')} className="text-[#1E40AF] font-semibold active:opacity-70 outline-none bg-transparent p-0">Đăng ký ngay</button>
+          {/* LIÊN KẾT HỖ TRỢ (Tùy chọn) */}
+          <div className="mt-8 flex items-center justify-center gap-1 text-[13px] text-gray-400 shrink-0">
+            <span>© 2024 VANGUARD ENTERPRISE SOLUTIONS</span>
           </div>
 
         </div>
 
         {/* FOOTER */}
         <div className="mt-auto w-full bg-[#F4F5F7] h-[153px] flex flex-col justify-between px-5 pt-6 pb-8 shrink-0">
-          
+
           <div className="flex items-center justify-between w-full">
             <button className="flex items-center justify-center gap-1.5 w-[104px] h-[52px] bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-[20px] shadow-sm border border-gray-200/60 cursor-pointer outline-none">
               <img src="/icons/headphone.svg" alt="support" className="w-[18px] h-[18px] opacity-70" />
               <span className="text-[14px] font-medium text-gray-700">Hỗ trợ</span>
             </button>
-            
+
             <button className="flex items-center justify-center gap-1.5 w-[122px] h-[52px] bg-white hover:bg-gray-50 active:bg-gray-100 transition-colors rounded-[20px] shadow-sm border border-gray-200/60 cursor-pointer outline-none">
-              <img src="/icons/ui.svg" alt="lang" className="w-[18px] h-[18px] opacity-70" /> 
+              <img src="/icons/ui.svg" alt="lang" className="w-[18px] h-[18px] opacity-70" />
               <span className="text-[14px] font-medium text-gray-700">Tiếng Việt</span>
               <img src="/icons/chevron-down.svg" alt="down" className="w-4 h-4 opacity-50" />
             </button>
@@ -259,7 +263,7 @@ const LoginPage: React.FC = () => {
           </div>
 
         </div>
-        
+
       </div>
     </>
   );

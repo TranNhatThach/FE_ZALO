@@ -11,7 +11,7 @@ import {
 import { useAuthStore } from '../../stores/auth.store';
 import { useThemeStore } from '../../stores/theme.store';
 import { useMobile } from '../../hooks/useMobile';
-import { useLocation, Link } from 'react-router-dom';
+import { useLocation, useNavigate } from 'zmp-ui';
 import { menuConfig, MenuItem } from '../../configs/menu.config';
 
 const { Header: AntHeader } = Layout;
@@ -22,11 +22,13 @@ export const Header: React.FC = () => {
   const isMobile = useMobile();
   const location = useLocation();
 
+  const navigate = useNavigate();
+
   // Generate dynamic breadcrumbs base on location
   const generateBreadcrumbs = () => {
     const paths = location.pathname.split('/').filter(i => i);
     const breadcrumbs = [
-      { title: <Link to="/dashboard">Home</Link> }
+      { title: <span className="cursor-pointer hover:text-blue-500" onClick={() => navigate('/dashboard')}>Home</span> }
     ];
 
     let currentPath = '';
@@ -46,7 +48,8 @@ export const Header: React.FC = () => {
       
       const title = findTitle(menuConfig, currentPath);
       if (title) {
-         breadcrumbs.push({ title: <Link to={currentPath}>{title}</Link> });
+         const targetPath = currentPath;
+         breadcrumbs.push({ title: <span className="cursor-pointer hover:text-blue-500" onClick={() => navigate(targetPath)}>{title}</span> });
       }
     });
 
@@ -67,13 +70,21 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <AntHeader className={`flex items-center justify-between px-4 border-b transition-colors duration-300 shadow-sm ${isDarkMode ? 'bg-[#141414] border-gray-800' : 'bg-white border-gray-200'}`} style={{ padding: 0 }}>
-      <div className="flex items-center">
+    <AntHeader 
+      className={`flex items-end justify-between px-4 border-b transition-all duration-300 shadow-sm ${isDarkMode ? 'bg-black border-gray-800' : 'bg-white border-gray-100'}`} 
+      style={{ 
+        padding: 0, 
+        height: isMobile ? 104 : 64, 
+        paddingTop: isMobile ? 44 : 0,
+        lineHeight: '60px'
+      }}
+    >
+      <div className="flex items-center h-full">
         <Button
           type="text"
           icon={isSidebarCollapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
           onClick={toggleSidebar}
-          className={`text-lg w-16 h-16 rounded-none ${isDarkMode ? 'text-white hover:bg-gray-800' : 'text-gray-800 hover:bg-gray-100'}`}
+          className={`text-lg w-16 h-full flex items-center justify-center rounded-none transition-colors ${isDarkMode ? 'text-white hover:bg-gray-800 focus:bg-gray-800' : 'text-gray-800 hover:bg-gray-100 focus:bg-gray-100'}`}
         />
         {!isMobile && (
           <div className="ml-4">
@@ -82,8 +93,9 @@ export const Header: React.FC = () => {
         )}
       </div>
 
-      <div className="flex items-center pr-6 gap-5">
+      <div className="flex items-center pr-4 gap-4 h-full">
         <Switch
+          className={isDarkMode ? 'bg-gray-700' : ''}
           checkedChildren={<BulbFilled />}
           unCheckedChildren={<BulbOutlined />}
           checked={isDarkMode}
@@ -95,8 +107,8 @@ export const Header: React.FC = () => {
           </Badge>
         </Dropdown>
         <Dropdown menu={{ items: userMenuItems as any }} placement="bottomRight" arrow>
-          <div className={`flex items-center cursor-pointer gap-2 p-2 rounded-md transition-colors ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}>
-            <Avatar icon={<UserOutlined />} src={user?.avatar} />
+          <div className={`flex items-center cursor-pointer gap-2 p-1.5 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}>
+            <Avatar size={32} icon={<UserOutlined />} src={user?.avatar} className="border border-gray-100" />
             {!isMobile && <span className={`font-medium ${isDarkMode ? 'text-gray-300' : 'text-gray-700'}`}>{user?.name || 'Admin User'}</span>}
           </div>
         </Dropdown>

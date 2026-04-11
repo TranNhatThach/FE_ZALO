@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Navigate, useLocation, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation } from 'zmp-ui';
 import { useAuthStore } from '../../stores/auth.store';
 import { useGetMe } from '../../hooks/useAuth';
 import { Spin } from 'antd';
@@ -11,9 +11,9 @@ interface ProtectedRouteProps {
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, children }) => {
   const { isAuthenticated, user, setUser } = useAuthStore();
+  const navigate = useNavigate();
   const location = useLocation();
 
-  
   const fetchUserQuery = useGetMe({
     enabled: isAuthenticated && !user,
   });
@@ -24,8 +24,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
     }
   }, [fetchUserQuery.data, setUser, user]);
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login', { replace: true, state: { from: location.pathname } });
+    }
+  }, [isAuthenticated, navigate, location.pathname]);
+
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return null; // Navigation is handled in useEffect
   }
 
   if (fetchUserQuery.isLoading) {
@@ -39,9 +45,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
   if (requiredRoles && requiredRoles.length > 0) {
     const hasRole = user?.roles?.some((role: string) => requiredRoles.includes(role));
     if (!hasRole) {
-      return <Navigate to="/unauthorized" replace />;
+      navigate('/unauthorized', { replace: true });
+      return null;
     }
   }
 
-  return <>{children ? children : <Outlet />}</>;
+  return <>{children}</>;
 };

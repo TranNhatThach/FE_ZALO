@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Layout, Menu, Drawer } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'zmp-ui';
 import { useThemeStore } from '../../stores/theme.store';
 import { useMobile } from '../../hooks/useMobile';
 import { menuConfig, MenuItem } from '../../configs/menu.config';
