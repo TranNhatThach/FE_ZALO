@@ -5,16 +5,17 @@ import { Layout, Skeleton } from 'antd';
 import { Sidebar } from '../components/layout/Sidebar';
 // ==========================================================
 
-import { Header } from '../components/layout/Header';
-import { useMobile } from '../hooks/useMobile';
 import { useThemeStore } from '../stores/theme.store';
 import { ErrorBoundary } from '../components/error/ErrorBoundary';
 import { useNavigate, useLocation } from 'zmp-ui';
-import { 
-  AppstoreOutlined, 
-  BarChartOutlined, 
-  CheckSquareOutlined, 
-  SettingOutlined 
+import {
+  HomeOutlined,
+  ShoppingOutlined,
+  TeamOutlined,
+  ShopOutlined,
+  EllipsisOutlined,
+  EnvironmentOutlined,
+  CheckSquareOutlined
 } from '@ant-design/icons';
 
 const { Content } = Layout;
@@ -24,81 +25,91 @@ interface MainLayoutProps {
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
-  const isMobile = useMobile();
   const navigate = useNavigate();
   const location = useLocation();
-  const { isSidebarCollapsed, isDarkMode } = useThemeStore();
-  
-  // padding adjustments based on Sidebar visibility
-  const getMarginLeft = () => {
-    if (isMobile) return 0;
-    return isSidebarCollapsed ? 80 : 250;
-  };
+  const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
 
   const navItems = [
-    { key: '/dashboard', label: 'DASHBOARD', icon: <AppstoreOutlined /> },
-    { key: '/activity', label: 'ACTIVITY', icon: <BarChartOutlined /> },
+    { key: '/dashboard', label: 'HOME', icon: <HomeOutlined /> },
     { key: '/tasks', label: 'TASKS', icon: <CheckSquareOutlined /> },
-    { key: '/settings', label: 'SETTINGS', icon: <SettingOutlined /> },
+    { key: '/goods', label: 'GOODS', icon: <ShoppingOutlined /> },
+    { key: '/suppliers', label: 'SUPPLIERS', icon: <ShopOutlined /> },
+    { key: 'more', label: 'MORE', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
   ];
 
   return (
-    <Layout className={`min-h-screen transition-colors duration-300 relative ${isDarkMode ? 'bg-black' : 'bg-[#fbfcff]'}`}>
-      
-      {/* =========================================================================
-          BẠN CỦA USER: THAY THẾ HOẶC CHỈNH SỬA THANH CÔNG CỤ BÊN TRÁI (SIDEBAR) TẠI ĐÂY 
-          ========================================================================= */}
-      <Sidebar />
-      {/* ========================================================================= */}
+    <Layout className={`min-h-[100dvh] w-full transition-colors duration-300 relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}>
 
-      <Layout 
-        style={{ 
-          marginLeft: getMarginLeft(),
+      <Sidebar />
+
+      <Layout
+        style={{
+          marginLeft: 0,
           transition: 'all 0.3s'
         }}
-        className={isDarkMode ? 'bg-black' : 'bg-[#fbfcff]'}
+        className={`w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}
       >
-        <Header />
-        <Content 
-          className={`
-            transition-colors duration-300 
-            ${isMobile 
-              ? 'm-0 p-0 mb-20 bg-transparent overflow-hidden' 
-              : `m-4 md:m-6 p-4 md:p-6 rounded-lg shadow-sm min-h-[280px] ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`
-            }
-          `}
+        {/* Content Wrapper using safe-area-insent to avoid notch overlap */}
+        <Content
+          className="flex-1 w-full m-0 p-0 relative"
+          style={{ 
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+            paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 64px)'
+          }}
         >
           <ErrorBoundary>
-            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} />}>
+            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
               {children}
             </Suspense>
           </ErrorBoundary>
         </Content>
 
-        {/* Bottom Navigation for Mobile */}
-        {isMobile && (
-          <div className={`fixed bottom-0 left-0 right-0 h-[76px] flex items-center justify-around px-4 z-50 border-t transition-all duration-300 ${isDarkMode ? 'bg-black/90 backdrop-blur-md border-gray-800 shadow-none' : 'bg-white/80 backdrop-blur-xl border-gray-100 shadow-[0_-4px_20px_0_rgba(0,0,0,0.03)]'}`}>
-            {navItems.map((item) => {
-              const isActive = location.pathname === item.key;
-              return (
-                <button
-                  key={item.key}
-                  onClick={() => navigate(item.key)}
-                  className={`flex flex-col items-center justify-center space-y-1 group transition-all duration-300 ${isActive ? 'scale-110' : 'opacity-40 hover:opacity-100'}`}
-                >
-                  <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? (isDarkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600 shadow-sm') : 'text-gray-500'}`}>
-                    {React.cloneElement(item.icon as React.ReactElement, { 
-                      style: { fontSize: isActive ? '20px' : '18px' } 
-                    })}
-                  </div>
-                  <span className={`text-[9px] font-black tracking-widest ${isActive ? (isDarkMode ? 'text-blue-400' : 'text-blue-600') : 'text-gray-400'}`}>
-                    {item.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        )}
+        {/* Premium Mobile Bottom Navigation (Glassmorphism) */}
+        <div 
+          className={`fixed bottom-0 left-0 right-0 flex items-center justify-around px-2 z-[1000] border-t transition-all duration-300 ${
+            isDarkMode 
+              ? 'bg-[#1a1a1c]/80 backdrop-blur-xl border-gray-800 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]' 
+              : 'bg-white/90 backdrop-blur-xl border-white/[0.2] shadow-[0_-8px_30px_rgba(0,0,0,0.04)]'
+          }`}
+          style={{ 
+            height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)' 
+          }}
+        >
+          {navItems.map((item) => {
+            const isActive = location.pathname.startsWith(item.key) && item.key !== 'more';
+            return (
+              <button
+                key={item.key}
+                onClick={() => {
+                  if (item.action === 'toggle-sidebar') {
+                     setSidebarCollapsed(!isSidebarCollapsed);
+                  } else {
+                     navigate(item.key);
+                  }
+                }}
+                className="flex flex-col items-center justify-center w-full h-[64px] border-none outline-none bg-transparent group active:scale-[0.92] transition-transform select-none"
+                style={{ WebkitTapHighlightColor: 'transparent' }}
+              >
+                <div className={`transition-all duration-300 flex items-center justify-center ${
+                  isActive ? (isDarkMode ? 'text-[#60a5fa] drop-shadow-md' : 'text-[#2563eb] drop-shadow-sm') : 'text-[#a1a1aa]'
+                }`}>
+                  {React.cloneElement(item.icon as React.ReactElement, {
+                    style: { fontSize: isActive ? '24px' : '22px' }
+                  })}
+                </div>
+                <span className={`text-[9px] font-black tracking-widest mt-1 uppercase ${
+                  isActive ? (isDarkMode ? 'text-[#60a5fa]' : 'text-[#2563eb]') : 'text-[#a1a1aa]'
+                }`}>
+                  {item.label}
+                </span>
+                {isActive && (
+                  <div className="absolute top-0 w-8 h-[3px] bg-gradient-to-r from-blue-400 to-indigo-500 rounded-b-md opacity-80" />
+                )}
+              </button>
+            );
+          })}
+        </div>
       </Layout>
     </Layout>
   );

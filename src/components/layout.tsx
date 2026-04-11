@@ -20,6 +20,9 @@ import Dashboard from '@/pages/Dashboard';
 
 // Lazy load feature pages
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'));
+const GoodsPage = lazy(() => import('@/pages/goods/GoodsPage'));
+const SuppliersPage = lazy(() => import('@/pages/suppliers/SuppliersPage'));
+const TasksPage = lazy(() => import('@/pages/tasks/TasksPage'));
 const BranchesPage = lazy(() => import('@/pages/branches/BranchesPage'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 
@@ -79,6 +82,39 @@ const AppContent = () => {
                                 <MainLayout>
                                     <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                                         <Page className="page"><UsersPage /></Page>
+                                    </Suspense>
+                                </MainLayout>
+                            </ProtectedRoute>
+                        }></Route>
+
+                        {/* Inventory/Goods Page */}
+                        <Route path="/goods" element={
+                            <ProtectedRoute>
+                                <MainLayout>
+                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                        <Page className="page"><GoodsPage /></Page>
+                                    </Suspense>
+                                </MainLayout>
+                            </ProtectedRoute>
+                        }></Route>
+
+                        {/* Suppliers Page */}
+                        <Route path="/suppliers" element={
+                            <ProtectedRoute>
+                                <MainLayout>
+                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                        <Page className="page"><SuppliersPage /></Page>
+                                    </Suspense>
+                                </MainLayout>
+                            </ProtectedRoute>
+                        }></Route>
+
+                        {/* Tasks Page */}
+                        <Route path="/tasks" element={
+                            <ProtectedRoute>
+                                <MainLayout>
+                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                        <Page className="page"><TasksPage /></Page>
                                     </Suspense>
                                 </MainLayout>
                             </ProtectedRoute>

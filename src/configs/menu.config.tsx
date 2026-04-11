@@ -1,10 +1,13 @@
 import React from 'react';
 import {
-  DashboardOutlined,
-  UserOutlined,
+  AppstoreOutlined,
+  ShoppingOutlined,
+  UsergroupAddOutlined,
+  ShopOutlined,
+  EnvironmentOutlined,
   SettingOutlined,
   TeamOutlined,
-  ProfileOutlined,
+  CheckSquareOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
@@ -16,46 +19,52 @@ export type MenuItem = Required<MenuProps>['items'][number] & {
 
 export const menuConfig: MenuItem[] = [
   {
-    key: 'dashboard',
-    icon: <DashboardOutlined />,
+    key: '/dashboard',
+    icon: <AppstoreOutlined />,
     label: 'Dashboard',
     title: 'Dashboard',
     path: '/dashboard',
   },
   {
-    key: 'users',
-    icon: <UserOutlined />,
-    label: 'User Management',
-    title: 'User Management',
-    children: [
-      {
-        key: '/users',
-        icon: <TeamOutlined />,
-        label: 'All Users',
-        title: 'All Users',
-        path: '/users',
-      },
-      {
-        key: '/users/roles',
-        icon: <ProfileOutlined />,
-        label: 'Roles',
-        title: 'Roles',
-        path: '/users/roles',
-      },
-    ],
+    key: '/tasks',
+    icon: <CheckSquareOutlined />,
+    label: 'Quản lý Công việc',
+    title: 'Quản lý Công việc',
+    path: '/tasks',
   },
   {
-    key: 'branches',
-    icon: <TeamOutlined />, // or some other icon
-    label: 'Branch Management',
-    title: 'Branch Management',
+    key: '/goods',
+    icon: <ShoppingOutlined />,
+    label: 'Hàng hóa / Dịch vụ',
+    title: 'Hàng hóa / Dịch vụ',
+    path: '/goods',
+  },
+  {
+    key: '/suppliers',
+    icon: <ShopOutlined />,
+    label: 'Nhà cung cấp',
+    title: 'Nhà cung cấp',
+    path: '/suppliers',
+  },
+  {
+    key: '/users',
+    icon: <TeamOutlined />,
+    label: 'Quản lý Nhân sự',
+    title: 'Quản lý Nhân sự',
+    path: '/users',
+  },
+  {
+    key: '/branches',
+    icon: <EnvironmentOutlined />,
+    label: 'Cơ sở / Chi nhánh',
+    title: 'Cơ sở / Chi nhánh',
     path: '/branches',
   },
   {
-    key: 'settings',
+    key: '/settings',
     icon: <SettingOutlined />,
-    label: 'Settings',
-    title: 'Settings',
+    label: 'Cài đặt hệ thống',
+    title: 'Cài đặt hệ thống',
     path: '/settings',
   },
 ];

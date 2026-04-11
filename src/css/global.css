@@ -1,12 +1,16 @@
-
 @layer base {
+
   /* Ẩn thanh cuộn toàn cầu (ZMA Style) */
   * {
-    scrollbar-width: none; /* Firefox */
-    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;
+    /* Firefox */
+    -ms-overflow-style: none;
+    /* IE/Edge */
   }
+
   *::-webkit-scrollbar {
-    display: none !important; /* Chrome/Safari */
+    display: none !important;
+    /* Chrome/Safari */
   }
 
   :root {
@@ -15,7 +19,8 @@
     --primary: #1a3faf;
   }
 
-  html, body {
+  html,
+  body {
     @apply antialiased overflow-x-hidden transition-colors duration-300;
     -webkit-tap-highlight-color: transparent;
     -webkit-overflow-scrolling: touch;
@@ -90,10 +95,12 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  
+
   .no-scrollbar {
-    -ms-overflow-style: none;  /* Cho IE và Edge */
-    scrollbar-width: none;  /* Cho Firefox */
+    -ms-overflow-style: none;
+    /* Cho IE và Edge */
+    scrollbar-width: none;
+    /* Cho Firefox */
   }
 
   /* =========================================
@@ -118,11 +125,11 @@
   }
 
   /* Premium Form Styles */
-  .user-form .ant-form-item-label > label {
+  .user-form .ant-form-item-label>label {
     @apply text-sm text-gray-500 font-medium pb-1 mb-0;
   }
 
-  .user-form .ant-input, 
+  .user-form .ant-input,
   .user-form .ant-input-password,
   .user-form .ant-select-selector {
     @apply !rounded-xl !border-gray-100 !bg-gray-50/50 hover:!border-blue-200 focus:!border-blue-400 focus:!bg-white focus:!shadow-blue-50/50 transition-all !duration-300 !h-10 flex items-center;
@@ -131,4 +138,4 @@
   .user-form .ant-input-affix-wrapper {
     @apply !rounded-xl !border-gray-100 !bg-gray-50/50 hover:!border-blue-200 focus-within:!border-blue-400 focus-within:!bg-white transition-all !duration-300 !h-10;
   }
-}
+}
