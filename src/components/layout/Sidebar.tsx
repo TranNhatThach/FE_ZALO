@@ -1,114 +1,157 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Drawer } from 'antd';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'zmp-ui';
+import { Avatar } from 'antd';
+import {
+  LogoutOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 import { useThemeStore } from '../../stores/theme.store';
-import { useMobile } from '../../hooks/useMobile';
+import { useAuthStore } from '../../stores/auth.store';
 import { menuConfig, MenuItem } from '../../configs/menu.config';
 
-const { Sider } = Layout;
-
 export const Sidebar: React.FC = () => {
-  const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
-  const isMobile = useMobile();
-  const location = useLocation();
+  const { isSidebarCollapsed, setSidebarCollapsed } = useThemeStore();
+  const { user, logout } = useAuthStore();
   const navigate = useNavigate();
 
-  const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
-  const [openKeys, setOpenKeys] = useState<string[]>([]);
+  const [selectedKey, setSelectedKey] = useState<string>('dashboard');
+  const [currentPath, setCurrentPath] = useState(window.location.pathname);
 
   useEffect(() => {
-    // Find matching key for current path
-    const path = location.pathname;
-    
-    // Auto expand parent menus if a child is selected
-    const findKeys = (items: MenuItem[], parentKeys: string[] = []): {selected: string, parents: string[]} | null => {
+    const checkPath = () => {
+      const path = window.location.pathname;
+      if (path !== currentPath) setCurrentPath(path);
+    };
+    const interval = setInterval(checkPath, 200);
+    return () => clearInterval(interval);
+  }, [currentPath]);
+
+  useEffect(() => {
+    const findKey = (items: MenuItem[]): string | null => {
       for (const item of items) {
-        if (item?.path === path) return { selected: item.key as string, parents: parentKeys };
+        if (item?.path === currentPath) return item.key as string;
         if (item && 'children' in item && item.children) {
-          const result = findKeys(item.children as MenuItem[], [...parentKeys, item.key as string]);
-          if (result) return result;
+          const childKey = findKey(item.children as MenuItem[]);
+          if (childKey) return childKey;
         }
       }
       return null;
     };
-    
-    const result = findKeys(menuConfig);
-    if (result) {
-      setSelectedKeys([result.selected]);
-      if (!isSidebarCollapsed) {
-        setOpenKeys(prev => Array.from(new Set([...prev, ...result.parents])));
-      }
-    } else {
-      setSelectedKeys(['dashboard']);
-    }
-  }, [location.pathname, isSidebarCollapsed]);
+    setSelectedKey(findKey(menuConfig) || 'dashboard');
+  }, [currentPath]);
 
-  const handleMenuClick = (e: { key: string }) => {
-    const findPath = (items: MenuItem[], key: string): string | undefined => {
-      for (const item of items) {
-        if (item?.key === key) return item.path;
-        if (item && 'children' in item && item.children) {
-          const childPath = findPath(item.children as MenuItem[], key);
-          if (childPath) return childPath;
-        }
-      }
-      return undefined;
-    };
-    
-    const path = findPath(menuConfig, e.key);
-    if (path) {
-      navigate(path);
-      if (isMobile) {
-        setSidebarCollapsed(true); // Close drawer on mobile after navigation
-      }
+  const handleMenuClick = (item: MenuItem) => {
+    if (item.path) {
+      navigate(item.path);
+      setCurrentPath(item.path);
+      setSidebarCollapsed(true);
     }
   };
 
-  const menuContent = (
-    <div className={`flex flex-col h-full border-r transition-colors duration-300 ${isDarkMode ? 'bg-[#141414] border-gray-800' : 'bg-white border-gray-200'}`}>
-      <div className={`h-16 flex items-center justify-center font-bold text-lg tracking-wider border-b transition-colors duration-300 ${isDarkMode ? 'border-gray-800 text-white' : 'border-gray-200 text-gray-800'}`}>
-        {!isSidebarCollapsed || isMobile ? 'ZMA ADMIN' : 'ZMA'}
-      </div>
-      <Menu
-        mode="inline"
-        theme={isDarkMode ? 'dark' : 'light'}
-        selectedKeys={selectedKeys}
-        openKeys={openKeys}
-        onOpenChange={(keys) => setOpenKeys(keys)}
-        onClick={handleMenuClick}
-        items={menuConfig}
-        className="flex-1 border-r-0 transition-colors duration-300"
-      />
-    </div>
-  );
+  const handleLogout = () => {
+    logout();
+    setSidebarCollapsed(true);
+    navigate('/login');
+  };
 
-  if (isMobile) {
-    return (
-      <Drawer
-        placement="left"
-        closable={false}
-        onClose={() => setSidebarCollapsed(true)}
-        open={!isSidebarCollapsed}
-        styles={{ body: { padding: 0 } }}
-        width={250}
-      >
-        {menuContent}
-      </Drawer>
-    );
-  }
+  const closeSidebar = () => setSidebarCollapsed(true);
+
+  if (isSidebarCollapsed) return null;
 
   return (
-    <Sider
-      collapsible
-      collapsed={isSidebarCollapsed}
-      onCollapse={(value) => setSidebarCollapsed(value)}
-      width={250}
-      theme={isDarkMode ? 'dark' : 'light'}
-      trigger={null}
-      className="shadow-sm z-20 transition-all duration-300"
-      style={{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0, top: 0, bottom: 0 }}
-    >
-      {menuContent}
-    </Sider>
+    <>
+      {/* Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/40 z-[998] transition-opacity duration-300"
+        onClick={closeSidebar}
+      />
+
+      {/* Sidebar Panel */}
+      <div
+        className="fixed top-0 left-0 bottom-0 w-[260px] bg-white z-[999] shadow-2xl flex flex-col transition-transform duration-300"
+        style={{ animation: 'slideInLeft 0.25s ease-out' }}
+      >
+        {/* Profile Section */}
+        <div className="px-5 pt-6 pb-4 border-b border-gray-100">
+          <div className="flex items-center gap-3">
+            <Avatar
+              size={48}
+              icon={<UserOutlined />}
+              src={user?.avatar}
+              className="shadow-md flex-shrink-0"
+              style={{ backgroundColor: '#4096ff' }}
+            />
+            <div className="min-w-0">
+              <h3 className="text-base font-bold leading-tight m-0 text-gray-900 truncate">
+                Admin Portal
+              </h3>
+              <p className="text-[10px] font-semibold tracking-[0.15em] m-0 text-gray-400 uppercase">
+                Enterprise Management
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Menu Items */}
+        <nav className="flex-1 overflow-y-auto py-2 px-2">
+          {menuConfig.map((item) => {
+            if (!item) return null;
+            const menuItem = item as any;
+            const isActive = selectedKey === (menuItem.key as string);
+
+            return (
+              <button
+                key={menuItem.key}
+                onClick={() => handleMenuClick(item)}
+                className={`
+                  relative w-full flex items-center gap-3 px-4 py-3.5 mb-0.5 border-none cursor-pointer
+                  transition-all duration-200 rounded-xl text-left
+                  ${isActive
+                    ? 'bg-blue-50 text-blue-600'
+                    : 'bg-transparent text-gray-600 active:bg-gray-50'
+                  }
+                `}
+                style={{ outline: 'none', WebkitTapHighlightColor: 'transparent' }}
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-7 rounded-r-full bg-blue-500" />
+                )}
+
+                {/* Icon */}
+                <span className={`text-lg flex items-center justify-center w-5 ${isActive ? 'text-blue-500' : 'text-gray-400'}`}>
+                  {menuItem.icon}
+                </span>
+
+                {/* Label */}
+                <span className={`text-[15px] ${isActive ? 'font-semibold' : 'font-medium'}`}>
+                  {menuItem.label}
+                </span>
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* Logout */}
+        <div className="px-3 py-4 border-t border-gray-100">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center justify-center gap-2 px-4 py-3 border-none cursor-pointer transition-all duration-200 rounded-xl bg-transparent text-gray-500 active:bg-red-50 active:text-red-500"
+            style={{ outline: 'none', WebkitTapHighlightColor: 'transparent' }}
+          >
+            <LogoutOutlined className="text-lg" />
+            <span className="text-sm font-medium">Logout</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Slide-in animation */}
+      <style>{`
+        @keyframes slideInLeft {
+          from { transform: translateX(-100%); }
+          to { transform: translateX(0); }
+        }
+      `}</style>
+    </>
   );
 };

@@ -24,9 +24,10 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
     }
   }, [fetchUserQuery.data, setUser, user]);
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
+  // TODO: Bật lại sau khi xem xong thanh điều hướng
+  // if (!isAuthenticated) {
+  //   return <Navigate to="/login" state={{ from: location }} replace />;
+  // }
 
   if (fetchUserQuery.isLoading) {
     return (

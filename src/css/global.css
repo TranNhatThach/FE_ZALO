@@ -1,3 +1,12 @@
+/* Ẩn hoàn toàn thanh cuộn dọc mặc định trên mobile PWA/Mini App */
+::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+}
+* {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
 
 @layer base {
   /* Khai báo các biến CSS dùng chung cho dự án */
