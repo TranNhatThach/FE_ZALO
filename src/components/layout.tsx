@@ -62,89 +62,71 @@ const AppContent = () => {
         >
             <App theme={getSystemInfo().zaloTheme as AppProps['theme']}>
                 <ZMPRouter>
-                    <AnimationRoutes>
-                        {/* Public Routes */}
-                        <Route path="/" element={<Page className="page"><LoginPage /></Page>}></Route>
-                        <Route path="/login" element={<Page className="page"><LoginPage /></Page>}></Route>
-                        <Route path="/error" element={<HomePage />}></Route>
-
-                        {/* Protected Routes Wrapper */}
-                        <Route path="/dashboard" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Page className="page"><Dashboard /></Page>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-
-                        <Route path="/users" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                        <Page className="page"><UsersPage /></Page>
-                                    </Suspense>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-
-                        {/* Inventory/Goods Page */}
-                        <Route path="/goods" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                        <Page className="page"><GoodsPage /></Page>
-                                    </Suspense>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-
-                        {/* Suppliers Page */}
-                        <Route path="/suppliers" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                        <Page className="page"><SuppliersPage /></Page>
-                                    </Suspense>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-
-                        {/* Tasks Page */}
-                        <Route path="/tasks" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                        <Page className="page"><TasksPage /></Page>
-                                    </Suspense>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-
-                        <Route path="/branches" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                        <Page className="page"><BranchesPage /></Page>
-                                    </Suspense>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-
-                        <Route path="/settings" element={
-                            <ProtectedRoute>
-                                <MainLayout>
-                                    <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                        <Page className="page"><SettingsPage /></Page>
-                                    </Suspense>
-                                </MainLayout>
-                            </ProtectedRoute>
-                        }></Route>
-                    </AnimationRoutes>
+                    <RouterContent />
                 </ZMPRouter>
             </App>
         </ConfigProvider>
     );
 };
+
+import { useLocation } from 'zmp-ui';
+
+const RouterContent = () => {
+    const location = useLocation();
+    const isAuthPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
+
+    if (isAuthPage) {
+        return (
+            <AnimationRoutes>
+                <Route path="/" element={<Page className="page"><LoginPage /></Page>}></Route>
+                <Route path="/login" element={<Page className="page"><LoginPage /></Page>}></Route>
+                <Route path="/register" element={<Page className="page"><RegisterPage /></Page>}></Route>
+                <Route path="/error" element={<HomePage />}></Route>
+            </AnimationRoutes>
+        );
+    }
+
+    return (
+        <ProtectedRoute>
+            <MainLayout>
+                <AnimationRoutes>
+                    <Route path="/dashboard" element={<Page className="page"><Dashboard /></Page>}></Route>
+                    <Route path="/users" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><UsersPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/goods" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><GoodsPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/suppliers" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><SuppliersPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/tasks" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><TasksPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/branches" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><BranchesPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/settings" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><SettingsPage /></Page>
+                        </Suspense>
+                    }></Route>
+                </AnimationRoutes>
+            </MainLayout>
+        </ProtectedRoute>
+    );
+};
+
 
 const Layout = () => {
     return (

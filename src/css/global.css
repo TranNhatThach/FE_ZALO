@@ -123,10 +123,10 @@
   .user-form .ant-input,
   .user-form .ant-input-password,
   .user-form .ant-select-selector {
-    @apply !rounded-xl !border-gray-100 !bg-gray-50/50 hover: !border-blue-200 focus: !border-blue-400 focus: !bg-white focus: !shadow-blue-50/50 transition-all !duration-300 !h-10 flex items-center;
+    @apply !rounded-xl !border-gray-100 !bg-gray-50/50 hover:!border-blue-200 focus:!border-blue-400 focus:!bg-white focus:!shadow-blue-50/50 transition-all !duration-300 !h-10 flex items-center;
   }
 
   .user-form .ant-input-affix-wrapper {
-    @apply !rounded-xl !border-gray-100 !bg-gray-50/50 hover: !border-blue-200 focus-within: !border-blue-400 focus-within: !bg-white transition-all !duration-300 !h-10;
+    @apply !rounded-xl !border-gray-100 !bg-gray-50/50 hover:!border-blue-200 focus-within:!border-blue-400 focus-within:!bg-white transition-all !duration-300 !h-10;
   }
 }
