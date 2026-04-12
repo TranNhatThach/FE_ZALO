@@ -3,6 +3,7 @@ import { useNavigate } from 'zmp-ui';
 import { useLoginMutation, useZaloLoginMutation } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/auth.store';
 import { getUserInfo } from 'zmp-sdk';
+import { User } from '@/types/auth.types';
 
 const LoginPage: React.FC = () => {
   // LẤY THÔNG TIN ADMIN MẶC ĐỊNH TỪ .ENV (Chỉ dùng để kiểm tra logic Bypass)
@@ -18,15 +19,24 @@ const LoginPage: React.FC = () => {
   const loginMutation = useLoginMutation();
   const zaloLoginMutation = useZaloLoginMutation();
 
+  // Middleware: Hàm phân luồng Role
+  const navigateByRole = (userData: User) => {
+    const roles = userData.roles || [];
+    if (roles.includes('TENANT_ADMIN') || roles.includes('SUPER_ADMIN')) {
+      navigate('/dashboard');
+    } else if (roles.includes('EMPLOYEE')) {
+      navigate('/tasks');
+    } else {
+      navigate('/goods'); // Customer vãng lai
+    }
+  };
+
   const handleLogin = () => {
     // ƯU TIÊN: Kiểm tra tài khoản Admin mặc định để VÀO LUÔN (Bypass BE)
     if (phone === DUMMY_ADMIN_USER && password === DUMMY_ADMIN_PASS) {
-      login(
-        { id: 'admin-preview', email: 'admin@vanguard.com', name: 'Vanguard Admin', roles: ['ADMIN'], avatar: 'https://i.pravatar.cc/150?u=admin' },
-        'admin-token-bypass', 
-        'admin-refresh-bypass'
-      );
-      navigate('/dashboard');
+      const dummyAdminData: User = { id: 'admin-preview', email: 'admin@vanguard.com', name: 'Vanguard Admin', roles: ['TENANT_ADMIN'], avatar: 'https://i.pravatar.cc/150?u=admin' };
+      login(dummyAdminData, 'admin-token-bypass', 'admin-refresh-bypass');
+      navigateByRole(dummyAdminData);
       return;
     }
 
@@ -39,7 +49,7 @@ const LoginPage: React.FC = () => {
     loginMutation.mutate(credentials, {
       onSuccess: (data) => {
         login(data.user, data.accessToken, data.refreshToken);
-        navigate('/dashboard');
+        navigateByRole(data.user);
       },
       onError: (error: any) => {
         alert(error.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
@@ -81,7 +91,7 @@ const LoginPage: React.FC = () => {
         {
           onSuccess: (data) => {
             login(data.user, data.accessToken, data.refreshToken);
-            navigate('/dashboard');
+            navigateByRole(data.user);
           },
           onError: (error: any) => {
             alert(error.message || 'Đăng nhập Zalo thất bại.');

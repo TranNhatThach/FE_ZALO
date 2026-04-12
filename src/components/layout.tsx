@@ -8,6 +8,7 @@ import { ConfigProvider, theme, Spin, Skeleton } from 'antd';
 // Layouts & Auth
 import { MainLayout } from '@/layouts/MainLayout';
 import { ProtectedRoute } from './auth/ProtectedRoute';
+import { RoleGuard } from './auth/RoleGuard';
 import { useAuthStore } from '../stores/auth.store';
 import { useTenantResolver } from '../hooks/useTenantResolver';
 import { useThemeStore } from '../stores/theme.store';
@@ -90,12 +91,21 @@ const RouterContent = () => {
         <ProtectedRoute>
             <MainLayout>
                 <AnimationRoutes>
-                    <Route path="/dashboard" element={<Page className="page"><Dashboard /></Page>}></Route>
-                    <Route path="/users" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><UsersPage /></Page>
-                        </Suspense>
+                    {/* KHU VỰC DÀNH CHO ADMIN */}
+                    <Route path="/dashboard" element={
+                        <RoleGuard allowedRoles={['TENANT_ADMIN', 'SUPER_ADMIN']} fallbackPath="/tasks">
+                            <Page className="page"><Dashboard /></Page>
+                        </RoleGuard>
                     }></Route>
+                    <Route path="/users" element={
+                        <RoleGuard allowedRoles={['TENANT_ADMIN', 'SUPER_ADMIN']} fallbackPath="/tasks">
+                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                <Page className="page"><UsersPage /></Page>
+                            </Suspense>
+                        </RoleGuard>
+                    }></Route>
+
+                    {/* KHU VỰC DÀNH CHO NHÂN VIÊN/KHÁCH HÀNG */}
                     <Route path="/goods" element={
                         <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                             <Page className="page"><GoodsPage /></Page>
