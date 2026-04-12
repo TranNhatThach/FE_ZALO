@@ -1,4 +1,4 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, useState, lazy, Suspense } from 'react';
 import { getSystemInfo } from 'zmp-sdk';
 import { AnimationRoutes, App, Route, ZMPRouter, Page } from 'zmp-ui';
 import { AppProps } from 'zmp-ui/app';
@@ -26,6 +26,8 @@ const SuppliersPage = lazy(() => import('@/pages/suppliers/SuppliersPage'));
 const TasksPage = lazy(() => import('@/pages/tasks/TasksPage'));
 const BranchesPage = lazy(() => import('@/pages/branches/BranchesPage'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
+const CheckInPage = lazy(() => import('@/pages/checkin/CheckInPage'));
+const UserHomePage = lazy(() => import('@/pages/Home/UserHomePage'));
 
 const queryClient = new QueryClient();
 
@@ -47,7 +49,7 @@ const AppContent = () => {
     if (isTenantLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
-                <Spin size="large" tip="Loading configuration..." />
+                <Spin size="large" tip="Đang khởi tạo ứng dụng..." />
             </div>
         );
     }
@@ -70,13 +72,28 @@ const AppContent = () => {
     );
 };
 
-import { useLocation } from 'zmp-ui';
+import { useLocation, useNavigate } from 'zmp-ui';
 
 const RouterContent = () => {
     const location = useLocation();
+    const navigate = useNavigate();
+    const { isAuthenticated, user } = useAuthStore();
+
+    // Điều hướng gốc dựa trên Role
+    useEffect(() => {
+        if (isAuthenticated && location.pathname === '/') {
+            const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
+            if (isAdmin) {
+                navigate('/dashboard', { replace: true, animate: false });
+            } else {
+                navigate('/user-home', { replace: true, animate: false });
+            }
+        }
+    }, [isAuthenticated, location.pathname, user, navigate]);
+
     const isAuthPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
 
-    if (isAuthPage) {
+    if (!isAuthenticated && isAuthPage) {
         return (
             <AnimationRoutes>
                 <Route path="/" element={<Page className="page"><LoginPage /></Page>}></Route>
@@ -116,6 +133,11 @@ const RouterContent = () => {
                             <Page className="page"><SuppliersPage /></Page>
                         </Suspense>
                     }></Route>
+                    <Route path="/user-home" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><UserHomePage /></Page>
+                        </Suspense>
+                    }></Route>
                     <Route path="/tasks" element={
                         <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                             <Page className="page"><TasksPage /></Page>
@@ -124,6 +146,11 @@ const RouterContent = () => {
                     <Route path="/branches" element={
                         <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                             <Page className="page"><BranchesPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/checkin" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><CheckInPage /></Page>
                         </Suspense>
                     }></Route>
                     <Route path="/settings" element={

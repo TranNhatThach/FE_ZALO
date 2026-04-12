@@ -49,7 +49,7 @@ const SettingsPage: React.FC = () => {
                {user?.username || 'Admin Portal'}
              </h2>
              <p className="text-[12px] text-gray-400 font-medium m-0 mt-0.5">
-               {user?.role || 'Enterprise Admin'}
+               {user?.roles?.[0] || 'Enterprise Admin'}
              </p>
           </div>
           <button className="bg-[#eff6ff] text-[#1d4ed8] text-[12px] font-bold py-1.5 px-3 rounded-full border-none active:scale-95 transition-transform">

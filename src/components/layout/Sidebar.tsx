@@ -7,11 +7,10 @@ import { menuConfig, MenuItem } from '../../configs/menu.config';
 import { useAuthStore } from '../../stores/auth.store';
 import { LogoutOutlined } from '@ant-design/icons';
 
-const { Sider } = Layout;
-
 export const Sidebar: React.FC = () => {
   const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
-  const { logout } = useAuthStore();
+  const { user, logout } = useAuthStore();
+  const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
   const isMobile = useMobile();
   const location = useLocation();
   const navigate = useNavigate();
@@ -19,11 +18,14 @@ export const Sidebar: React.FC = () => {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
 
+  // Lọc menu dựa trên Role
+  const filteredMenu = isAdmin 
+    ? menuConfig 
+    : menuConfig.filter(item => ['/user-home', '/tasks'].includes(item.path as string));
+
   useEffect(() => {
-    // Find matching key for current path
     const path = location.pathname;
 
-    // Auto expand parent menus if a child is selected
     const findKeys = (items: MenuItem[], parentKeys: string[] = []): { selected: string, parents: string[] } | null => {
       for (const item of items) {
         if (item?.path === path) return { selected: item.key as string, parents: parentKeys };
@@ -35,16 +37,16 @@ export const Sidebar: React.FC = () => {
       return null;
     };
 
-    const result = findKeys(menuConfig);
+    const result = findKeys(filteredMenu);
     if (result) {
       setSelectedKeys([result.selected]);
       if (!isSidebarCollapsed) {
         setOpenKeys(prev => Array.from(new Set([...prev, ...result.parents])));
       }
     } else {
-      setSelectedKeys(['/dashboard']); // default
+      setSelectedKeys(['/dashboard']); 
     }
-  }, [location.pathname, isSidebarCollapsed]);
+  }, [location.pathname, isSidebarCollapsed, filteredMenu]);
 
   const handleMenuClick = (e: { key: string }) => {
     const findPath = (items: MenuItem[], key: string): string | undefined => {
@@ -58,11 +60,11 @@ export const Sidebar: React.FC = () => {
       return undefined;
     };
 
-    const path = findPath(menuConfig, e.key);
+    const path = findPath(filteredMenu, e.key);
     if (path) {
       navigate(path);
       if (isMobile) {
-        setSidebarCollapsed(true); // Close drawer on mobile after navigation
+        setSidebarCollapsed(true);
       }
     }
   };
@@ -74,14 +76,14 @@ export const Sidebar: React.FC = () => {
       <div className="flex flex-col px-6 pt-10 pb-6">
         <div className="w-[60px] h-[60px] rounded-[16px] border-[2px] border-[#1e3ba1] p-[2px] mb-4 bg-white flex items-center justify-center">
           <img 
-            src="https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal" 
+            src={user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal"} 
             alt="Avatar" 
             className="w-full h-full object-cover rounded-[12px] bg-blue-50" 
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-[17px] font-extrabold text-[#1d4ed8] tracking-tight">Admin Portal</span>
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1.5">Enterprise Management</span>
+          <span className="text-[17px] font-extrabold text-[#1d4ed8] tracking-tight">{isAdmin ? 'Admin Portal' : 'User Portal'}</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1.5">{isAdmin ? 'Enterprise Management' : 'Employee Workspace'}</span>
         </div>
       </div>
 
@@ -94,7 +96,7 @@ export const Sidebar: React.FC = () => {
           openKeys={openKeys}
           onOpenChange={(keys) => setOpenKeys(keys)}
           onClick={handleMenuClick}
-          items={menuConfig}
+          items={filteredMenu}
           className={`border-r-0 bg-transparent transition-colors duration-300 font-semibold ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}
         />
         <style>{`
@@ -147,3 +149,5 @@ export const Sidebar: React.FC = () => {
     </Drawer>
   );
 };
+
+export default Sidebar;

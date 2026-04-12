@@ -3,6 +3,7 @@ import { Layout, Skeleton } from 'antd';
 
 // === BẠN CỦA USER: THAY ĐỔI COMPONENT SIDEBAR TẠI ĐÂY NẾU CẦN ===
 import { Sidebar } from '../components/layout/Sidebar';
+import { useAuthStore } from '../stores/auth.store';
 // ==========================================================
 
 import { useThemeStore } from '../stores/theme.store';
@@ -29,13 +30,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
 
-  const navItems = [
+  const { user } = useAuthStore();
+  const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
+
+  let navItems = [
     { key: '/dashboard', label: 'HOME', icon: <HomeOutlined /> },
     { key: '/tasks', label: 'TASKS', icon: <CheckSquareOutlined /> },
     { key: '/goods', label: 'GOODS', icon: <ShoppingOutlined /> },
     { key: '/suppliers', label: 'SUPPLIERS', icon: <ShopOutlined /> },
     { key: 'more', label: 'MORE', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
   ];
+
+  if (!isAdmin) {
+    navItems = [
+      { key: '/user-home', label: 'HOME', icon: <HomeOutlined /> },
+      { key: '/tasks', label: 'TASKS', icon: <CheckSquareOutlined /> },
+      { key: 'more', label: 'MORE', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
+    ];
+  }
 
   return (
     <Layout className={`min-h-[100dvh] w-full transition-colors duration-300 relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}>

@@ -12,4 +12,9 @@ export const QUERY_KEYS = {
     /** Key for a specific tenant's config (GET /tenant/:id/config) */
     CONFIG: (tenantId: string) => ['tenantConfig', tenantId] as const,
   },
+
+  TASKS: {
+    /** Key for the current user's task list (GET /v1/tasks/my-tasks) */
+    MY_TASKS: ['tasks', 'myTasks'] as const,
+  },
 } as const;

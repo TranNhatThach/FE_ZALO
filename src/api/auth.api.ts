@@ -11,6 +11,10 @@ export const authApi = {
   loginBasic: (credentials: LoginBasicRequest): Promise<LoginResponse> =>
     api.post<LoginResponse>('/auth/login/basic', credentials),
 
+  /** POST /auth/register — Đăng ký tài khoản mới */
+  register: (data: RegisterRequest): Promise<LoginResponse> =>
+    api.post<LoginResponse>('/auth/register', data),
+
   zaloLogin: (data: ZaloLoginRequest): Promise<LoginResponse> =>
     api.post<LoginResponse>('/auth/login/zalo', data),
 
