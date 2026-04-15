@@ -10,6 +10,8 @@ export interface User {
   phone?: string;
   zaloId?: string;
   status?: string;
+  tenantId?: string | number;
+  tenantCode?: string;
 }
 
 export interface AuthState {
