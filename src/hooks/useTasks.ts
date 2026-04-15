@@ -11,7 +11,18 @@ export function useGetMyTasks() {
   return useQuery({
     queryKey: QUERY_KEYS.TASKS.MY_TASKS,
     queryFn: taskApi.getMyTasks,
-    // Không retry khi fail để tránh spam request khi backend trả 401
+    retry: 1,
+  });
+}
+
+/**
+ * Hook lấy toàn bộ công việc của doanh nghiệp (Dành cho Admin).
+ */
+export function useGetTasksByTenant(tenantId?: string | number) {
+  return useQuery({
+    queryKey: [QUERY_KEYS.TASKS.MY_TASKS, tenantId],
+    queryFn: () => taskApi.getTasksByTenant(tenantId!),
+    enabled: !!tenantId,
     retry: 1,
   });
 }

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Typography, Progress, Badge, Avatar } from 'antd';
-import { 
-  BellOutlined, 
-  ArrowUpOutlined, 
-  UserOutlined, 
+import {
+  BellOutlined,
+  ArrowUpOutlined,
+  UserOutlined,
   ThunderboltOutlined,
   FileTextOutlined,
   EllipsisOutlined,
@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
       {/* Welcome greeting */}
       <div className="space-y-0.5 px-0.5">
         <Title level={3} style={{ margin: 0, fontWeight: 800 }} className={isDarkMode ? 'text-white' : 'text-[#1a1f36]'}>
-          Chào, {user?.name || 'Quản trị viên'}
+          Chào, {user?.fullName || user?.name || user?.username || 'Quản trị viên'}
         </Title>
         <Text className="text-gray-400 text-[13px] font-semibold">
           {today.charAt(0).toUpperCase() + today.slice(1)}
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
             <Text className="text-white/60 text-[10px] uppercase font-heavy tracking-[0.2em]">Doanh thu tháng này</Text>
             <div className="text-3xl font-black mt-1 tracking-tight">1.284B VNĐ</div>
           </div>
-          
+
           <div className="inline-flex items-center bg-white/10 backdrop-blur-xl rounded-full px-4 py-1.5 text-[11px] font-bold border border-white/20">
             <ArrowUpOutlined className="mr-1.5 text-cyan-300" />
             <span className="text-white">+12.5%</span>
@@ -114,10 +114,10 @@ const Dashboard: React.FC = () => {
         <div className="h-10 w-24">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={contractData}>
-              <Bar 
-                dataKey="value" 
-                fill={isDarkMode ? '#3b82f6' : '#1a3faf'} 
-                radius={[3, 3, 0, 0]} 
+              <Bar
+                dataKey="value"
+                fill={isDarkMode ? '#3b82f6' : '#1a3faf'}
+                radius={[3, 3, 0, 0]}
                 barSize={12}
                 animationDuration={1500}
               />
@@ -136,35 +136,35 @@ const Dashboard: React.FC = () => {
             <EllipsisOutlined className="text-gray-300 text-xl" />
           </div>
         </div>
-        
+
         <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={activityData} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
-              <XAxis 
-                dataKey="name" 
-                axisLine={false} 
-                tickLine={false} 
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
                 tick={{ fill: isDarkMode ? '#64748b' : '#adb5bd', fontSize: 11, fontWeight: 700 }}
                 dy={12}
               />
-              <Tooltip 
-                cursor={{ fill: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(242, 245, 252, 0.4)' }} 
-                contentStyle={{ 
-                  borderRadius: '12px', 
-                  border: 'none', 
+              <Tooltip
+                cursor={{ fill: isDarkMode ? 'rgba(255, 255, 255, 0.05)' : 'rgba(242, 245, 252, 0.4)' }}
+                contentStyle={{
+                  borderRadius: '12px',
+                  border: 'none',
                   boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                   backgroundColor: isDarkMode ? '#1e293b' : '#ffffff',
                   color: isDarkMode ? '#f8fafc' : '#1e293b'
                 }}
               />
-              <Bar 
-                dataKey="value" 
-                radius={[12, 12, 12, 12]} 
+              <Bar
+                dataKey="value"
+                radius={[12, 12, 12, 12]}
                 barSize={34}
               >
                 {activityData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
+                  <Cell
+                    key={`cell-${index}`}
                     fill={entry.value > 60 ? (isDarkMode ? '#3b82f6' : '#1a3faf') : (isDarkMode ? '#1e293b' : '#e5e7eb')}
                     fillOpacity={entry.name === 'T4' ? 0.35 : 1}
                   />
@@ -218,19 +218,19 @@ const Dashboard: React.FC = () => {
 
         <div className="space-y-4 pb-8">
           {[
-            { 
-              day: '24', 
-              month: 'MAY', 
-              title: 'Review Q2 Budget Plan', 
-              tag: 'HIGH PRIORITY', 
+            {
+              day: '24',
+              month: 'MAY',
+              title: 'Review Q2 Budget Plan',
+              tag: 'HIGH PRIORITY',
               cat: 'Finances',
               tagColor: isDarkMode ? 'bg-red-950/30 text-red-500 border-red-900/50' : 'bg-red-50 text-red-600 border border-red-100'
             },
-            { 
-              day: '25', 
-              month: 'MAY', 
-              title: 'Client Retention Sync', 
-              tag: 'NORMAL', 
+            {
+              day: '25',
+              month: 'MAY',
+              title: 'Client Retention Sync',
+              tag: 'NORMAL',
               cat: 'Strategic',
               tagColor: isDarkMode ? 'bg-blue-950/30 text-blue-500 border-blue-900/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
             }

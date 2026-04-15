@@ -31,7 +31,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
 
   const { user } = useAuthStore();
-  const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
+  const allRoles = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase();
+  const isAdmin = allRoles.includes('ADMIN');
 
   let navItems = [
     { key: '/dashboard', label: 'HOME', icon: <HomeOutlined /> },

@@ -36,7 +36,7 @@ export const SuppliersPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-4 mt-6">
+      <div className="px-4 mt-10">
         {/* Search Bar */}
         <div className="mb-4">
           <div className={`flex items-center h-[44px] rounded-full px-4 shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>

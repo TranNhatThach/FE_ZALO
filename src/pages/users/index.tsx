@@ -22,7 +22,7 @@ export default function Users() {
     });
 
     const toggleMutation = useMutation({
-        mutationFn: (id: string) => userService.toggleStatus(id),
+        mutationFn: (id: string) => userService.restore(id),
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
     });
 
@@ -36,7 +36,7 @@ export default function Users() {
         deleteMutation.mutate(id);
     };
 
-    const handleToggle = async (id: string) => {
+    const handleRestore = async (id: string) => {
         toggleMutation.mutate(id);
     };
 
@@ -49,9 +49,9 @@ export default function Users() {
             {users.map((u) => (
                 <div key={u.id} className="bg-white rounded-xl shadow p-3 flex justify-between items-center">
                     <div>
-                        <p className="font-medium">{u.name}</p>
+                        <p className="font-medium">{u.fullName || u.name || u.username}</p>
                         <p className="text-sm text-gray-500">{u.email}</p>
-                        <p className="text-xs">{u.roles.join(', ')}</p>
+                        <p className="text-xs">{u.roleName}</p>
                     </div>
 
                     <div className="text-right space-y-1">
@@ -62,7 +62,7 @@ export default function Users() {
                         <div className="flex gap-2 text-xs">
                             <button onClick={() => handleEdit(u)} className="text-blue-500 underline">Edit</button>
                             <button onClick={() => handleDelete(u.id)} className="text-red-500 underline">Delete</button>
-                            <button onClick={() => handleToggle(u.id)} className="text-gray-500 underline">Toggle</button>
+                            <button onClick={() => handleRestore(u.id)} className="text-gray-500 underline">Restore</button>
                         </div>
                     </div>
                 </div>
@@ -79,11 +79,11 @@ export default function Users() {
                 +
             </button>
 
-            <UserModal 
-                visible={open} 
-                user={editingUser} 
-                onClose={() => setOpen(false)} 
-                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })} 
+            <UserModal
+                visible={open}
+                user={editingUser}
+                onClose={() => setOpen(false)}
+                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['users'] })}
             />
         </div>
     );

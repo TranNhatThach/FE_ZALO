@@ -9,6 +9,7 @@ import {
   EnvironmentOutlined,
   CheckCircleOutlined,
   LoadingOutlined,
+  ClockCircleOutlined,
 } from '@ant-design/icons';
 import { checkinApi } from '@/api/checkin.api';
 
@@ -21,9 +22,109 @@ export const CheckInPage: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
-  const [isChoosingImage, setIsChoosingImage] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+  const [history, setHistory] = useState<any[]>([]);
+
+  // Lấy lịch sử chấm công
+  const fetchHistory = async () => {
+    try {
+      const res = await checkinApi.getMyHistory();
+      if (res.data) setHistory(res.data);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchHistory();
+  }, []);
+
+  // Kích hoạt Camera khi vào trang hoặc nhấn quét
+  const startCamera = async () => {
+    try {
+      setIsScanning(true);
+      setScanProgress(0);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'user', width: 480, height: 640 } 
+      });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      
+      // Bắt đầu đếm ngược tự động chụp sau khi camera sẵn sàng
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += 5;
+        setScanProgress(progress);
+        if (progress >= 100) {
+          clearInterval(interval);
+          autoCapture(stream);
+        }
+      }, 100);
+
+    } catch (error) {
+      console.error("Camera Error:", error);
+      message.error('Không thể truy cập Camera. Vui lòng cấp quyền hoặc sử dụng trình duyệt hỗ trợ.');
+      setIsScanning(false);
+    }
+  };
+
+  const autoCapture = (stream: MediaStream) => {
+    if (videoRef.current && canvasRef.current) {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            setImageBlob(blob);
+            // Tắt stream sau khi chụp
+            stream.getTracks().forEach(track => track.stop());
+            setIsScanning(false);
+            // Gọi submit tự động
+            handleAutoSubmit(blob);
+          }
+        }, 'image/jpeg', 0.8);
+      }
+    }
+  };
+
+  const handleAutoSubmit = async (blob: Blob) => {
+    if (!location) {
+      message.warning('Vui lòng lấy GPS trước khi quét mặt.');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const formData = new FormData();
+      formData.append('lat', location.latitude);
+      formData.append('lon', location.longitude);
+      formData.append('photo', blob, 'checkin_autoscan.jpg');
+      
+      const response = await checkinApi.checkIn(formData);
+      
+      if (response.data?.status?.includes('FAIL')) {
+        message.warning('Nhận diện thất bại. Vui lòng thử lại!');
+        setImageBlob(null);
+      } else {
+        setIsCheckedIn(true);
+        message.success('Đã nhận diện và Chấm công THÀNH CÔNG!');
+      }
+    } catch (error: any) {
+      message.error(error.message || 'Lỗi hệ thống khi chấm công.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   // Lấy GPS bằng zmp-sdk
   const handleGetLocation = async () => {
@@ -35,162 +136,146 @@ export const CheckInPage: React.FC = () => {
           latitude: res.latitude,
           longitude: res.longitude,
         });
-        message.success('Đã lấy được tọa độ GPS!');
+        message.success('Đã xác định vị trí công ty!');
       }
     } catch (error) {
-      console.error(error);
-      message.error('Không thể lấy được vị trí. Hãy chắc chắn bạn đã cấp quyền GPS.');
+      message.error('Lỗi định vị. Cần bật GPS để chấm công.');
     } finally {
       setIsLoadingLocation(false);
     }
   };
 
-  // Mở camera chụp ảnh bằng zmp-sdk
-  const handleCaptureImage = async () => {
-    try {
-      setIsChoosingImage(true);
-      const { filePaths } = await chooseImage({
-        sourceType: ['camera'], // Ép buộc sử dụng camera
-        count: 1,
-        cameraType: 'front', // Ưu tiên cam trước nếu Zalo hỗ trợ cấu hình này tùy bản
-      });
-
-      if (filePaths && filePaths.length > 0) {
-        const path = filePaths[0];
-        setImagePreview(path);
-
-        // Đổi đường dẫn thành Blob
-        const res = await fetch(path);
-        const blob = await res.blob();
-        setImageBlob(blob);
-      }
-    } catch (error) {
-      console.error(error);
-      message.error('Lỗi khi mở Camera.');
-    } finally {
-      setIsChoosingImage(false);
-    }
-  };
-
-  // Gọi api submit
-  const handleSubmit = async () => {
-    if (!location) {
-      message.warning('Vui lòng làm mới định vị GPS trước.');
-      return;
-    }
-    if (!imageBlob) {
-      message.warning('Vui lòng chụp ảnh khuôn mặt tại nơi làm việc.');
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const formData = new FormData();
-      // Phải đúng tên param BE: lat, lon, photo
-      formData.append('lat', location.latitude);
-      formData.append('lon', location.longitude);
-      formData.append('photo', imageBlob, 'checkin_selfie.jpg');
-      
-      const response = await checkinApi.checkIn(formData);
-      
-      // Kiểm tra nếu BE báo success nhưng status vụ việc là FAIL (không khớp mặt)
-      if (response.data?.status?.includes('FAIL')) {
-        message.error(response.message || 'Khuôn mặt không khớp. Vui lòng chụp lại!');
-      } else {
-        setIsCheckedIn(true);
-        message.success('Chấm công ca làm việc THÀNH CÔNG!');
-      }
-    } catch (error: any) {
-      console.error("Check-in Error:", error);
-      message.error(error.message || 'Lỗi khi chấm công. Hãy thử lại.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   return (
     <div className={`flex flex-col w-full min-h-screen relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
-      <Header title="Chấm Công Vào Ca" showBackIcon />
+      <Header title="Chấm Công AI" showBackIcon />
 
       {!isCheckedIn ? (
-        <div className="px-5 mt-10 space-y-6">
-          {/* Thông tin thời gian (Mock) */}
-          <div className="flex flex-col items-center p-6 rounded-[24px] bg-gradient-to-br from-[#1e3ba1] to-[#2563eb] text-white shadow-lg shadow-blue-900/20">
-            <span className="text-[14px] font-semibold opacity-90 uppercase tracking-widest">Giờ hiện tại</span>
-            <div className="text-[48px] font-black tracking-tighter mt-1 mb-2 leading-none">
-               {new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
-            </div>
-            <span className="text-[13px] opacity-90">
-               {new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-            </span>
-          </div>
-
-          {/* Section 1: Location */}
-          <div className={`p-5 rounded-[24px] shadow-sm flex flex-col gap-3 ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
-             <div className="flex items-center justify-between">
-                <span className={`text-[15px] font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-                  <EnvironmentOutlined className="text-teal-500" /> Vị trí hiện tại
-                </span>
-                {location ? (
-                  <span className="text-[12px] font-bold text-teal-500 bg-teal-50 px-2 py-1 rounded-md">Đã lấy GPS</span>
-                ) : (
-                  <span className="text-[12px] font-bold text-orange-500 bg-orange-50 px-2 py-1 rounded-md">Chưa có GPS</span>
-                )}
-             </div>
-
-             {location ? (
-               <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 flex flex-col">
-                  <span className="text-[12px] font-medium text-gray-500">Kinh độ: {location.longitude}</span>
-                  <span className="text-[12px] font-medium text-gray-500">Vĩ độ: {location.latitude}</span>
-               </div>
-             ) : (
-               <button 
-                 onClick={handleGetLocation}
-                 disabled={isLoadingLocation}
-                 className="py-3 rounded-[16px] border border-gray-200 text-gray-600 font-bold bg-transparent active:bg-gray-50 transition-colors flex items-center justify-center gap-2"
-               >
-                 {isLoadingLocation ? <Spin size="small" /> : 'Làm mới tọa độ'}
-               </button>
-             )}
-          </div>
-
-          {/* Section 2: Camera Selfie */}
-          <div className={`p-5 rounded-[24px] shadow-sm flex flex-col gap-3 ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
-             <span className={`text-[15px] font-bold flex items-center gap-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-               <CameraOutlined className="text-[#1d4ed8]" /> Ảnh tại nơi làm việc
-             </span>
-
-             {imagePreview ? (
-               <div className="relative w-full aspect-[4/3] rounded-[16px] overflow-hidden group">
-                  <img src={imagePreview} alt="Selfie preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={handleCaptureImage} className="bg-white text-gray-900 font-bold py-2 px-4 rounded-xl border-none">
-                       Chụp lại
-                     </button>
+        <>
+          <div className="px-5 mt-12 space-y-6">
+            {/* Section 1: GPS Lock */}
+            <div className={`p-4 rounded-[24px] shadow-sm flex items-center justify-between ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
+               <div className="flex items-center gap-3">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${location ? 'bg-teal-50 text-teal-500' : 'bg-orange-50 text-orange-500'}`}>
+                     <EnvironmentOutlined />
+                  </div>
+                  <div>
+                     <div className={`text-[14px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Khu vực làm việc</div>
+                     <div className="text-[11px] text-gray-500">{location ? 'Đã xác thực tọa độ' : 'Yêu cầu định vị GPS'}</div>
                   </div>
                </div>
-             ) : (
-               <button 
-                 onClick={handleCaptureImage}
-                 disabled={isChoosingImage}
-                 className="w-full aspect-[4/3] rounded-[16px] border-2 border-dashed border-blue-200 flex flex-col items-center justify-center gap-2 bg-blue-50/50 text-[#1e3ba1] active:bg-blue-50 transition-colors border-none"
-               >
-                 {isChoosingImage ? <Spin size="small" /> : <CameraOutlined className="text-[32px]" />}
-                 <span className="text-[13px] font-bold">Chạm để mở Camera</span>
-               </button>
-             )}
+               {!location && (
+                 <button onClick={handleGetLocation} className="px-4 py-2 bg-[#1e3ba1] text-white text-[12px] font-bold rounded-lg border-none">
+                   Lấy GPS
+                 </button>
+               )}
+            </div>
+
+            {/* Section 2: AI Scanner View */}
+            <div className="flex flex-col items-center gap-4">
+              <div className={`relative w-full aspect-[3/4] rounded-[40px] overflow-hidden border-4 ${isScanning ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'border-gray-200'} bg-black group`}>
+                 
+                 {/* Video Stream */}
+                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover mirror" style={{ transform: 'scaleX(-1)' }} />
+                 <canvas ref={canvasRef} className="hidden" />
+
+                 {/* Scan Overlay Overlay */}
+                 {isScanning && (
+                   <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <div className="w-[80%] h-[70%] border-[2px] border-dashed border-white/50 rounded-[100px] relative">
+                          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-[0_0_15px_#3b82f6] animate-scan" style={{
+                            animation: 'scan 2s linear infinite'
+                          }} />
+                          <div className="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-blue-500 rounded-tl-xl" />
+                          <div className="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-blue-500 rounded-tr-xl" />
+                          <div className="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-blue-500 rounded-bl-xl" />
+                          <div className="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-blue-500 rounded-br-xl" />
+                      </div>
+
+                      <div className="mt-8 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+                         <span className="text-white text-[13px] font-bold tracking-widest uppercase">
+                           Đang quét: {scanProgress}%
+                         </span>
+                      </div>
+                   </div>
+                 )}
+
+                 {!isScanning && !imageBlob && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-900/40">
+                        <button 
+                          onClick={startCamera}
+                          disabled={!location}
+                          className="w-20 h-20 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-2xl active:scale-90 transition-transform disabled:grayscale"
+                        >
+                           <CameraOutlined className="text-[32px]" />
+                        </button>
+                        <span className="mt-4 text-white font-bold text-[14px]">Chạm để bắt đầu quét mặt</span>
+                    </div>
+                 )}
+
+                 {imageBlob && !isScanning && (
+                   <div className="absolute inset-0">
+                      <img src={URL.createObjectURL(imageBlob)} className="w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                         <Spin indicator={<LoadingOutlined style={{ fontSize: 48, color: '#fff' }} spin />} />
+                      </div>
+                   </div>
+                 )}
+              </div>
+
+              <p className="text-center text-[12px] text-gray-500 px-10 font-medium">
+                Vui lòng giữ điện thoại thẳng mặt và đảm bảo đủ ánh sáng để hệ thống tự động nhận diện.
+              </p>
+            </div>
+
+            {/* Section 3: Attendance History List */}
+            <div className="mt-8 pb-10">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className={`text-[16px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Lịch sử quét mặt</h3>
+                <span className="text-[11px] font-bold text-blue-500 uppercase tracking-tight">Gần đây</span>
+              </div>
+              
+              <div className="flex flex-col gap-3">
+                {history.length > 0 ? history.slice(0, 5).map((item, idx) => (
+                  <div key={item.id || idx} className={`p-4 rounded-[22px] border flex items-center justify-between shadow-sm ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-white'}`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${item.status?.includes('SUCCESS') ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                        {item.status?.includes('SUCCESS') ? <CheckCircleOutlined /> : <ClockCircleOutlined />}
+                      </div>
+                      <div className="flex flex-col">
+                         <span className={`text-[14px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                           {item.status?.includes('SUCCESS') ? 'Đã xác thực' : 'Không khớp'}
+                         </span>
+                         <span className="text-[11px] text-gray-500 font-medium">
+                           {item.createdAt ? new Date(item.createdAt).toLocaleString('vi-VN') : 'Vừa xong'}
+                         </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${item.status?.includes('SUCCESS') ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
+                         {item.status || 'HỢP LỆ'}
+                      </span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="py-6 text-center text-gray-400 text-[12px] border border-dashed border-gray-200 rounded-2xl">
+                    Chưa có lịch sử chấm công
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Submit Action */}
-          <button 
-            onClick={handleSubmit}
-            disabled={!location || !imageBlob || isSubmitting}
-            className="w-full py-4 mt-4 rounded-[20px] font-black text-[15px] text-white bg-gradient-to-r from-[#1e3ba1] to-[#2563eb] border-none shadow-[0_8px_20px_rgba(30,59,161,0.3)] active:scale-[0.98] transition-transform disabled:opacity-50 disabled:grayscale disabled:active:scale-100 flex items-center justify-center gap-2"
-          >
-            {isSubmitting ? <LoadingOutlined className="text-[20px]" /> : <CheckCircleOutlined className="text-[20px]" />}
-            XÁC NHẬN CHẤM CÔNG CỦA BẠN
-          </button>
-        </div>
+          <style>{`
+            @keyframes scan {
+              0% { top: 0% }
+              50% { top: 100% }
+              100% { top: 0% }
+            }
+            .mirror {
+              transform: scaleX(-1);
+            }
+          `}</style>
+        </>
       ) : (
         /* Trạng thái thành công */
         <div className="px-5 flex flex-col items-center justify-center h-[60vh] gap-4">

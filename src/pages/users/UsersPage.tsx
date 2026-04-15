@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useThemeStore } from '@/stores/theme.store';
-import { 
-  MenuOutlined, 
-  SearchOutlined, 
+import {
+  MenuOutlined,
+  SearchOutlined,
   FilterOutlined,
   PlusOutlined,
   RightOutlined
 } from '@ant-design/icons';
-import { Progress } from 'antd';
 import { userService } from '@/services/user.service';
 import UserModal from '@/components/UserModal';
 import { User } from '@/types/auth.types';
@@ -24,20 +23,20 @@ const UsersPage: React.FC = () => {
     queryFn: () => userService.getAll(),
   });
 
-  const filteredUsers = users.filter((u: any) => 
-    (u.fullName || u.username)?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredUsers = users.filter((u: any) =>
+    u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const activeUsers = users.filter((u: any) => u.isActive === true).length;
+  const activeUsers = users.filter((u: any) => u.status === 'ACTIVE').length;
 
   return (
     <div className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f9]'}`}>
-      
+
       {/* 1. Header Area */}
       <div className={`flex items-center justify-between px-4 pt-6 pb-2 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f9]'}`}>
         <div className="flex items-center gap-2">
-          <button 
+          <button
             onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
             className={`w-10 h-10 flex items-center justify-center rounded-xl shadow-sm border-none outline-none cursor-pointer transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border border-gray-800' : 'bg-white'}`}
           >
@@ -64,9 +63,9 @@ const UsersPage: React.FC = () => {
         <div className="mb-6 flex gap-2">
           <div className={`flex-1 flex items-center h-[48px] rounded-[16px] px-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border border-gray-800' : 'bg-white'}`}>
             <SearchOutlined className={`text-[20px] mr-3 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-            <input 
-              type="text" 
-              placeholder="Tìm kiếm thành viên..." 
+            <input
+              type="text"
+              placeholder="Tìm kiếm thành viên..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`flex-1 bg-transparent border-none outline-none text-[15px] font-medium ${isDarkMode ? 'text-gray-200 placeholder-gray-600' : 'text-gray-800 placeholder-gray-400'}`}
@@ -77,47 +76,34 @@ const UsersPage: React.FC = () => {
           </button>
         </div>
 
-        {/* 3. Thống kê & Thanh tiến độ */}
-        <div className={`rounded-[24px] p-5 mb-6 shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
-          <div className="flex gap-3 mb-4">
-            <div className="flex-1">
-              <div className={`text-[12px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} uppercase tracking-wider mb-1`}>Tổng nhân sự</div>
-              <div className={`text-[28px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{users.length}</div>
+        {/* 3. Thống kê */}
+        <div className="flex gap-3 mb-6">
+          <div className={`flex-1 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-blue-900/40' : 'bg-blue-50'}`}>
+              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-blue-400' : 'bg-blue-500'}`}></span>
             </div>
-            <div className="flex-1 text-right">
-              <div className={`text-[12px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} uppercase tracking-wider mb-1`}>Đang làm việc</div>
-              <div className={`text-[28px] font-black ${isDarkMode ? 'text-green-500' : 'text-green-600'}`}>{activeUsers}</div>
-            </div>
+            <div className={`text-[24px] font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{users.length}</div>
+            <div className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tổng cộng</div>
           </div>
-          
-          <div className="space-y-2">
-            <div className="flex justify-between items-end">
-              <span className={`text-[11px] font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>TỶ LỆ HOẠT ĐỘNG</span>
-              <span className={`text-[11px] font-black ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
-                {users.length > 0 ? Math.round((activeUsers / users.length) * 100) : 0}%
-              </span>
+          <div className={`flex-1 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-green-900/40' : 'bg-green-50'}`}>
+              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-500'}`}></span>
             </div>
-            <Progress 
-              percent={users.length > 0 ? (activeUsers / users.length) * 100 : 0} 
-              showInfo={false} 
-              strokeColor={isDarkMode ? '#3b82f6' : '#1e3ba1'} 
-              trailColor={isDarkMode ? '#2a2a2c' : '#f1f5f9'} 
-              strokeWidth={10} 
-              strokeLinecap="round" 
-            />
+            <div className={`text-[24px] font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers}</div>
+            <div className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Đang làm</div>
           </div>
         </div>
 
         {/* 4. Lists */}
         <div>
           <h3 className={`text-[15px] font-bold mb-3 ml-1 ${isDarkMode ? 'text-gray-300' : 'text-gray-800'}`}>Danh sách ({filteredUsers.length})</h3>
-          
+
           <div className="flex flex-col gap-3">
             {isLoading ? (
-               <div className={`text-center py-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Đang tải...</div>
+              <div className={`text-center py-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Đang tải...</div>
             ) : filteredUsers.map((user: any, index: number) => (
-              <div 
-                key={user.id || index} 
+              <div
+                key={user.id || index}
                 onClick={() => {
                   setEditingUser(user);
                   setModalVisible(true);
@@ -127,17 +113,17 @@ const UsersPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="w-[46px] h-[46px] rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-[18px]">
-                      {user.fullName?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'U'}
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     {/* Status Dot */}
-                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-[#1a1a1c]' : 'border-white'} ${user.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-[#1a1a1c]' : 'border-white'} ${user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
                   </div>
                   <div>
-                    <h4 className={`font-bold m-0 text-[15px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.fullName || user.username}</h4>
+                    <h4 className={`font-bold m-0 text-[15px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{user.email || 'No email'}</span>
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${isDarkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                        {user.roleName || 'USER'}
+                        {user.roles?.[0] || 'USER'}
                       </span>
                     </div>
                   </div>
@@ -155,10 +141,10 @@ const UsersPage: React.FC = () => {
       </div>
 
       {/* Floating Action Button (+) */}
-      <button 
+      <button
         onClick={() => {
-            setEditingUser(null);
-            setModalVisible(true);
+          setEditingUser(null);
+          setModalVisible(true);
         }}
         className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.4)] flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer"
       >
@@ -166,11 +152,11 @@ const UsersPage: React.FC = () => {
       </button>
 
       {modalVisible && (
-        <UserModal 
-          visible={modalVisible} 
-          user={editingUser} 
-          onClose={() => setModalVisible(false)} 
-          onSuccess={() => setModalVisible(false)} 
+        <UserModal
+          visible={modalVisible}
+          user={editingUser}
+          onClose={() => setModalVisible(false)}
+          onSuccess={() => setModalVisible(false)}
         />
       )}
     </div>

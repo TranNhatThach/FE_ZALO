@@ -12,7 +12,7 @@ import {
   CameraOutlined,
   EnvironmentOutlined,
 } from '@ant-design/icons';
-import { useGetMyTasks, useUpdateTaskStatusMutation } from '@/hooks/useTasks';
+import { useGetMyTasks, useGetTasksByTenant, useUpdateTaskStatusMutation } from '@/hooks/useTasks';
 import { Task, TaskStatus } from '@/types/task.types';
 import { ReportUploadModal } from './ReportUploadModal';
 import { useNavigate } from 'zmp-ui';
@@ -31,7 +31,8 @@ interface TaskCardProps {
 const TaskCard: React.FC<TaskCardProps> = ({ task, onReportClick }) => {
   const { isDarkMode } = useThemeStore();
   const { user } = useAuthStore();
-  const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
+  const allRoles = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase();
+  const isAdmin = allRoles.includes('ADMIN');
   const { mutate: updateStatus, isPending } = useUpdateTaskStatusMutation();
 
   const handleAccept = () => {
@@ -63,9 +64,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onReportClick }) => {
 
   return (
     <div
-      className={`rounded-[20px] p-4 flex flex-col border shadow-[0_2px_10px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-transform ${
-        isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'
-      }`}
+      className={`rounded-[20px] p-4 flex flex-col border shadow-[0_2px_10px_rgba(0,0,0,0.02)] active:scale-[0.98] transition-transform ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'
+        }`}
     >
       {/* Row 1: Category Badge + Priority */}
       <div className="flex items-center justify-between mb-3">
@@ -123,8 +123,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onReportClick }) => {
               disabled={isPending}
               className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold border border-orange-500 text-orange-600 bg-orange-50 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-               <CameraOutlined className="text-[13px]" />
-               Báo cáo
+              <CameraOutlined className="text-[13px]" />
+              Báo cáo
             </button>
           )}
 
@@ -158,7 +158,8 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onReportClick }) => {
 export const TasksPage: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const { user } = useAuthStore();
-  const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
+  const allRoles = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase();
+  const isAdmin = allRoles.includes('ADMIN');
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<'KANBAN' | 'LIST'>('KANBAN');
   const [reportModalVisible, setReportModalVisible] = useState(false);
@@ -166,7 +167,11 @@ export const TasksPage: React.FC = () => {
   const [selectedTaskToReport, setSelectedTaskToReport] = useState<Task | null>(null);
 
   // ─── API Data ────────────────────────────────────────────────────────────────
-  const { data: tasks = [], isLoading, isError, error, refetch } = useGetMyTasks();
+  const myTasksQuery = useGetMyTasks();
+  const tenantTasksQuery = useGetTasksByTenant(isAdmin ? user?.tenantId : undefined);
+
+  const activeQuery = isAdmin ? tenantTasksQuery : myTasksQuery;
+  const { data: tasks = [], isLoading, isError, error, refetch } = activeQuery;
 
   const todoTasks = tasks.filter((t) => t.status === 'TO DO');
   const inProgressTasks = tasks.filter((t) => t.status === 'IN PROGRESS');
@@ -197,21 +202,21 @@ export const TasksPage: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-2">
-           {!isAdmin && (
-             <button 
-               onClick={() => navigate('/checkin')}
-               className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200 text-[11px] font-bold active:scale-95 transition-transform"
-             >
-               <EnvironmentOutlined /> Chấm Công
-             </button>
-           )}
-           <button className="w-8 h-8 rounded-full flex items-center justify-center border-none bg-transparent outline-none p-0 cursor-pointer active:scale-90 transition-transform">
-             <SearchOutlined className={`text-[20px] ${isDarkMode ? 'text-gray-300' : 'text-[#1e3ba1]'}`} />
-           </button>
+          {!isAdmin && (
+            <button
+              onClick={() => navigate('/checkin')}
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-full bg-teal-50 text-teal-600 border border-teal-200 text-[11px] font-bold active:scale-95 transition-transform"
+            >
+              <EnvironmentOutlined /> Chấm Công
+            </button>
+          )}
+          <button className="w-8 h-8 rounded-full flex items-center justify-center border-none bg-transparent outline-none p-0 cursor-pointer active:scale-90 transition-transform">
+            <SearchOutlined className={`text-[20px] ${isDarkMode ? 'text-gray-300' : 'text-[#1e3ba1]'}`} />
+          </button>
         </div>
       </div>
 
-      <div className="px-5 mt-4">
+      <div className="px-5 mt-10">
         {/* Title Section */}
         <div className="mb-5">
           <h2 className={`text-[22px] font-black tracking-tight mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
@@ -376,9 +381,9 @@ export const TasksPage: React.FC = () => {
               </div>
               <div className="flex flex-col gap-3">
                 {inProgressTasks.map((task) => (
-                  <TaskCard 
-                    key={task.id} 
-                    task={task} 
+                  <TaskCard
+                    key={task.id}
+                    task={task}
                     onReportClick={(t) => {
                       setSelectedTaskToReport(t);
                       setReportModalVisible(true);
@@ -420,7 +425,7 @@ export const TasksPage: React.FC = () => {
 
       {/* Floating Action Button (+) - Admin Only */}
       {isAdmin && (
-        <button 
+        <button
           onClick={() => setCreateModalVisible(true)}
           className="fixed right-5 bottom-[90px] w-14 h-14 rounded-full bg-[#1e3ba1] text-white shadow-lg shadow-blue-900/30 flex items-center justify-center border-none outline-none active:scale-90 transition-transform z-20 cursor-pointer"
         >
@@ -438,7 +443,7 @@ export const TasksPage: React.FC = () => {
         }}
         onSuccess={() => refetch()}
       />
-      
+
       {/* Create Task Modal (Admin Only) */}
       <CreateTaskModal
         visible={createModalVisible}

@@ -7,5 +7,5 @@ export const userService = {
   create: (data: Partial<User>) => api.post<User>('/v1/users', data),
   update: (id: string, data: Partial<User>) => api.put<User>(`/v1/users/${id}`, data),
   delete: (id: string) => api.del<void>(`/v1/users/${id}`),
-  toggleStatus: (id: string) => api.post<void>(`/v1/users/${id}/toggle-status`, {}),
+  restore: (id: string) => api.patch<void>(`/v1/users/${id}/restore`, {}),
 };

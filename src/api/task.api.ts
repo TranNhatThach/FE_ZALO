@@ -20,4 +20,11 @@ export const taskApi = {
    * Tạo mới một công việc.
    */
   createTask: (data: any): Promise<Task> => api.post<Task>('/v1/tasks', data),
+
+  /**
+   * GET /v1/tasks/tenant/:tenantId
+   * Lấy toàn bộ task của doanh nghiệp (Dành cho Admin)
+   */
+  getTasksByTenant: (tenantId: string | number): Promise<Task[]> => 
+    api.get<Task[]>(`/v1/tasks/tenant/${tenantId}`),
 };

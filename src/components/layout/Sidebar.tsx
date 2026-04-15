@@ -10,7 +10,8 @@ import { LogoutOutlined } from '@ant-design/icons';
 export const Sidebar: React.FC = () => {
   const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
   const { user, logout } = useAuthStore();
-  const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
+  const allRoles = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase();
+  const isAdmin = allRoles.includes('ADMIN');
   const isMobile = useMobile();
   const location = useLocation();
   const navigate = useNavigate();

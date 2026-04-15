@@ -156,6 +156,15 @@ export const api = {
     });
   },
 
+  patch<T>(url: string, body: unknown, options?: RequestInit): Promise<T> {
+    const isFormData = body instanceof FormData;
+    return fetchData<T>(url, {
+      ...options,
+      method: 'PATCH',
+      body: isFormData ? (body as BodyInit) : JSON.stringify(body),
+    });
+  },
+
   del<T>(url: string, options?: RequestInit): Promise<T> {
     return fetchData<T>(url, { ...options, method: 'DELETE' });
   },

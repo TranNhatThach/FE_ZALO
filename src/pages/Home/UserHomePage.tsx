@@ -56,7 +56,7 @@ export const UserHomePage: React.FC = () => {
           <div className="flex flex-col">
             <span className="text-[12px] font-bold text-gray-500 uppercase tracking-widest">Chào buổi sáng,</span>
             <span className={`text-[18px] font-black tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {user?.name || 'Thành viên'} 👋
+              {user?.fullName || user?.name || user?.username || 'Thành viên'} 👋
             </span>
           </div>
         </div>

@@ -16,4 +16,10 @@ export const checkinApi = {
    */
   checkIn: (formData: FormData): Promise<ApiResponse<any>> =>
     api.post<ApiResponse<any>>('/v1/attendance/check-in', formData),
+
+  /**
+   * Lấy lịch sử chấm công của cá nhân
+   */
+  getMyHistory: (): Promise<ApiResponse<any[]>> =>
+    api.get<ApiResponse<any[]>>('/v1/attendance/my-history'),
 };

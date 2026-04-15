@@ -17,18 +17,21 @@ const LoginPage: React.FC = () => {
 
   // Middleware: Hàm phân luồng Role
   const navigateByRole = (userData: User) => {
-    // Gom tất cả role vào chuỗi viết hoa để kiểm tra cho gọn
-    const allRoles = [
-      ...(userData.roles || []), 
-      userData.roleName || ''
-    ].join(',').toUpperCase();
+    const userRolesRaw = [...(userData.roles || []), userData.roleName || ''];
+    const allRoles = userRolesRaw.join(',').toUpperCase();
+
+    console.log("🛠️ Role Detection:", { 
+        roleName: userData.roleName, 
+        roles: userData.roles, 
+        allRoles 
+    });
 
     if (allRoles.includes('ADMIN')) {
-      navigate('/dashboard');
-    } else if (allRoles.includes('STAFF') || allRoles.includes('USER')) {
-      navigate('/tasks');
+      navigate('/dashboard', { replace: true });
+    } else if (allRoles.includes('STAFF') || allRoles.includes('EMPLOYEE')) {
+      navigate('/tasks', { replace: true });
     } else {
-      navigate('/goods'); 
+      navigate('/user-home', { replace: true }); 
     }
   };
 

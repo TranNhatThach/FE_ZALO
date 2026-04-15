@@ -111,7 +111,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
             }
             options={users.map((user: any) => ({
               value: user.id,
-              label: user.name || user.username || `User ${user.id}`,
+              label: user.fullName || user.name || user.username || `Nhân viên ${user.id}`,
             }))}
           />
         </Form.Item>
