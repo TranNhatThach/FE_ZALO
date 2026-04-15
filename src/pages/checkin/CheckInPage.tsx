@@ -86,16 +86,22 @@ export const CheckInPage: React.FC = () => {
     try {
       setIsSubmitting(true);
       const formData = new FormData();
-      formData.append('latitude', location.latitude);
-      formData.append('longitude', location.longitude);
-      // Tùy chỉnh mimetype cho blob (default thường là image/jpeg khi chụp bằng camera)
-      formData.append('image', imageBlob, 'checkin_selfie.jpg');
-      formData.append('timestamp', new Date().toISOString());
-
-      await checkinApi.checkIn(formData);
-      setIsCheckedIn(true);
-      message.success('Chấm công ca làm việc THÀNH CÔNG!');
+      // Phải đúng tên param BE: lat, lon, photo
+      formData.append('lat', location.latitude);
+      formData.append('lon', location.longitude);
+      formData.append('photo', imageBlob, 'checkin_selfie.jpg');
+      
+      const response = await checkinApi.checkIn(formData);
+      
+      // Kiểm tra nếu BE báo success nhưng status vụ việc là FAIL (không khớp mặt)
+      if (response.data?.status?.includes('FAIL')) {
+        message.error(response.message || 'Khuôn mặt không khớp. Vui lòng chụp lại!');
+      } else {
+        setIsCheckedIn(true);
+        message.success('Chấm công ca làm việc THÀNH CÔNG!');
+      }
     } catch (error: any) {
+      console.error("Check-in Error:", error);
       message.error(error.message || 'Lỗi khi chấm công. Hãy thử lại.');
     } finally {
       setIsSubmitting(false);

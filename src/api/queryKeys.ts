@@ -17,4 +17,9 @@ export const QUERY_KEYS = {
     /** Key for the current user's task list (GET /v1/tasks/my-tasks) */
     MY_TASKS: ['tasks', 'myTasks'] as const,
   },
+
+  PRODUCTS: {
+    /** Key for the tenant's product list (GET /v1/products) */
+    LIST: ['products', 'list'] as const,
+  },
 } as const;

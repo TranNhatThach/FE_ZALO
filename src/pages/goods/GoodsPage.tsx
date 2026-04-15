@@ -7,53 +7,56 @@ import {
   StopOutlined,
   BellOutlined,
   ContainerOutlined,
-  PlusOutlined
+  PlusOutlined,
+  CheckOutlined,
+  EditOutlined
 } from '@ant-design/icons';
-
-// Mock Data
-const productsData = [
-  { 
-    id: '1', 
-    name: 'iPhone 15 Pro Max', 
-    sku: 'AAPL-15PM-256G', 
-    image: 'https://cdn-icons-png.flaticon.com/512/0/191.png', 
-    stock: 120, 
-    category: 'ĐIỆN TỬ', 
-    status: 'CÒN HÀNG' 
-  },
-  { 
-    id: '2', 
-    name: 'Herman Miller Aeron', 
-    sku: 'HM-AER-GRB-B', 
-    image: 'https://cdn-icons-png.flaticon.com/512/2627/2627252.png', 
-    stock: 5, 
-    category: 'NỘI THẤT', 
-    status: 'SẮP HẾT' 
-  },
-  { 
-    id: '3', 
-    name: 'Sony WH-1000XM5', 
-    sku: 'SONY-WHXM5-B', 
-    image: 'https://cdn-icons-png.flaticon.com/512/272/272365.png', 
-    stock: 0, 
-    category: 'ĐIỆN TỬ', 
-    status: 'HẾT HÀNG' 
-  },
-  { 
-    id: '4', 
-    name: 'Classic Wrist Watch', 
-    sku: 'ACC-WAT-0922', 
-    image: 'https://cdn-icons-png.flaticon.com/512/2784/2784459.png', 
-    stock: 42, 
-    category: 'PHỤ KIỆN', 
-    status: 'CÒN HÀNG' 
-  },
-];
+import { useGetProducts } from '@/hooks/useProducts';
+import { Spin, Modal, Form, InputNumber, message } from 'antd';
+import { LoadingOutlined } from '@ant-design/icons';
+import { productApi } from '@/api/product.api';
+import { useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/api/queryKeys';
 
 export const GoodsPage: React.FC = () => {
   const { setSidebarCollapsed, isSidebarCollapsed, isDarkMode } = useThemeStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const [checkModalVisible, setCheckModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [form] = Form.useForm();
+  const queryClient = useQueryClient();
+
+  const { data: products = [], isLoading } = useGetProducts();
+
+  const handleOpenCheck = (item: any) => {
+    setSelectedProduct(item);
+    form.setFieldsValue({ stock: item.stock });
+    setCheckModalVisible(true);
+  };
+
+  const handleUpdateStock = async () => {
+    try {
+      const values = await form.validateFields();
+      await productApi.updateProduct(selectedProduct.id, {
+        ...selectedProduct,
+        stock: values.stock
+      });
+      message.success('Cập nhật tồn thực tế thành công!');
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LIST });
+      setCheckModalVisible(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const filteredProducts = products.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
+    if (activeFilter === 'LOW') return matchesSearch && item.status === 'SẮP HẾT';
+    if (activeFilter === 'HIDDEN') return matchesSearch && item.status === 'HẾT HÀNG';
+    return matchesSearch;
+  });
 
   return (
     <div className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fc]'}`}>
@@ -149,11 +152,16 @@ export const GoodsPage: React.FC = () => {
           </div>
 
           <div className="flex flex-col gap-3">
-            {productsData.map((item) => (
+            {isLoading ? (
+              <div className="py-10 flex flex-col items-center justify-center gap-2">
+                <LoadingOutlined className="text-[32px] text-[#1e3ba1]" />
+                <span className="text-[12px] text-gray-400">Đang tải sản phẩm...</span>
+              </div>
+            ) : filteredProducts.map((item) => (
               <div key={item.id} className={`rounded-[16px] p-3 flex shadow-sm relative active:opacity-80 transition-colors ${isDarkMode ? 'bg-[#1a1a1c] border border-gray-800' : 'bg-white border border-transparent active:bg-gray-50'}`}>
                 
                 <div className={`w-[64px] h-[64px] rounded-xl flex items-center justify-center p-2 flex-shrink-0 overflow-hidden relative ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                  <img src={item.image} alt={item.name} className={`w-full h-full object-contain ${isDarkMode ? 'opacity-90' : 'mix-blend-multiply opacity-80'}`} />
+                  <img src={item.imageUrl} alt={item.name} className={`w-full h-full object-contain ${isDarkMode ? 'opacity-90' : 'mix-blend-multiply opacity-80'}`} />
                 </div>
 
                 <div className="ml-3 flex-1 min-w-0 pr-2 pt-0.5 relative pb-5">
@@ -163,6 +171,13 @@ export const GoodsPage: React.FC = () => {
                   <div className={`text-[11px] mb-1.5 uppercase font-medium tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
                     SKU: {item.sku}
                   </div>
+                  
+                  <button 
+                    onClick={(e) => { e.stopPropagation(); handleOpenCheck(item); }}
+                    className="flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-md border-none cursor-pointer active:scale-95"
+                  >
+                    <EditOutlined /> Kiểm kho
+                  </button>
                   
                   <div className={`text-[12px] font-semibold absolute bottom-0 left-0 ${isDarkMode ? 'text-gray-300' : 'text-gray-900'}`}>
                     <span className="text-gray-500 font-medium">Kho: </span>
@@ -208,6 +223,25 @@ export const GoodsPage: React.FC = () => {
       <button className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-[#1e3ba1] text-white shadow-lg flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer">
         <PlusOutlined className="text-[26px]" />
       </button>
+
+      {/* Stock Take Modal */}
+      <Modal
+        title={<div className="font-black text-[#1e3ba1]">Kiểm kê thực tế</div>}
+        open={checkModalVisible}
+        onCancel={() => setCheckModalVisible(false)}
+        footer={[
+          <button key="back" onClick={() => setCheckModalVisible(false)} className="px-4 py-2 bg-gray-100 border-none rounded-xl mr-2 font-bold text-gray-500">Hủy</button>,
+          <button key="submit" onClick={handleUpdateStock} className="px-4 py-2 bg-[#1e3ba1] border-none rounded-xl text-white font-bold">Lưu số liệu</button>
+        ]}
+        centered
+        width={300}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="stock" label={<span className="text-[12px] font-bold text-gray-500">SỐ LƯỢNG THỰC TẾ TRONG KHO</span>}>
+            <InputNumber className="w-full h-11 rounded-xl" />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       {/* Basic inline style to hide scrollbar for webkit (Chrome/Safari) */}
       <style>{`

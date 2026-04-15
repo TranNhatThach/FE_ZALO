@@ -24,11 +24,12 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
   if (!user) return null;
 
   // Kiểm tra user có ít nhất một role nằm trong danh sách cho phép không
-  const hasAccess = user.roles?.some(role => allowedRoles.includes(role));
+  const allRoles = [...(user.roles || []), user.roleName || ''].join(',').toUpperCase();
+  const hasAccess = allowedRoles.some(ar => allRoles.includes(ar.toUpperCase()));
 
   if (!hasAccess) {
-    // Nếu không có quyền, ép đổi hướng về fallbackPath (mặc định là /tasks của Employee)
-    // Dùng setTimeout để tránh config render warning của React Router
+    console.error("Access denied in RoleGuard", { allowedRoles, userRole: user?.roleName });
+    // Nếu không có quyền, ép đổi hướng về fallbackPath (mặc định là /tasks cho nhân viên)
     setTimeout(() => {
       navigate(fallbackPath, { replace: true, animate: false });
     }, 0);

@@ -11,9 +11,9 @@ export const checkinApi = {
     api.post<ApiResponse<string>>(`/v1/tasks/${taskId}/report`, formData),
 
   /**
-   * Gửi thông tin chấm công
-   * @param formData chứa latitude, longitude, image (từ camera)
+   * Gửi thông tin chấm công (Check-in bằng khuôn mặt)
+   * @param formData chứa lat, lon, photo (từ camera)
    */
   checkIn: (formData: FormData): Promise<ApiResponse<any>> =>
-    api.post<ApiResponse<any>>('/v1/checkins', formData),
+    api.post<ApiResponse<any>>('/v1/attendance/check-in', formData),
 };

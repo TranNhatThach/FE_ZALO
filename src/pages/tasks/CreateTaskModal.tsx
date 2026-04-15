@@ -2,6 +2,8 @@ import React from 'react';
 import { Modal, Form, Input, Select, DatePicker, message } from 'antd';
 import { PlusCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useCreateTaskMutation } from '@/hooks/useTasks';
+import { useQuery } from '@tanstack/react-query';
+import { userService } from '@/services/user.service';
 import dayjs from 'dayjs';
 
 interface CreateTaskModalProps {
@@ -13,6 +15,10 @@ interface CreateTaskModalProps {
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClose, onSuccess }) => {
   const [form] = Form.useForm();
   const { mutate: createTask, isPending } = useCreateTaskMutation();
+  const { data: users = [] } = useQuery({
+    queryKey: ['users'],
+    queryFn: () => userService.getAll(),
+  });
 
   const handleCreate = async () => {
     try {
@@ -88,6 +94,25 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           <Input 
             placeholder="Nhập tên công việc..." 
             className="rounded-xl border-gray-200 h-11 focus:border-[#1e3ba1] focus:ring-1 focus:ring-blue-100 font-medium" 
+          />
+        </Form.Item>
+
+        <Form.Item
+          label={<span className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Người thực hiện</span>}
+          name="assigneeId"
+          rules={[{ required: true, message: 'Vui lòng chọn người thực hiện' }]}
+        >
+          <Select 
+            placeholder="Chọn nhân viên..." 
+            className="h-11 rounded-xl overflow-hidden"
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+            options={users.map((user: any) => ({
+              value: user.id,
+              label: user.name || user.username || `User ${user.id}`,
+            }))}
           />
         </Form.Item>
 

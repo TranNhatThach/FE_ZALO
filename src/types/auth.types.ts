@@ -3,12 +3,13 @@ export interface User {
   email: string;
   username?: string;
   fullName?: string;
-  roles: string[];
+  roleName?: string; // Tên role từ Backend (ví dụ: EMPLOYEE, TENANT_ADMIN)
+  roles?: string[];  // Danh sách role (nếu có)
   name?: string;
   avatar?: string;
   phone?: string;
   zaloId?: string;
-  status?: 'ACTIVE' | 'INACTIVE';
+  status?: string;
 }
 
 export interface AuthState {

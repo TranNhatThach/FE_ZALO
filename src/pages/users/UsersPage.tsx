@@ -8,6 +8,7 @@ import {
   PlusOutlined,
   RightOutlined
 } from '@ant-design/icons';
+import { Progress } from 'antd';
 import { userService } from '@/services/user.service';
 import UserModal from '@/components/UserModal';
 import { User } from '@/types/auth.types';
@@ -24,11 +25,11 @@ const UsersPage: React.FC = () => {
   });
 
   const filteredUsers = users.filter((u: any) => 
-    u.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    (u.fullName || u.username)?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const activeUsers = users.filter((u: any) => u.status === 'ACTIVE').length;
+  const activeUsers = users.filter((u: any) => u.isActive === true).length;
 
   return (
     <div className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f9]'}`}>
@@ -76,21 +77,34 @@ const UsersPage: React.FC = () => {
           </button>
         </div>
 
-        {/* 3. Thống kê */}
-        <div className="flex gap-3 mb-6">
-          <div className={`flex-1 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-blue-900/40' : 'bg-blue-50'}`}>
-              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-blue-400' : 'bg-blue-500'}`}></span>
+        {/* 3. Thống kê & Thanh tiến độ */}
+        <div className={`rounded-[24px] p-5 mb-6 shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
+          <div className="flex gap-3 mb-4">
+            <div className="flex-1">
+              <div className={`text-[12px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} uppercase tracking-wider mb-1`}>Tổng nhân sự</div>
+              <div className={`text-[28px] font-black ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{users.length}</div>
             </div>
-            <div className={`text-[24px] font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{users.length}</div>
-            <div className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tổng cộng</div>
+            <div className="flex-1 text-right">
+              <div className={`text-[12px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-500'} uppercase tracking-wider mb-1`}>Đang làm việc</div>
+              <div className={`text-[28px] font-black ${isDarkMode ? 'text-green-500' : 'text-green-600'}`}>{activeUsers}</div>
+            </div>
           </div>
-          <div className={`flex-1 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-green-900/40' : 'bg-green-50'}`}>
-              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-500'}`}></span>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between items-end">
+              <span className={`text-[11px] font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>TỶ LỆ HOẠT ĐỘNG</span>
+              <span className={`text-[11px] font-black ${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>
+                {users.length > 0 ? Math.round((activeUsers / users.length) * 100) : 0}%
+              </span>
             </div>
-            <div className={`text-[24px] font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers}</div>
-            <div className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Đang làm</div>
+            <Progress 
+              percent={users.length > 0 ? (activeUsers / users.length) * 100 : 0} 
+              showInfo={false} 
+              strokeColor={isDarkMode ? '#3b82f6' : '#1e3ba1'} 
+              trailColor={isDarkMode ? '#2a2a2c' : '#f1f5f9'} 
+              strokeWidth={10} 
+              strokeLinecap="round" 
+            />
           </div>
         </div>
 
@@ -113,17 +127,17 @@ const UsersPage: React.FC = () => {
                 <div className="flex items-center gap-3">
                   <div className="relative">
                     <div className="w-[46px] h-[46px] rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-[18px]">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                      {user.fullName?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase() || 'U'}
                     </div>
                     {/* Status Dot */}
-                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-[#1a1a1c]' : 'border-white'} ${user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-[#1a1a1c]' : 'border-white'} ${user.isActive ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                   </div>
                   <div>
-                    <h4 className={`font-bold m-0 text-[15px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</h4>
+                    <h4 className={`font-bold m-0 text-[15px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.fullName || user.username}</h4>
                     <div className="flex items-center gap-2 mt-1">
                       <span className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{user.email || 'No email'}</span>
                       <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${isDarkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
-                        {user.roles?.[0] || 'USER'}
+                        {user.roleName || 'USER'}
                       </span>
                     </div>
                   </div>

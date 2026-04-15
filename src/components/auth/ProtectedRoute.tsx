@@ -43,9 +43,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRoles, c
   }
 
   if (requiredRoles && requiredRoles.length > 0) {
-    const hasRole = user?.roles?.some((role: string) => requiredRoles.includes(role));
+    const userRoles = user?.roles || (user?.roleName ? [user.roleName] : []);
+    const hasRole = userRoles.some((role: string) => requiredRoles.includes(role));
+    
     if (!hasRole) {
-      navigate('/unauthorized', { replace: true });
+      console.warn("Access denied: User lacks required roles", { requiredRoles, currentRole: user?.roleName });
+      navigate('/login', { replace: true }); // Fallback an toàn về Login thay vì unauthorized chưa có route
       return null;
     }
   }

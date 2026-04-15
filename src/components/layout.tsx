@@ -79,19 +79,24 @@ const RouterContent = () => {
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuthStore();
 
+    const isAuthPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
+
     // Điều hướng gốc dựa trên Role
     useEffect(() => {
-        if (isAuthenticated && location.pathname === '/') {
-            const isAdmin = user?.roles?.some(role => ['TENANT_ADMIN', 'SUPER_ADMIN'].includes(role));
-            if (isAdmin) {
-                navigate('/dashboard', { replace: true, animate: false });
-            } else {
-                navigate('/user-home', { replace: true, animate: false });
+        if (isAuthenticated && user) {
+            const allRoles = [...(user.roles || []), user.roleName || ''].join(',').toUpperCase();
+            const isAdmin = allRoles.includes('ADMIN');
+            
+            // Nếu đang ở trang Auth khi đã Login -> Đẩy về Dashboard/UserHome
+            if (isAuthPage) {
+                if (isAdmin) {
+                    navigate('/dashboard', { replace: true, animate: false });
+                } else {
+                    navigate('/user-home', { replace: true, animate: false });
+                }
             }
         }
-    }, [isAuthenticated, location.pathname, user, navigate]);
-
-    const isAuthPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
+    }, [isAuthenticated, location.pathname, user, navigate, isAuthPage]);
 
     if (!isAuthenticated && isAuthPage) {
         return (
@@ -110,12 +115,12 @@ const RouterContent = () => {
                 <AnimationRoutes>
                     {/* KHU VỰC DÀNH CHO ADMIN */}
                     <Route path="/dashboard" element={
-                        <RoleGuard allowedRoles={['TENANT_ADMIN', 'SUPER_ADMIN']} fallbackPath="/tasks">
+                        <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
                             <Page className="page"><Dashboard /></Page>
                         </RoleGuard>
                     }></Route>
                     <Route path="/users" element={
-                        <RoleGuard allowedRoles={['TENANT_ADMIN', 'SUPER_ADMIN']} fallbackPath="/tasks">
+                        <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
                             <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                                 <Page className="page"><UsersPage /></Page>
                             </Suspense>

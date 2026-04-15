@@ -6,12 +6,6 @@ import { getUserInfo } from 'zmp-sdk';
 import { User } from '@/types/auth.types';
 
 const LoginPage: React.FC = () => {
-  // LẤY THÔNG TIN ADMIN MẶC ĐỊNH TỪ .ENV (Chỉ dùng để kiểm tra logic Bypass)
-  const DUMMY_ADMIN_USER = import.meta.env.VITE_DUMMY_ADMIN_USER || 'admin';
-  const DUMMY_ADMIN_PASS = import.meta.env.VITE_DUMMY_ADMIN_PASS || 'admin123';
-  const DUMMY_STAFF_USER = 'staff01';
-  const DUMMY_STAFF_PASS = '123456';
-
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -23,33 +17,22 @@ const LoginPage: React.FC = () => {
 
   // Middleware: Hàm phân luồng Role
   const navigateByRole = (userData: User) => {
-    const roles = userData.roles || [];
-    if (roles.includes('TENANT_ADMIN') || roles.includes('SUPER_ADMIN')) {
+    // Gom tất cả role vào chuỗi viết hoa để kiểm tra cho gọn
+    const allRoles = [
+      ...(userData.roles || []), 
+      userData.roleName || ''
+    ].join(',').toUpperCase();
+
+    if (allRoles.includes('ADMIN')) {
       navigate('/dashboard');
-    } else if (roles.includes('EMPLOYEE')) {
+    } else if (allRoles.includes('STAFF') || allRoles.includes('USER')) {
       navigate('/tasks');
     } else {
-      navigate('/goods'); // Customer vãng lai
+      navigate('/goods'); 
     }
   };
 
   const handleLogin = () => {
-    // ƯU TIÊN: Kiểm tra tài khoản Admin mặc định để VÀO LUÔN (Bypass BE)
-    if (phone === DUMMY_ADMIN_USER && password === DUMMY_ADMIN_PASS) {
-      const dummyAdminData: User = { id: 'admin-preview', email: 'admin@vanguard.com', name: 'Vanguard Admin', roles: ['TENANT_ADMIN'], avatar: 'https://i.pravatar.cc/150?u=admin' };
-      login(dummyAdminData, 'admin-token-bypass', 'admin-refresh-bypass');
-      navigateByRole(dummyAdminData);
-      return;
-    }
-
-    // ƯU TIÊN: Kiểm tra tài khoản Nhân viên mặc định (Bypass BE)
-    if (phone === DUMMY_STAFF_USER && password === DUMMY_STAFF_PASS) {
-      const dummyStaffData: User = { id: 'staff-preview', email: 'user@vanguard.com', name: 'Nhân viên Thử nghiệm', roles: ['EMPLOYEE'], avatar: 'https://i.pravatar.cc/150?u=user' };
-      login(dummyStaffData, 'staff-token-bypass', 'staff-refresh-bypass');
-      navigateByRole(dummyStaffData);
-      return;
-    }
-
     // NGƯỢC LẠI: Gọi API thực tế
     const credentials = { username: phone, password };
     /* 
