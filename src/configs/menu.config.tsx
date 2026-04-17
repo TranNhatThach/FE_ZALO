@@ -7,7 +7,8 @@ import {
   EnvironmentOutlined,
   SettingOutlined,
   TeamOutlined,
-  CheckSquareOutlined
+  CheckSquareOutlined,
+  CalendarOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
@@ -52,6 +53,13 @@ export const menuConfig: MenuItem[] = [
     label: 'Quản lý Nhân sự',
     title: 'Quản lý Nhân sự',
     path: '/users',
+  },
+  {
+    key: '/attendance',
+    icon: <CalendarOutlined />,
+    label: 'Chấm công',
+    title: 'Danh sách Chấm công',
+    path: '/attendance',
   },
   {
     key: '/branches',

@@ -28,6 +28,7 @@ const BranchesPage = lazy(() => import('@/pages/branches/BranchesPage'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 const CheckInPage = lazy(() => import('@/pages/checkin/CheckInPage'));
 const UserHomePage = lazy(() => import('@/pages/Home/UserHomePage'));
+const AttendancePage = lazy(() => import('@/pages/attendance/AttendancePage'));
 
 const queryClient = new QueryClient();
 
@@ -118,6 +119,13 @@ const RouterContent = () => {
                         <RoleGuard allowedRoles={['TENANT_ADMIN', 'SUPER_ADMIN']} fallbackPath="/tasks">
                             <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                                 <Page className="page"><UsersPage /></Page>
+                            </Suspense>
+                        </RoleGuard>
+                    }></Route>
+                    <Route path="/attendance" element={
+                        <RoleGuard allowedRoles={['TENANT_ADMIN', 'SUPER_ADMIN']} fallbackPath="/tasks">
+                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                <Page className="page"><AttendancePage /></Page>
                             </Suspense>
                         </RoleGuard>
                     }></Route>

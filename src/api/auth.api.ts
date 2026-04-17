@@ -1,10 +1,10 @@
 import { api } from './fetcher';
-import { 
-  LoginResponse, 
-  User, 
-  LoginBasicRequest, 
-  RegisterRequest, 
-  ZaloLoginRequest 
+import {
+  LoginResponse,
+  User,
+  LoginBasicRequest,
+  RegisterRequest,
+  ZaloLoginRequest
 } from '../types/auth.types';
 
 export const authApi = {
