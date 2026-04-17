@@ -22,6 +22,19 @@ export const checkinApi = {
    */
   getMyHistory: (): Promise<ApiResponse<any[]>> =>
     api.get<ApiResponse<any[]>>('/v1/attendance/my-history'),
+
+  /**
+   * Lấy lịch sử chấm công cá nhân theo tháng
+   */
+  getHistoryByMonth: (month: number, year: number): Promise<ApiResponse<any[]>> =>
+    api.get<ApiResponse<any[]>>(`/v1/attendance/history?month=${month}&year=${year}`),
+
+  /**
+   * Lấy lịch sử chấm công công ty theo tháng (Admin)
+   */
+  getTenantHistoryByMonth: (month: number, year: number): Promise<ApiResponse<any[]>> =>
+    api.get<ApiResponse<any[]>>(`/v1/attendance/tenant-history?month=${month}&year=${year}`),
+
   /**
    * Đăng ký khuôn mặt lần đầu (Gửi nhiều ảnh mẫu)
    * @param formData chứa photos[] (danh sách file)

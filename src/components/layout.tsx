@@ -28,7 +28,10 @@ const BranchesPage = lazy(() => import('@/pages/branches/BranchesPage'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 const CheckInPage = lazy(() => import('@/pages/checkin/CheckInPage'));
 const RegisterFacePage = lazy(() => import('@/pages/checkin/RegisterFacePage'));
+const AttendanceHistoryPage = lazy(() => import('@/pages/checkin/AttendanceHistoryPage'));
 const UserHomePage = lazy(() => import('@/pages/Home/UserHomePage'));
+const UserAttendanceAdminPage = lazy(() => import('@/pages/users/UserAttendanceAdminPage'));
+const AdminAiAgentPage = lazy(() => import('@/pages/ai/AdminAiAgentPage'));
 
 const queryClient = new QueryClient();
 
@@ -127,6 +130,20 @@ const RouterContent = () => {
                             </Suspense>
                         </RoleGuard>
                     }></Route>
+                    <Route path="/attendance-admin" element={
+                        <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
+                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                <Page className="page"><UserAttendanceAdminPage /></Page>
+                            </Suspense>
+                        </RoleGuard>
+                    }></Route>
+                    <Route path="/ai-agent" element={
+                        <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
+                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                                <Page className="page"><AdminAiAgentPage /></Page>
+                            </Suspense>
+                        </RoleGuard>
+                    }></Route>
 
                     {/* KHU VỰC DÀNH CHO NHÂN VIÊN/KHÁCH HÀNG */}
                     <Route path="/goods" element={
@@ -162,6 +179,11 @@ const RouterContent = () => {
                     <Route path="/register-face" element={
                         <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                             <Page className="page"><RegisterFacePage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/attendance-history" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><AttendanceHistoryPage /></Page>
                         </Suspense>
                     }></Route>
                     <Route path="/settings" element={

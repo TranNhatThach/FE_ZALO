@@ -54,9 +54,9 @@ const UsersPage: React.FC = () => {
 
       <div className="px-4 mt-4">
         {/* Title */}
-        <div className="mb-4">
-          <h1 className={`text-[24px] font-extrabold m-0 leading-tight ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Thành viên</h1>
-          <p className={`text-[13px] m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Quản lý và thiết lập quyền truy cập</p>
+        <div className="mb-5 flex flex-col gap-1 relative z-10">
+          <h1 className={`text-[28px] font-black m-0 leading-tight tracking-tight ${isDarkMode ? 'text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.1)]' : 'text-gray-900 drop-shadow-sm'}`}>Thành viên</h1>
+          <p className={`text-[13px] font-medium m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Quản lý và thiết lập quyền truy cập</p>
         </div>
 
         {/* 2. Search Bar */}
@@ -78,19 +78,19 @@ const UsersPage: React.FC = () => {
 
         {/* 3. Thống kê */}
         <div className="flex gap-3 mb-6">
-          <div className={`flex-1 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-blue-900/40' : 'bg-blue-50'}`}>
-              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-blue-400' : 'bg-blue-500'}`}></span>
+          <div className={`flex-1 rounded-[24px] p-4 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(59,130,246,0.15)] ${isDarkMode ? 'bg-gradient-to-br from-[#1a1a1c] to-[#202024] border border-gray-800' : 'bg-gradient-to-br from-white to-blue-50/30 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}`}>
+            <div className={`w-10 h-10 rounded-[14px] flex items-center justify-center mb-3 ${isDarkMode ? 'bg-blue-500/20 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
+              <MenuOutlined className="text-[16px]" />
             </div>
-            <div className={`text-[24px] font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{users.length}</div>
-            <div className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Tổng cộng</div>
+            <div className={`text-[28px] font-black leading-none mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{users.length}</div>
+            <div className={`text-[12px] font-bold tracking-wide uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Tổng cộng</div>
           </div>
-          <div className={`flex-1 rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center mb-2 ${isDarkMode ? 'bg-green-900/40' : 'bg-green-50'}`}>
-              <span className={`w-2 h-2 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-500'}`}></span>
+          <div className={`flex-1 rounded-[24px] p-4 relative overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_20px_rgba(16,185,129,0.15)] ${isDarkMode ? 'bg-gradient-to-br from-[#1a1a1c] to-[#202024] border border-gray-800' : 'bg-gradient-to-br from-white to-green-50/30 border border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.03)]'}`}>
+            <div className={`w-10 h-10 rounded-[14px] flex items-center justify-center mb-3 ${isDarkMode ? 'bg-green-500/20 text-green-400' : 'bg-green-100 text-green-600'}`}>
+              <div className={`w-3 h-3 rounded-full ${isDarkMode ? 'bg-green-400' : 'bg-green-500'} animate-pulse`}></div>
             </div>
-            <div className={`text-[24px] font-extrabold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers}</div>
-            <div className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>Đang làm</div>
+            <div className={`text-[28px] font-black leading-none mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{activeUsers}</div>
+            <div className={`text-[12px] font-bold tracking-wide uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Đang làm</div>
           </div>
         </div>
 
@@ -101,38 +101,42 @@ const UsersPage: React.FC = () => {
           <div className="flex flex-col gap-3">
             {isLoading ? (
               <div className={`text-center py-4 ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>Đang tải...</div>
-            ) : filteredUsers.map((user: any, index: number) => (
+            ) : filteredUsers.map((user: any, index: number) => {
+              const displayName = user.fullName || user.username || user.name || (user.email ? user.email.split('@')[0] : 'Member');
+              return (
               <div
                 key={user.id || index}
                 onClick={() => {
                   setEditingUser(user);
                   setModalVisible(true);
                 }}
-                className={`rounded-[20px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.02)] flex items-center justify-between active:scale-[0.98] transition-transform ${isDarkMode ? 'bg-[#1a1a1c] border border-gray-800 active:bg-gray-800' : 'bg-white active:bg-gray-50 border border-transparent'}`}
+                className={`group rounded-[24px] p-4 flex items-center justify-between cursor-pointer transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_8px_25px_rgba(0,0,0,0.06)] active:scale-[0.98] ${isDarkMode ? 'bg-[#1a1a1c] border border-gray-800 hover:bg-[#202024]' : 'bg-white border border-gray-50 shadow-[0_2px_10px_rgba(0,0,0,0.02)]'}`}
               >
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <div className="relative">
-                    <div className="w-[46px] h-[46px] rounded-full bg-gradient-to-br from-blue-100 to-indigo-100 flex items-center justify-center text-blue-600 font-bold text-[18px]">
-                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    <div className="w-[50px] h-[50px] rounded-[16px] bg-gradient-to-br from-blue-500 to-indigo-500 flex items-center justify-center text-white font-black text-[20px] shadow-sm transform group-hover:-rotate-3 transition-transform duration-300">
+                      {displayName.charAt(0).toUpperCase()}
                     </div>
                     {/* Status Dot */}
-                    <div className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 ${isDarkMode ? 'border-[#1a1a1c]' : 'border-white'} ${user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                    <div className={`absolute -bottom-1 -right-1 w-4 h-4 rounded-full border-[3px] shadow-sm ${isDarkMode ? 'border-[#1a1a1c]' : 'border-white'} ${user.status === 'ACTIVE' ? 'bg-green-500' : 'bg-amber-400'}`}></div>
                   </div>
-                  <div>
-                    <h4 className={`font-bold m-0 text-[15px] ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{user.name}</h4>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[12px] font-medium ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{user.email || 'No email'}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[9px] font-extrabold uppercase tracking-wider ${isDarkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-50 text-blue-600'}`}>
+                  <div className="flex flex-col justify-center">
+                    <h4 className={`font-black m-0 text-[16px] tracking-tight ${isDarkMode ? 'text-white' : 'text-gray-900 group-hover:text-blue-600 transition-colors'}`}>
+                      {displayName}
+                    </h4>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className={`text-[12px] font-semibold ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>{user.email || 'No email'}</span>
+                      <span className={`px-2 py-0.5 rounded-[6px] text-[10px] font-black uppercase tracking-widest ${isDarkMode ? 'bg-blue-500/20 text-blue-400 border border-blue-500/20' : 'bg-blue-50 text-blue-600 border border-blue-100'}`}>
                         {user.roles?.[0] || 'USER'}
                       </span>
                     </div>
                   </div>
                 </div>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-50 text-gray-400'}`}>
-                  <RightOutlined className="text-[12px]" />
+                <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 ${isDarkMode ? 'bg-gray-800 text-gray-500 group-hover:bg-blue-500 group-hover:text-white' : 'bg-gray-50 text-gray-400 group-hover:bg-blue-50 group-hover:text-blue-600 group-hover:scale-110'}`}>
+                  <RightOutlined className="text-[14px]" />
                 </div>
               </div>
-            ))}
+            )})}
             {filteredUsers.length === 0 && !isLoading && (
               <div className={`text-center py-8 font-medium ${isDarkMode ? 'text-gray-600' : 'text-gray-400'}`}>Không tìm thấy thành viên!</div>
             )}

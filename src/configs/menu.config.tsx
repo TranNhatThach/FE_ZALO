@@ -7,7 +7,8 @@ import {
   EnvironmentOutlined,
   SettingOutlined,
   TeamOutlined,
-  CheckSquareOutlined
+  CheckSquareOutlined,
+  RobotOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
@@ -66,5 +67,12 @@ export const menuConfig: MenuItem[] = [
     label: 'Cài đặt hệ thống',
     title: 'Cài đặt hệ thống',
     path: '/settings',
+  },
+  {
+    key: '/ai-agent',
+    icon: <RobotOutlined style={{ color: '#8b5cf6' }} />,
+    label: 'Trợ lý AI (Admin)',
+    title: 'Trợ lý AI (Admin)',
+    path: '/ai-agent',
   },
 ];
