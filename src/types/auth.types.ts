@@ -12,17 +12,19 @@ export interface User {
   status?: string;
   tenantId?: string | number;
   tenantCode?: string;
+  isFaceRegistered?: boolean;
 }
 
 export interface AuthState {
   user: User | null;
   accessToken: string | null;
-  refreshToken: string | null;
+  refreshToken: string| null;
   isAuthenticated: boolean;
   login: (userData: User, access: string, refresh: string) => void;
   logout: () => void;
   setUser: (user: User) => void;
   restoreSession: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 export interface LoginResponse {

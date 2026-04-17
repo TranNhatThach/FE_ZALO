@@ -22,4 +22,10 @@ export const checkinApi = {
    */
   getMyHistory: (): Promise<ApiResponse<any[]>> =>
     api.get<ApiResponse<any[]>>('/v1/attendance/my-history'),
+  /**
+   * Đăng ký khuôn mặt lần đầu (Gửi nhiều ảnh mẫu)
+   * @param formData chứa photos[] (danh sách file)
+   */
+  registerFace: (formData: FormData): Promise<ApiResponse<void>> =>
+    api.post<ApiResponse<void>>('/v1/attendance/register-face', formData),
 };

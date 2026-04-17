@@ -12,10 +12,10 @@ interface RoleGuardProps {
  * Middleware phân quyền hiển thị (RoleGuard)
  * Dùng để bọc các Component/Page cần khóa theo Role.
  */
-export const RoleGuard: React.FC<RoleGuardProps> = ({ 
-  allowedRoles, 
-  fallbackPath = '/tasks', 
-  children 
+export const RoleGuard: React.FC<RoleGuardProps> = ({
+  allowedRoles,
+  fallbackPath = '/tasks',
+  children
 }) => {
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -25,23 +25,19 @@ export const RoleGuard: React.FC<RoleGuardProps> = ({
 
   // Kiểm tra user có ít nhất một role nằm trong danh sách cho phép không
   const userRolesRaw = [...(user.roles || []), user.roleName || ''];
-  const allRolesStr = userRolesRaw.join(',').toUpperCase();
-  
-  // Kiểm tra: Nếu role yêu cầu là ADMIN, ta chấp nhận cả ADMIN, TENANT_ADMIN, ROLE_ADMIN
+  const allRolesUpper = userRolesRaw.map(r => r.toUpperCase());
+
   const hasAccess = allowedRoles.some(ar => {
     const required = ar.toUpperCase();
-    if (required === 'ADMIN') {
-        return allRolesStr.includes('ADMIN') || allRolesStr.includes('ROLE_ADMIN');
-    }
-    return allRolesStr.includes(required);
+    return allRolesUpper.includes(required) || (required === 'ADMIN' && allRolesUpper.includes('SUPER_ADMIN'));
   });
 
   if (!hasAccess) {
-    console.warn("Access denied in RoleGuard. Redirecting to fallback...", { 
-        allowedRoles, 
-        userRoleName: user?.roleName,
-        userRoles: user?.roles,
-        allRolesStr 
+    console.warn("Access denied in RoleGuard. Redirecting to fallback...", {
+      allowedRoles,
+      userRoleName: user?.roleName,
+      userRoles: user?.roles,
+      allRolesUpper
     });
     // Nếu không có quyền, ép đổi hướng về fallbackPath (mặc định là /tasks cho nhân viên)
     setTimeout(() => {

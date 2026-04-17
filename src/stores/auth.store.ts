@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { AuthState, User } from '@/types/auth.types';
+import { authApi } from '@/api/auth.api';
 
 const ACCESS_TOKEN_KEY = 'zma_access_token';
 const REFRESH_TOKEN_KEY = 'zma_refresh_token';
@@ -65,6 +66,18 @@ export const useAuthStore = create<AuthState>((set) => ({
       });
     } else {
       set({ accessToken: null, refreshToken: null, isAuthenticated: false, user: null });
+    }
+  },
+
+  refreshUser: async () => {
+    try {
+      const userData = await authApi.getMe();
+      if (userData) {
+        localStorage.setItem(USER_DATA_KEY, JSON.stringify(userData));
+        set({ user: userData });
+      }
+    } catch (e) {
+      console.error('Lỗi refresh user:', e);
     }
   },
 }));

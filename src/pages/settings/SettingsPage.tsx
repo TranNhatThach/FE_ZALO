@@ -11,7 +11,9 @@ import {
   FormatPainterOutlined,
   QuestionCircleOutlined,
   LogoutOutlined,
-  ToolOutlined
+  ToolOutlined,
+  CameraOutlined,
+  CheckCircleOutlined
 } from '@ant-design/icons';
 import { message, Switch } from 'antd';
 
@@ -75,6 +77,22 @@ const SettingsPage: React.FC = () => {
         <div className="flex flex-col gap-2">
           <span className="text-[12px] font-bold text-gray-500 uppercase tracking-widest pl-2">Doanh nghiệp</span>
           <div className={`rounded-[20px] flex flex-col overflow-hidden shadow-sm ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
+            <SettingRow 
+              icon={<CameraOutlined className="text-blue-500" />} 
+              label="Đăng ký khuôn mặt" 
+              isDarkMode={isDarkMode} 
+              showArrow={!user?.isFaceRegistered}
+              onClick={() => !user?.isFaceRegistered && navigate('/register-face')}
+            >
+              {user?.isFaceRegistered ? (
+                <span className="text-green-500 text-[12px] font-bold flex items-center gap-1">
+                  <CheckCircleOutlined /> Đã đăng ký
+                </span>
+              ) : (
+                <span className="text-blue-500 text-[12px] font-bold underline">Chưa đăng ký</span>
+              )}
+            </SettingRow>
+            <div className={`h-[1px] ml-[50px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}></div>
             <SettingRow icon={<ToolOutlined className="text-green-500" />} label="Cấu hình hệ thống" isDarkMode={isDarkMode} showArrow />
             <div className={`h-[1px] ml-[50px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}></div>
             <SettingRow icon={<GlobalOutlined className="text-teal-500" />} label="Quản lý Tên miền / Website" isDarkMode={isDarkMode} showArrow />
@@ -108,9 +126,12 @@ const SettingsPage: React.FC = () => {
 };
 
 // Helper component for Setting Rows
-const SettingRow = ({ icon, label, children, showArrow, isDarkMode }: any) => {
+const SettingRow = ({ icon, label, children, showArrow, isDarkMode, onClick }: any) => {
   return (
-    <div className={`flex items-center justify-between px-4 py-4 active:bg-gray-50 transition-colors ${isDarkMode ? 'active:bg-gray-800' : 'active:bg-gray-50'}`}>
+    <div 
+      onClick={onClick}
+      className={`flex items-center justify-between px-4 py-4 transition-colors cursor-pointer ${isDarkMode ? 'active:bg-gray-800' : 'active:bg-gray-50'}`}
+    >
       <div className="flex items-center gap-3">
         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[16px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}>
           {icon}

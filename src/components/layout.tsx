@@ -27,6 +27,7 @@ const TasksPage = lazy(() => import('@/pages/tasks/TasksPage'));
 const BranchesPage = lazy(() => import('@/pages/branches/BranchesPage'));
 const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 const CheckInPage = lazy(() => import('@/pages/checkin/CheckInPage'));
+const RegisterFacePage = lazy(() => import('@/pages/checkin/RegisterFacePage'));
 const UserHomePage = lazy(() => import('@/pages/Home/UserHomePage'));
 
 const queryClient = new QueryClient();
@@ -156,6 +157,11 @@ const RouterContent = () => {
                     <Route path="/checkin" element={
                         <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
                             <Page className="page"><CheckInPage /></Page>
+                        </Suspense>
+                    }></Route>
+                    <Route path="/register-face" element={
+                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
+                            <Page className="page"><RegisterFacePage /></Page>
                         </Suspense>
                     }></Route>
                     <Route path="/settings" element={
