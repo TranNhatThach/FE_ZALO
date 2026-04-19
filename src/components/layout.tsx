@@ -7,11 +7,11 @@ import { ConfigProvider, theme, Spin, Skeleton } from 'antd';
 
 // Layouts & Auth
 import { MainLayout } from '@/layouts/MainLayout';
-import { ProtectedRoute } from './auth/ProtectedRoute';
-import { RoleGuard } from './auth/RoleGuard';
-import { useAuthStore } from '../stores/auth.store';
-import { useTenantResolver } from '../hooks/useTenantResolver';
-import { useThemeStore } from '../stores/theme.store';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { RoleGuard } from '@/components/auth/RoleGuard';
+import { useAuthStore } from '@/stores/auth.store';
+import { useTenantResolver } from '@/hooks/useTenantResolver';
+import { useThemeStore } from '@/stores/theme.store';
 
 // Pages
 import HomePage from '@/pages/index';
@@ -77,11 +77,15 @@ const AppContent = () => {
 };
 
 import { useLocation, useNavigate } from 'zmp-ui';
+import { useNotificationSocket } from '../hooks/useNotificationSocket';
 
 const RouterContent = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuthStore();
+
+    // Khởi tạo kết nối WebSocket lắng nghe thông báo
+    useNotificationSocket();
 
     const isAuthPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
 
@@ -90,7 +94,7 @@ const RouterContent = () => {
         if (isAuthenticated && user) {
             const allRoles = [...(user.roles || []), user.roleName || ''].join(',').toUpperCase();
             const isAdmin = allRoles.includes('ADMIN');
-            
+
             // Nếu đang ở trang Auth khi đã Login -> Đẩy về Dashboard/UserHome
             if (isAuthPage) {
                 if (isAdmin) {

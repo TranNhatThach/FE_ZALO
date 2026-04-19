@@ -22,6 +22,7 @@ export const CheckInPage: React.FC = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+  const [actionType, setActionType] = useState<'IN'|'OUT'>('IN');
   const [isScanning, setIsScanning] = useState(false);
   const [scanProgress, setScanProgress] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -110,7 +111,12 @@ export const CheckInPage: React.FC = () => {
       formData.append('lon', location.longitude);
       formData.append('photo', blob, 'checkin_autoscan.jpg');
 
-      const response = await checkinApi.checkIn(formData);
+      let response;
+      if (actionType === 'IN') {
+          response = await checkinApi.checkIn(formData);
+      } else {
+          response = await checkinApi.checkOut(formData);
+      }
 
       if (response.data?.status?.includes('FAIL')) {
         message.warning('Nhận diện thất bại. Vui lòng thử lại!');
@@ -159,14 +165,31 @@ export const CheckInPage: React.FC = () => {
                   <EnvironmentOutlined />
                 </div>
                 <div>
-                  <div className={`text-[14px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Vị trí Remote (GPS)</div>
-                  <div className="text-[11px] text-gray-500">{location ? 'Đã khóa tọa độ làm việc' : 'Yêu cầu định vị GPS'}</div>
+                  <div className={`text-[14px] font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
+                    Vị trí Remote (GPS)
+                  </div>
+                  <div className="text-[11px] text-gray-500">{location ? 'Đã khóa tọa độ' : 'Yêu cầu định vị GPS'}</div>
                 </div>
               </div>
-              {!location && (
+              {!location ? (
                 <button onClick={handleGetLocation} className="px-4 py-2 bg-[#1e3ba1] text-white text-[12px] font-bold rounded-lg border-none">
                   Lấy GPS
                 </button>
+              ) : (
+                <div className="flex bg-gray-100 rounded-lg p-1">
+                    <button 
+                      onClick={() => setActionType('IN')} 
+                      className={`px-3 py-1.5 text-[11px] font-bold rounded-md border-none ${actionType === 'IN' ? 'bg-blue-500 text-white shadow-sm' : 'bg-transparent text-gray-500'}`}
+                    >
+                      BẮT ĐẦU CA
+                    </button>
+                    <button 
+                      onClick={() => setActionType('OUT')} 
+                      className={`px-3 py-1.5 text-[11px] font-bold rounded-md border-none ${actionType === 'OUT' ? 'bg-orange-500 text-white shadow-sm' : 'bg-transparent text-gray-500'}`}
+                    >
+                      KẾT THÚC CA
+                    </button>
+                </div>
               )}
             </div>
 
@@ -251,7 +274,7 @@ export const CheckInPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${item.status?.includes('SUCCESS') ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
+                      <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${item.status?.includes('SUCCESS') || item.status === 'ON_TIME' || item.status === 'CHECK_OUT' ? 'bg-green-50 text-green-500' : 'bg-red-50 text-red-500'}`}>
                         {item.status || 'HỢP LỆ'}
                       </span>
                     </div>

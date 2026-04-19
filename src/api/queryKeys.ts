@@ -22,4 +22,9 @@ export const QUERY_KEYS = {
     /** Key for the tenant's product list (GET /v1/products) */
     LIST: ['products', 'list'] as const,
   },
+  
+  DASHBOARD: {
+    /** Key for dashboard summary (GET /v1/dashboard/summary) */
+    SUMMARY: ['dashboard', 'summary'] as const,
+  },
 } as const;

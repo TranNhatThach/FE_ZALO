@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/auth.store';
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 const ACCESS_TOKEN_KEY = 'zma_access_token';
 const REFRESH_TOKEN_KEY = 'zma_refresh_token';
+const USER_DATA_KEY = 'zma_user_data';
 
 let isRefreshing = false;
 let pendingQueue: Array<{
@@ -28,7 +29,19 @@ export async function fetchData<T>(
   const { _retry = false, ...fetchOptions } = options;
 
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  const tenantId = localStorage.getItem('tenant_id') || 'default';
+  
+  // Thử lấy tenantId từ nhiều nguồn
+  let tenantId = localStorage.getItem('tenant_id');
+  if (!tenantId) {
+      const userData = localStorage.getItem(USER_DATA_KEY);
+      if (userData) {
+          try {
+              const user = JSON.parse(userData);
+              tenantId = user.tenant?.id?.toString() || user.tenantId?.toString();
+          } catch (e) {}
+      }
+  }
+  tenantId = tenantId || '1'; // Mặc định là '1' thay vì 'default' để tránh lỗi parse Long ở BE
 
   const isFormData = fetchOptions.body instanceof FormData;
   const headers: Record<string, string> = {

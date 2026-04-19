@@ -2,7 +2,7 @@
 // Task Domain Types
 // ============================================================
 
-export type TaskStatus = 'TO DO' | 'IN PROGRESS' | 'DONE';
+export type TaskStatus = 'TO DO' | 'IN PROGRESS' | 'REVIEW' | 'DONE';
 export type TaskPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface Task {

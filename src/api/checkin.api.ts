@@ -17,6 +17,9 @@ export const checkinApi = {
   checkIn: (formData: FormData): Promise<ApiResponse<any>> =>
     api.post<ApiResponse<any>>('/v1/attendance/check-in', formData),
 
+  checkOut: (formData: FormData): Promise<ApiResponse<any>> =>
+    api.post<ApiResponse<any>>('/v1/attendance/checkout', formData),
+
   /**
    * Lấy lịch sử chấm công của cá nhân
    */

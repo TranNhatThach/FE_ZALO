@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography, Progress, Badge, Avatar } from 'antd';
+import { Typography, Progress, Badge, Avatar, Spin } from 'antd';
 import {
   BellOutlined,
   ArrowUpOutlined,
@@ -14,6 +14,9 @@ import { useAuthStore } from '@/stores/auth.store';
 import { useThemeStore } from '@/stores/theme.store';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
+import { useQuery } from '@tanstack/react-query';
+import { dashboardApi } from '@/api/dashboard.api';
+import { QUERY_KEYS } from '@/api/queryKeys';
 
 const { Title, Text } = Typography;
 
@@ -41,11 +44,32 @@ const Dashboard: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const today = dayjs().locale('vi').format('dddd, D [Tháng] M, YYYY');
 
+  // Fetch real summary data
+  const { data: stats, isLoading, error } = useQuery({
+    queryKey: QUERY_KEYS.DASHBOARD.SUMMARY,
+    queryFn: async () => {
+        const res = await dashboardApi.getSummary();
+        console.log("Dashboard Data Fetched:", res);
+        return res;
+    },
+    refetchInterval: 30000,
+  });
+
+  const statsData = stats || {
+    totalEmployees: 0,
+    todayAttendance: 0,
+    pendingTasks: 0,
+    totalProducts: 0,
+    inventoryValue: 0
+  };
+
   return (
     <div className={`
       min-h-screen pb-24 p-4 pt-4 space-y-6 max-w-lg mx-auto overflow-hidden transition-all duration-300
       ${isDarkMode ? 'bg-black' : 'bg-[#fbfcff]'}
     `}>
+      {isLoading && <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm"><Spin /></div>}
+      
       {/* Welcome greeting */}
       <div className="space-y-0.5 px-0.5">
         <Title level={3} style={{ margin: 0, fontWeight: 800 }} className={isDarkMode ? 'text-white' : 'text-[#1a1f36]'}>
@@ -58,57 +82,65 @@ const Dashboard: React.FC = () => {
 
       {/* Main Revenue Highlight Card */}
       <div className={`rounded-[28px] p-7 text-white shadow-2xl relative overflow-hidden group transition-all ${isDarkMode ? 'bg-gradient-to-br from-[#1e3a8a] to-[#000000] shadow-blue-900/20' : 'bg-gradient-to-br from-[#1a3faf] to-[#0d225c] shadow-blue-200/50'}`}>
-        {/* Abstract background decorative patterns */}
-        <div className="absolute -right-16 -top-16 w-56 h-56 bg-white/10 rounded-full blur-[80px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
-        <div className="absolute right-6 bottom-4 opacity-5 pointer-events-none">
-          <ThunderboltOutlined style={{ fontSize: '120px' }} />
+        <div className="absolute top-[-20px] right-[-20px] opacity-10 group-hover:scale-110 transition-transform duration-700">
+           <ThunderboltOutlined style={{ fontSize: '180px' }} />
         </div>
 
         <div className="space-y-4 relative z-10">
           <div className="space-y-1">
-            <Text className="text-white/60 text-[10px] uppercase font-heavy tracking-[0.2em]">Doanh thu tháng này</Text>
-            <div className="text-3xl font-black mt-1 tracking-tight">1.284B VNĐ</div>
+            <Text className="text-white/60 text-[10px] uppercase font-heavy tracking-[0.2em]">Giá trị kho (Ước tính)</Text>
+            <div className="text-3xl font-black mt-1 tracking-tight">
+                {statsData.inventoryValue.toLocaleString('vi-VN')} VNĐ
+            </div>
           </div>
 
           <div className="inline-flex items-center bg-white/10 backdrop-blur-xl rounded-full px-4 py-1.5 text-[11px] font-bold border border-white/20">
-            <ArrowUpOutlined className="mr-1.5 text-cyan-300" />
-            <span className="text-white">+12.5%</span>
+            <ArrowUpOutlined className="mr-1.5 text-emerald-400" />
+            <span>+12.5%</span>
           </div>
         </div>
       </div>
 
-      {/* Quick Stats Grid */}
+      {/* Two-column Stats Grid */}
       <div className="grid grid-cols-2 gap-4">
-        <div className={`rounded-[28px] p-5 border shadow-sm hover:shadow-md transition-all active:scale-[0.98] duration-200 flex flex-col justify-between min-h-[140px] ${isDarkMode ? 'bg-[#121212] border-gray-800' : 'bg-white border-gray-50'}`}>
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isDarkMode ? 'bg-indigo-900/30' : 'bg-[#eef2ff]'}`}>
+        {/* Card 1 */}
+        <div className={`rounded-[28px] p-5 shadow-sm border ${isDarkMode ? 'bg-[#111] border-gray-800' : 'bg-white border-gray-100'} hover:shadow-md transition-shadow`}>
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-4 ${isDarkMode ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
             <UserOutlined className="text-[#4f46e5] text-lg" />
           </div>
           <div className="space-y-1">
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Thành viên mới</div>
-            <div className={`text-2xl font-black leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>1,284</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Tổng nhân sự</div>
+            <div className={`text-2xl font-black leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>
+                {statsData.totalEmployees}
+            </div>
           </div>
         </div>
 
-        <div className={`rounded-[28px] p-5 border shadow-sm hover:shadow-md transition-all active:scale-[0.98] duration-200 flex flex-col justify-between min-h-[140px] ${isDarkMode ? 'bg-[#121212] border-gray-800' : 'bg-white border-gray-50'}`}>
-          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isDarkMode ? 'bg-cyan-900/30' : 'bg-[#ecfeff]'}`}>
+        {/* Card 2 */}
+        <div className={`rounded-[28px] p-5 shadow-sm border ${isDarkMode ? 'bg-[#111] border-gray-800' : 'bg-white border-gray-100'} hover:shadow-md transition-shadow`}>
+          <div className={`w-10 h-10 rounded-2xl flex items-center justify-center mb-4 ${isDarkMode ? 'bg-cyan-900/30' : 'bg-cyan-50'}`}>
             <ThunderboltOutlined className="text-[#0891b2] text-lg" />
           </div>
           <div className="space-y-1">
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Công việc</div>
-            <div className={`text-2xl font-black leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>342</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-tight">Việc cần làm</div>
+            <div className={`text-2xl font-black leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>
+                {statsData.pendingTasks}
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Summary Card with Mini Chart */}
-      <div className={`rounded-[28px] p-6 border shadow-sm flex items-center justify-between transition-all ${isDarkMode ? 'bg-[#121212] border-gray-800' : 'bg-white border-gray-50'}`}>
-        <div className="flex items-center space-x-4">
-          <div className={`w-12 h-12 rounded-[18px] flex items-center justify-center ${isDarkMode ? 'bg-indigo-900/20' : 'bg-indigo-50'}`}>
+      {/* Horizontal List Card */}
+      <div className={`rounded-[28px] p-5 flex items-center justify-between border ${isDarkMode ? 'bg-[#111] border-gray-800' : 'bg-white border-gray-100'} shadow-sm`}>
+        <div className="flex items-center gap-4">
+          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${isDarkMode ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
             <FileTextOutlined className="text-indigo-400 text-xl" />
           </div>
           <div>
-            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Hợp đồng mới</div>
-            <div className={`text-2xl font-bold leading-tight ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>18</div>
+            <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Mã hàng trong kho</div>
+            <div className={`text-2xl font-bold leading-tight ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>
+                {statsData.totalProducts}
+            </div>
           </div>
         </div>
         <div className="h-10 w-24">

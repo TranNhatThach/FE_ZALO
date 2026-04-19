@@ -2,12 +2,13 @@ import React, { Suspense } from 'react';
 import { Layout, Skeleton } from 'antd';
 
 // === BẠN CỦA USER: THAY ĐỔI COMPONENT SIDEBAR TẠI ĐÂY NẾU CẦN ===
-import { Sidebar } from '../components/layout/Sidebar';
-import { useAuthStore } from '../stores/auth.store';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { useAuthStore } from '@/stores/auth.store';
+import { NotificationBell } from '@/components/NotificationBell';
 // ==========================================================
 
-import { useThemeStore } from '../stores/theme.store';
-import { ErrorBoundary } from '../components/error/ErrorBoundary';
+import { useThemeStore } from '@/stores/theme.store';
+import { ErrorBoundary } from '@/components/error/ErrorBoundary';
 import { useNavigate, useLocation } from 'zmp-ui';
 import {
   HomeOutlined,
@@ -65,11 +66,21 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         {/* Content Wrapper using safe-area-insent to avoid notch overlap */}
         <Content
           className="flex-1 w-full m-0 p-0 relative"
-          style={{ 
-            paddingTop: 'env(safe-area-inset-top, 0px)',
+          style={{
             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 64px)'
           }}
         >
+          {/* Top Header with Notification Bell */}
+          <div 
+            className="flex items-center justify-between pl-4 pr-[100px] pb-2 sticky top-0 z-[99] border-b border-gray-100/50 bg-white/70 backdrop-blur-xl"
+            style={{ paddingTop: 'calc(var(--zaui-safe-area-inset-top, 24px) + 8px)' }}
+          >
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest border border-blue-200/60 px-2.5 py-0.5 rounded-full bg-blue-50/80 w-fit shadow-sm">Vanguard</span>
+            </div>
+            <NotificationBell />
+          </div>
+
           <ErrorBoundary>
             <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
               {children}
@@ -78,15 +89,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         </Content>
 
         {/* Premium Mobile Bottom Navigation (Glassmorphism) */}
-        <div 
-          className={`fixed bottom-0 left-0 right-0 flex items-center justify-around px-2 z-[1000] border-t transition-all duration-300 ${
-            isDarkMode 
-              ? 'bg-[#1a1a1c]/80 backdrop-blur-xl border-gray-800 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]' 
+        <div
+          className={`fixed bottom-0 left-0 right-0 flex items-center justify-around px-2 z-[1000] border-t transition-all duration-300 ${isDarkMode
+              ? 'bg-[#1a1a1c]/80 backdrop-blur-xl border-gray-800 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]'
               : 'bg-white/90 backdrop-blur-xl border-white/[0.2] shadow-[0_-8px_30px_rgba(0,0,0,0.04)]'
-          }`}
-          style={{ 
+            }`}
+          style={{
             height: 'calc(64px + env(safe-area-inset-bottom, 0px))',
-            paddingBottom: 'env(safe-area-inset-bottom, 0px)' 
+            paddingBottom: 'env(safe-area-inset-bottom, 0px)'
           }}
         >
           {navItems.map((item) => {
@@ -96,24 +106,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 key={item.key}
                 onClick={() => {
                   if (item.action === 'toggle-sidebar') {
-                     setSidebarCollapsed(!isSidebarCollapsed);
+                    setSidebarCollapsed(!isSidebarCollapsed);
                   } else {
-                     navigate(item.key);
+                    navigate(item.key);
                   }
                 }}
                 className="flex flex-col items-center justify-center w-full h-[64px] border-none outline-none bg-transparent group active:scale-[0.92] transition-transform select-none"
                 style={{ WebkitTapHighlightColor: 'transparent' }}
               >
-                <div className={`transition-all duration-300 flex items-center justify-center ${
-                  isActive ? (isDarkMode ? 'text-[#60a5fa] drop-shadow-md' : 'text-[#2563eb] drop-shadow-sm') : 'text-[#a1a1aa]'
-                }`}>
+                <div className={`transition-all duration-300 flex items-center justify-center ${isActive ? (isDarkMode ? 'text-[#60a5fa] drop-shadow-md' : 'text-[#2563eb] drop-shadow-sm') : 'text-[#a1a1aa]'
+                  }`}>
                   {React.cloneElement(item.icon as React.ReactElement, {
                     style: { fontSize: isActive ? '24px' : '22px' }
                   })}
                 </div>
-                <span className={`text-[9px] font-black tracking-widest mt-1 uppercase ${
-                  isActive ? (isDarkMode ? 'text-[#60a5fa]' : 'text-[#2563eb]') : 'text-[#a1a1aa]'
-                }`}>
+                <span className={`text-[9px] font-black tracking-widest mt-1 uppercase ${isActive ? (isDarkMode ? 'text-[#60a5fa]' : 'text-[#2563eb]') : 'text-[#a1a1aa]'
+                  }`}>
                   {item.label}
                 </span>
                 {isActive && (

@@ -3,6 +3,7 @@ import { Modal, Form, Input, Select, DatePicker, message } from 'antd';
 import { PlusCircleOutlined, LoadingOutlined } from '@ant-design/icons';
 import { useCreateTaskMutation } from '@/hooks/useTasks';
 import { useQuery } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/auth.store';
 import { userService } from '@/services/user.service';
 import dayjs from 'dayjs';
 
@@ -14,6 +15,7 @@ interface CreateTaskModalProps {
 
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClose, onSuccess }) => {
   const [form] = Form.useForm();
+  const { user } = useAuthStore();
   const { mutate: createTask, isPending } = useCreateTaskMutation();
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
@@ -23,11 +25,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
   const handleCreate = async () => {
     try {
       const values = await form.validateFields();
-      
+
       const payload = {
         ...values,
-        dueDate: values.dueDate ? dayjs(values.dueDate).format('YYYY-MM-DD') : undefined,
-        status: 'TO DO',
+        tenantId: user?.tenantId,
+        dueDate: values.dueDate ? dayjs(values.dueDate).startOf('day').toISOString() : undefined,
+        status: 'TO_DO',
       };
 
       createTask(payload, {
@@ -57,13 +60,13 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
       onCancel={onClose}
       footer={
         <div className="flex gap-2 pt-2">
-          <button 
+          <button
             onClick={onClose}
             className="flex-1 py-3.5 rounded-[18px] font-bold text-gray-500 bg-gray-100 hover:bg-gray-200 border-none transition-all active:scale-95"
           >
             Hủy bỏ
           </button>
-          <button 
+          <button
             onClick={handleCreate}
             disabled={isPending}
             className="flex-1 py-3.5 rounded-[18px] font-black text-white bg-gradient-to-r from-[#1e3ba1] to-[#2563eb] border-none shadow-lg shadow-blue-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
@@ -91,9 +94,9 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           name="title"
           rules={[{ required: true, message: 'Vui lòng nhập tiêu đề' }]}
         >
-          <Input 
-            placeholder="Nhập tên công việc..." 
-            className="rounded-xl border-gray-200 h-11 focus:border-[#1e3ba1] focus:ring-1 focus:ring-blue-100 font-medium" 
+          <Input
+            placeholder="Nhập tên công việc..."
+            className="rounded-xl border-gray-200 h-11 focus:border-[#1e3ba1] focus:ring-1 focus:ring-blue-100 font-medium"
           />
         </Form.Item>
 
@@ -102,8 +105,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           name="assigneeId"
           rules={[{ required: true, message: 'Vui lòng chọn người thực hiện' }]}
         >
-          <Select 
-            placeholder="Chọn nhân viên..." 
+          <Select
+            placeholder="Chọn nhân viên..."
             className="h-11 rounded-xl overflow-hidden"
             showSearch
             filterOption={(input, option) =>
@@ -148,9 +151,9 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           name="dueDate"
           rules={[{ required: true, message: 'Vui lòng chọn ngày' }]}
         >
-          <DatePicker 
-            className="w-full h-11 rounded-xl border-gray-200" 
-            placeholder="Chọn ngày kết thúc" 
+          <DatePicker
+            className="w-full h-11 rounded-xl border-gray-200"
+            placeholder="Chọn ngày kết thúc"
             format="DD/MM/YYYY"
           />
         </Form.Item>
@@ -159,10 +162,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           label={<span className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Mô tả chi tiết (Tùy chọn)</span>}
           name="description"
         >
-          <Input.TextArea 
-             placeholder="Nhập nội dung công việc chi tiết..." 
-             rows={3}
-             className="rounded-xl border-gray-200 focus:border-[#1e3ba1] font-medium" 
+          <Input.TextArea
+            placeholder="Nhập nội dung công việc chi tiết..."
+            rows={3}
+            className="rounded-xl border-gray-200 focus:border-[#1e3ba1] font-medium"
           />
         </Form.Item>
       </Form>

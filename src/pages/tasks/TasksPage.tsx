@@ -40,7 +40,9 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onReportClick }) => {
   };
 
   const handleComplete = () => {
-    updateStatus({ taskId: task.id, status: 'DONE' });
+    // Nếu là nhân viên bấm hoàn thành, chuyển sang REVIEW. Nếu admin bấm, chuyển sang DONE.
+    const targetStatus = isAdmin ? 'DONE' : 'REVIEW';
+    updateStatus({ taskId: task.id, status: targetStatus });
   };
 
   const categoryColors: Record<string, string> = {
@@ -101,48 +103,67 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onReportClick }) => {
         )}
       </div>
 
-      {/* Row 4: Action Buttons (chỉ hiện khi chưa DONE và KHÔNG PHẢI ADMIN) */}
-      {task.status !== 'DONE' && !isAdmin && (
-        <div className="flex gap-2 mt-1">
-          {/* Nút "Nhận việc" - chỉ hiện khi status là TO DO */}
-          {task.status === 'TO DO' && (
-            <button
-              onClick={handleAccept}
-              disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold border border-[#1d4ed8] text-[#1d4ed8] bg-transparent active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isPending ? <LoadingOutlined className="text-[13px]" /> : <PlayCircleOutlined className="text-[13px]" />}
-              Nhận việc
-            </button>
-          )}
+      {/* Row 4: Action Buttons */}
+      <div className="flex gap-2 mt-1">
+        {/* Người dùng: Nhận việc */}
+        {task.status === 'TO DO' && !isAdmin && (
+          <button
+            onClick={handleAccept}
+            disabled={isPending}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold border border-[#1d4ed8] text-[#1d4ed8] bg-transparent active:scale-95 transition-all disabled:opacity-50"
+          >
+            {isPending ? <LoadingOutlined className="text-[13px]" /> : <PlayCircleOutlined className="text-[13px]" />}
+            Nhận việc
+          </button>
+        )}
 
-          {/* Nút "Báo cáo" - hiện khi IN PROGRESS */}
-          {task.status === 'IN PROGRESS' && (
-            <button
-              onClick={() => onReportClick && onReportClick(task)}
-              disabled={isPending}
-              className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold border border-orange-500 text-orange-600 bg-orange-50 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <CameraOutlined className="text-[13px]" />
-              Báo cáo
-            </button>
-          )}
+        {/* Người dùng: Báo cáo */}
+        {task.status === 'IN PROGRESS' && !isAdmin && (
+          <button
+            onClick={() => onReportClick && onReportClick(task)}
+            disabled={isPending}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold border border-orange-500 text-orange-600 bg-orange-50 active:scale-95 transition-all disabled:opacity-50"
+          >
+            <CameraOutlined className="text-[13px]" />
+            Báo cáo
+          </button>
+        )}
 
-          {/* Nút "Hoàn thành" - hiện khi TO DO hoặc IN PROGRESS */}
+        {/* Admin: Phê duyệt (Trong bước REVIEW) */}
+        {task.status === 'REVIEW' && isAdmin && (
           <button
             onClick={handleComplete}
             disabled={isPending}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold bg-[#1e3ba1] text-white border-none active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shadow-blue-900/20"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold bg-emerald-600 text-white border-none active:scale-95 transition-all shadow-sm shadow-emerald-900/10"
           >
             {isPending ? <LoadingOutlined className="text-[13px]" /> : <CheckCircleOutlined className="text-[13px]" />}
-            Hoàn thành
+            Phê duyệt
           </button>
-        </div>
-      )}
+        )}
+
+        {/* Hiển thị trạng thái chờ duyệt cho nhân viên */}
+        {task.status === 'REVIEW' && !isAdmin && (
+          <div className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-tighter bg-orange-50 text-orange-600 border border-orange-100">
+             Đang chờ duyệt...
+          </div>
+        )}
+
+        {/* Nút Hoàn thành nhanh (cho phép cả 2 nếu cần) */}
+        {(task.status === 'TO DO' || task.status === 'IN PROGRESS') && (
+            <button
+                onClick={handleComplete}
+                disabled={isPending}
+                className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold bg-[#1e3ba1] text-white border-none active:scale-95 transition-all disabled:opacity-50 shadow-sm shadow-blue-900/20"
+            >
+                {isPending ? <LoadingOutlined className="text-[13px]" /> : <CheckCircleOutlined className="text-[13px]" />}
+                Xong
+            </button>
+        )}
+      </div>
 
       {/* Badge khi đã DONE */}
       {task.status === 'DONE' && (
-        <div className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold bg-green-50 text-green-600 border border-green-200 mt-1">
+        <div className="flex items-center justify-center gap-1.5 py-2 rounded-xl text-[12px] font-bold bg-emerald-50 text-emerald-600 border border-emerald-100 mt-1">
           <CheckCircleOutlined />
           Đã hoàn thành
         </div>
@@ -175,6 +196,7 @@ export const TasksPage: React.FC = () => {
 
   const todoTasks = tasks.filter((t) => t.status === 'TO DO');
   const inProgressTasks = tasks.filter((t) => t.status === 'IN PROGRESS');
+  const reviewTasks = tasks.filter((t) => t.status === 'REVIEW');
   const doneTasks = tasks.filter((t) => t.status === 'DONE');
 
   // Stats
@@ -393,23 +415,37 @@ export const TasksPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Column DONE */}
-            {doneTasks.length > 0 && (
-              <div className="flex flex-col min-w-[280px] pr-5">
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
-                  <h4 className="text-[12px] font-black text-green-600 uppercase tracking-widest m-0">DONE</h4>
-                  <span className="w-5 h-5 rounded-full bg-green-50 flex items-center justify-center text-[10px] font-bold text-green-600 ml-1">
-                    {doneTasks.length}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-3">
-                  {doneTasks.map((task) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
+            {/* Column REVIEW */}
+            <div className="flex flex-col min-w-[280px]">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-orange-400" />
+                <h4 className="text-[12px] font-black text-orange-600 uppercase tracking-widest m-0">REVIEW</h4>
+                <span className="w-5 h-5 rounded-full bg-orange-50 flex items-center justify-center text-[10px] font-bold text-orange-600 ml-1">
+                  {reviewTasks.length}
+                </span>
               </div>
-            )}
+              <div className="flex flex-col gap-3">
+                {reviewTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
+
+            {/* Column DONE */}
+            <div className="flex flex-col min-w-[280px] pr-5">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                <h4 className="text-[12px] font-black text-emerald-600 uppercase tracking-widest m-0">DONE</h4>
+                <span className="w-5 h-5 rounded-full bg-emerald-50 flex items-center justify-center text-[10px] font-bold text-emerald-600 ml-1">
+                  {doneTasks.length}
+                </span>
+              </div>
+              <div className="flex flex-col gap-3">
+                {doneTasks.map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </div>
+            </div>
           </div>
         )}
 
