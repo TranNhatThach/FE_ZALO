@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Page } from 'zmp-ui';
 import { useThemeStore } from '@/stores/theme.store';
 import { 
   SearchOutlined, 
@@ -12,7 +13,7 @@ import {
   EditOutlined
 } from '@ant-design/icons';
 import { useGetProducts } from '@/hooks/useProducts';
-import { Spin, Modal, Form, InputNumber, message } from 'antd';
+import { Spin, Modal, Form, InputNumber, message, Input, Select } from 'antd';
 import { LoadingOutlined } from '@ant-design/icons';
 import { productApi } from '@/api/product.api';
 import { useQueryClient } from '@tanstack/react-query';
@@ -23,8 +24,10 @@ export const GoodsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
   const [checkModalVisible, setCheckModalVisible] = useState(false);
+  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [form] = Form.useForm();
+  const [createForm] = Form.useForm();
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useGetProducts();
@@ -50,6 +53,20 @@ export const GoodsPage: React.FC = () => {
     }
   };
 
+  const handleCreateProduct = async () => {
+    try {
+        const values = await createForm.validateFields();
+        await productApi.createProduct(values);
+        message.success('Thêm sản phẩm mới thành công!');
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LIST });
+        setCreateModalVisible(false);
+        createForm.resetFields();
+    } catch (err) {
+        console.error(err);
+        message.error('Lỗi khi thêm sản phẩm');
+    }
+  };
+
   const filteredProducts = products.filter(item => {
     const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           item.sku.toLowerCase().includes(searchTerm.toLowerCase());
@@ -59,10 +76,10 @@ export const GoodsPage: React.FC = () => {
   });
 
   return (
-    <div className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fc]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fc]'}`}>
       
       {/* 1. Header Area */}
-      <div className={`flex items-center justify-between px-4 pt-6 pb-2 sticky top-0 z-[100] transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fc]'}`}>
+      <div className={`flex items-center justify-between px-4 pt-2 pb-2 sticky top-0 z-[100] transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fc]'}`}>
         <div className="flex items-center gap-2">
           <button 
             onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
@@ -121,7 +138,7 @@ export const GoodsPage: React.FC = () => {
               Tổng mặt hàng
             </span>
             <div className={`text-[26px] font-extrabold leading-none mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              2,450
+              {products.length.toLocaleString('vi-VN')}
             </div>
           </div>
           <div className={`flex-shrink-0 w-[160px] rounded-[16px] p-4 relative shadow-sm border-l-[3px] border-[#6b7280] overflow-hidden ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
@@ -129,7 +146,7 @@ export const GoodsPage: React.FC = () => {
               Đang kinh doanh
             </span>
             <div className={`text-[26px] font-extrabold leading-none mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              2,120
+              {products.filter(p => p.status === 'CÒN HÀNG').length.toLocaleString('vi-VN')}
             </div>
           </div>
           <div className={`flex-shrink-0 w-[160px] rounded-[16px] p-4 relative shadow-sm border-l-[3px] border-[#ef4444] overflow-hidden ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
@@ -137,7 +154,7 @@ export const GoodsPage: React.FC = () => {
               Hết hàng
             </span>
             <div className={`text-[26px] font-extrabold leading-none mt-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              330
+              {products.filter(p => p.status === 'HẾT HÀNG').length.toLocaleString('vi-VN')}
             </div>
           </div>
         </div>
@@ -147,7 +164,7 @@ export const GoodsPage: React.FC = () => {
           <div className="flex items-center justify-between mb-3 px-1">
             <h3 className={`text-[13px] font-bold tracking-wider uppercase m-0 ${isDarkMode ? 'text-gray-400' : 'text-[#374151]'}`}>Danh sách sản phẩm</h3>
             <span className="text-gray-500 text-[11px] font-medium">
-              Hiển thị 12/2,450
+              Hiển thị {filteredProducts.length}/{products.length}
             </span>
           </div>
 
@@ -220,9 +237,59 @@ export const GoodsPage: React.FC = () => {
       </div>
 
       {/* Floating Action Button (+) */}
-      <button className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-[#1e3ba1] text-white shadow-lg flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer">
-        <PlusOutlined className="text-[26px]" />
+      <button 
+        onClick={() => setCreateModalVisible(true)}
+        className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-[#1e3ba1] text-white shadow-lg flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer"
+      >
+        <PlusOutlined className="text-[24px]" />
       </button>
+
+      {/* Create Product Modal */}
+      <Modal
+        title={<div className="font-black text-[#1e3ba1] uppercase">Thêm sản phẩm mới</div>}
+        open={createModalVisible}
+        onCancel={() => setCreateModalVisible(false)}
+        footer={[
+          <button key="back" onClick={() => setCreateModalVisible(false)} className="px-4 py-2 bg-gray-100 border-none rounded-xl mr-2 font-bold text-gray-500">Hủy</button>,
+          <button key="submit" onClick={handleCreateProduct} className="px-4 py-2 bg-[#1e3ba1] border-none rounded-xl text-white font-bold">Thêm sản phẩm</button>
+        ]}
+        centered
+        width={350}
+        styles={{ body: { padding: '20px 10px' } }}
+      >
+        <Form form={createForm} layout="vertical">
+          <Form.Item name="name" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Tên sản phẩm</span>} rules={[{ required: true }]}>
+            <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="VD: Máy khoan cầm tay..." />
+          </Form.Item>
+          
+          <div className="grid grid-cols-2 gap-3">
+            <Form.Item name="sku" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Mã hiệu (SKU)</span>} rules={[{ required: true }]}>
+              <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="SKU-001" />
+            </Form.Item>
+            <Form.Item name="category" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Danh mục</span>} rules={[{ required: true }]}>
+              <Select className="h-11 rounded-xl" options={[
+                  { value: 'Điện tử', label: 'Điện tử' },
+                  { value: 'Công cụ', label: 'Công cụ' },
+                  { value: 'Vật liệu', label: 'Vật liệu' },
+                  { value: 'Hóa chất', label: 'Hóa chất' }
+              ]} />
+            </Form.Item>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Form.Item name="price" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Đơn giá</span>} rules={[{ required: true }]}>
+              <InputNumber className="w-full h-11 rounded-xl bg-gray-50 border-none font-bold" />
+            </Form.Item>
+            <Form.Item name="stock" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Tồn kho đầu</span>} rules={[{ required: true }]}>
+              <InputNumber className="w-full h-11 rounded-xl bg-gray-50 border-none font-bold" />
+            </Form.Item>
+          </div>
+
+          <Form.Item name="imageUrl" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Link ảnh sản phẩm</span>}>
+            <Input className="h-11 rounded-xl bg-gray-50 border-none" placeholder="https://..." />
+          </Form.Item>
+        </Form>
+      </Modal>
 
       {/* Stock Take Modal */}
       <Modal
@@ -249,7 +316,7 @@ export const GoodsPage: React.FC = () => {
             display: none;
         }
       `}</style>
-    </div>
+    </Page>
   );
 };
 

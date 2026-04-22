@@ -1,5 +1,6 @@
 import React from 'react';
 import { Typography, Progress, Badge, Avatar, Spin } from 'antd';
+import { Page } from 'zmp-ui';
 import {
   BellOutlined,
   ArrowUpOutlined,
@@ -22,13 +23,13 @@ const { Title, Text } = Typography;
 
 // Mock data
 const activityData = [
-  { name: 'T2', value: 30 },
-  { name: 'T3', value: 45 },
-  { name: 'T4', value: 65 }, // High
-  { name: 'T5', value: 40 },
-  { name: 'T6', value: 35 },
-  { name: 'T7', value: 85 }, // Peak
-  { name: 'CN', value: 42 },
+  { day: 'T2', value: 30 },
+  { day: 'T3', value: 45 },
+  { day: 'T4', value: 65 }, // High
+  { day: 'T5', value: 40 },
+  { day: 'T6', value: 35 },
+  { day: 'T7', value: 85 }, // Peak
+  { day: 'CN', value: 42 },
 ];
 
 const contractData = [
@@ -52,7 +53,7 @@ const Dashboard: React.FC = () => {
         console.log("Dashboard Data Fetched:", res);
         return res;
     },
-    refetchInterval: 30000,
+    refetchInterval: 120000, // 2 minutes
   });
 
   const statsData = stats || {
@@ -60,13 +61,16 @@ const Dashboard: React.FC = () => {
     todayAttendance: 0,
     pendingTasks: 0,
     totalProducts: 0,
-    inventoryValue: 0
+    inventoryValue: 0,
+    operationalEfficiency: 0,
+    weeklyActivity: [],
+    recentTasks: []
   };
 
   return (
-    <div className={`
-      min-h-screen pb-24 p-4 pt-4 space-y-6 max-w-lg mx-auto overflow-hidden transition-all duration-300
-      ${isDarkMode ? 'bg-black' : 'bg-[#fbfcff]'}
+    <Page className={`
+      min-h-screen pb-24 p-4 pt-2 space-y-6 max-w-lg mx-auto overflow-hidden transition-all duration-300
+      ${isDarkMode ? 'bg-black text-white' : 'bg-[#fbfcff] text-gray-800'}
     `}>
       {isLoading && <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm"><Spin /></div>}
       
@@ -171,9 +175,9 @@ const Dashboard: React.FC = () => {
 
         <div className="h-48 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={activityData} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
+            <BarChart data={statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : activityData} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
               <XAxis
-                dataKey="name"
+                dataKey="day"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fill: isDarkMode ? '#64748b' : '#adb5bd', fontSize: 11, fontWeight: 700 }}
@@ -194,11 +198,10 @@ const Dashboard: React.FC = () => {
                 radius={[12, 12, 12, 12]}
                 barSize={34}
               >
-                {activityData.map((entry, index) => (
+                {(statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : activityData).map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
-                    fill={entry.value > 60 ? (isDarkMode ? '#3b82f6' : '#1a3faf') : (isDarkMode ? '#1e293b' : '#e5e7eb')}
-                    fillOpacity={entry.name === 'T4' ? 0.35 : 1}
+                    fill={entry.value > 0 ? (isDarkMode ? '#3b82f6' : '#1a3faf') : (isDarkMode ? '#1e293b' : '#e5e7eb')}
                   />
                 ))}
               </Bar>
@@ -216,9 +219,9 @@ const Dashboard: React.FC = () => {
           <div className="space-y-3.5">
             <div className="flex justify-between items-end">
               <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>HIỆU SUẤT VẬN HÀNH</Text>
-              <Text className={`text-[11px] font-black ${isDarkMode ? 'text-blue-400' : 'text-[#1a3faf]'}`}>92%</Text>
+              <Text className={`text-[11px] font-black ${isDarkMode ? 'text-blue-400' : 'text-[#1a3faf]'}`}>{statsData.operationalEfficiency.toFixed(1)}%</Text>
             </div>
-            <Progress percent={92} showInfo={false} strokeColor={isDarkMode ? '#3b82f6' : '#1a3faf'} trailColor={isDarkMode ? '#1e293b' : '#f1f5f9'} strokeWidth={12} strokeLinecap="round" />
+            <Progress percent={statsData.operationalEfficiency} showInfo={false} strokeColor={isDarkMode ? '#3b82f6' : '#1a3faf'} trailColor={isDarkMode ? '#1e293b' : '#f1f5f9'} strokeWidth={12} strokeLinecap="round" />
           </div>
 
           <div className="space-y-3.5">
@@ -249,46 +252,39 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="space-y-4 pb-8">
-          {[
-            {
-              day: '24',
-              month: 'MAY',
-              title: 'Review Q2 Budget Plan',
-              tag: 'HIGH PRIORITY',
-              cat: 'Finances',
-              tagColor: isDarkMode ? 'bg-red-950/30 text-red-500 border-red-900/50' : 'bg-red-50 text-red-600 border border-red-100'
-            },
-            {
-              day: '25',
-              month: 'MAY',
-              title: 'Client Retention Sync',
-              tag: 'NORMAL',
-              cat: 'Strategic',
-              tagColor: isDarkMode ? 'bg-blue-950/30 text-blue-500 border-blue-900/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
-            }
-          ].map((task, idx) => (
-            <div key={idx} className={`rounded-[26px] p-4.5 border shadow-sm flex items-center justify-between transition-all active:scale-[0.99] duration-200 ${isDarkMode ? 'bg-[#121212] border-gray-800 hover:bg-gray-800' : 'bg-white border-gray-50 hover:bg-gray-50'}`}>
-              <div className="flex items-center space-x-5">
-                <div className={`w-16 h-16 rounded-[22px] flex flex-col items-center justify-center border shadow-inner ${isDarkMode ? 'bg-red-900/10 border-red-900/20' : 'bg-red-50/40 border-red-50/50'}`}>
-                  <div className="text-[9px] font-extrabold text-red-500 uppercase tracking-wider mb-0.5">{task.month}</div>
-                  <div className={`text-2xl font-black leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>{task.day}</div>
-                </div>
-                <div>
-                  <div className={`font-extrabold text-[15px] mb-1.5 leading-tight ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>{task.title}</div>
-                  <div className="flex items-center space-x-2.5">
-                    <div className={`text-[8px] font-bold px-2 py-0.5 rounded-[6px] shadow-sm uppercase ${task.tagColor}`}>{task.tag}</div>
-                    <div className="text-[10px] font-bold text-gray-400 tracking-wide uppercase italic opacity-80">{task.cat}</div>
+          {statsData.recentTasks.map((task: any, idx: number) => {
+            const date = dayjs(task.createdAt || task.dueDate);
+            const tagColor = task.priority === 'HIGH' 
+              ? (isDarkMode ? 'bg-red-950/30 text-red-500 border-red-900/50' : 'bg-red-50 text-red-600 border border-red-100')
+              : (isDarkMode ? 'bg-blue-950/30 text-blue-500 border-blue-900/50' : 'bg-blue-50 text-blue-600 border border-blue-100');
+            
+            return (
+              <div key={task.id || idx} className={`rounded-[26px] p-4.5 border shadow-sm flex items-center justify-between transition-all active:scale-[0.99] duration-200 ${isDarkMode ? 'bg-[#121212] border-gray-800 hover:bg-gray-800' : 'bg-white border-gray-50 hover:bg-gray-50'}`}>
+                <div className="flex items-center space-x-5">
+                  <div className={`w-16 h-16 rounded-[22px] flex flex-col items-center justify-center border shadow-inner ${isDarkMode ? 'bg-red-900/10 border-red-900/20' : 'bg-red-50/40 border-red-50/50'}`}>
+                    <div className="text-[9px] font-extrabold text-red-500 uppercase tracking-wider mb-0.5">{date.format('MMM')}</div>
+                    <div className={`text-2xl font-black leading-none ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>{date.format('DD')}</div>
+                  </div>
+                  <div>
+                    <div className={`font-extrabold text-[15px] mb-1.5 leading-tight ${isDarkMode ? 'text-white' : 'text-[#1a1f36]'}`}>{task.title}</div>
+                    <div className="flex items-center space-x-2.5">
+                      <div className={`text-[8px] font-bold px-2 py-0.5 rounded-[6px] shadow-sm uppercase ${tagColor}`}>{task.priority}</div>
+                      <div className="text-[10px] font-bold text-gray-400 tracking-wide uppercase italic opacity-80">{task.category}</div>
+                    </div>
                   </div>
                 </div>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center">
+                  <RightOutlined className="text-gray-200 text-xs" />
+                </div>
               </div>
-              <div className="w-8 h-8 rounded-full flex items-center justify-center">
-                <RightOutlined className="text-gray-200 text-xs" />
-              </div>
-            </div>
-          ))}
+            );
+          })}
+          {statsData.recentTasks.length === 0 && (
+            <div className="py-10 text-center text-gray-400 font-medium">Chưa có công việc nào</div>
+          )}
         </div>
       </div>
-    </div>
+    </Page>
   );
 };
 

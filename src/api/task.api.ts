@@ -1,5 +1,5 @@
 import { api } from './fetcher';
-import { Task, UpdateTaskStatusRequest } from '../types/task.types';
+import { Task, UpdateTaskStatusRequest, TaskCheckInRequest, TaskCompleteRequest } from '../types/task.types';
 
 export const taskApi = {
   /**
@@ -9,7 +9,7 @@ export const taskApi = {
   getMyTasks: (): Promise<Task[]> => api.get<Task[]>('/v1/tasks/my-tasks'),
 
   /**
-   * PATCH /v1/tasks/:taskId/status
+   * PUT /v1/tasks/:taskId/status
    * Cập nhật trạng thái của một task.
    */
   updateStatus: ({ taskId, status }: UpdateTaskStatusRequest): Promise<Task> =>
@@ -27,4 +27,41 @@ export const taskApi = {
    */
   getTasksByTenant: (tenantId: string | number): Promise<Task[]> => 
     api.get<Task[]>(`/v1/tasks/tenant/${tenantId}`),
+
+  /**
+   * POST /v1/tasks/:taskId/check-in
+   * Check-in tại hiện trường (GPS + ảnh + ghi chú)
+   */
+  checkIn: ({ taskId, photo, lat, lon, note }: TaskCheckInRequest): Promise<Task> => {
+    const formData = new FormData();
+    if (photo) formData.append('photo', photo);
+    formData.append('lat', lat.toString());
+    formData.append('lon', lon.toString());
+    if (note) formData.append('note', note);
+    return api.post<Task>(`/v1/tasks/${taskId}/check-in`, formData);
+  },
+
+  /**
+   * POST /v1/tasks/:taskId/complete
+   * Hoàn thành task (ảnh hoàn thành + kết quả + xác nhận khách)
+   */
+  complete: ({ taskId, photo, resultNote, customerConfirmed }: TaskCompleteRequest): Promise<Task> => {
+    const formData = new FormData();
+    if (photo) formData.append('photo', photo);
+    if (resultNote) formData.append('resultNote', resultNote);
+    if (customerConfirmed !== undefined) formData.append('customerConfirmed', customerConfirmed.toString());
+    return api.post<Task>(`/v1/tasks/${taskId}/complete`, formData);
+  },
+
+  /**
+   * GET /v1/tasks/unassigned
+   * Lấy task chưa giao cho ai (Nhân viên tự nhận)
+   */
+  getUnassignedTasks: (): Promise<Task[]> => api.get<Task[]>('/v1/tasks/unassigned'),
+
+  /**
+   * POST /v1/tasks/:taskId/claim
+   * Nhận task (Nhân viên tự nhận task chưa giao)
+   */
+  claimTask: (taskId: string): Promise<Task> => api.post<Task>(`/v1/tasks/${taskId}/claim`, {}),
 };

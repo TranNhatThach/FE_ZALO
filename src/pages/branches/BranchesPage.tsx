@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Page } from 'zmp-ui';
 import { Typography, Button, Space, Tag, Modal, message } from 'antd';
 import { PlusOutlined, EditOutlined, DeleteOutlined, SyncOutlined, EnvironmentOutlined } from '@ant-design/icons';
 import { BaseTable } from '@/components/Table/BaseTable';
@@ -120,7 +121,7 @@ const BranchesPage: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-4">
+    <Page className="space-y-4">
       <div className="flex justify-between items-center">
         <Title level={3} style={{ margin: 0 }}>Branch Management</Title>
         <Button 
@@ -148,7 +149,7 @@ const BranchesPage: React.FC = () => {
         onClose={() => setModalVisible(false)} 
         onSuccess={fetchBranches} 
       />
-    </div>
+    </Page>
   );
 };
 

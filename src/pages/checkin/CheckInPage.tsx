@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useThemeStore } from '@/stores/theme.store';
 import { getLocation, chooseImage } from 'zmp-sdk';
 import { message, Spin } from 'antd';
-import { useNavigate, Header } from 'zmp-ui';
+import { useNavigate, Header, Page } from 'zmp-ui';
 import {
   LeftOutlined,
   CameraOutlined,
@@ -35,7 +35,11 @@ export const CheckInPage: React.FC = () => {
   const fetchHistory = async () => {
     try {
       const res = await checkinApi.getMyHistory();
-      if (res.data) setHistory(res.data);
+      if (Array.isArray(res)) {
+        setHistory(res);
+      } else if (res && (res as any).data) {
+        setHistory((res as any).data);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -152,7 +156,7 @@ export const CheckInPage: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col w-full min-h-screen relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
+    <Page className={`flex flex-col w-full min-h-screen relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
       <Header title="Chấm Công Remote" showBackIcon />
 
       {!isCheckedIn ? (
@@ -319,7 +323,7 @@ export const CheckInPage: React.FC = () => {
           </button>
         </div>
       )}
-    </div>
+    </Page>
   );
 };
 

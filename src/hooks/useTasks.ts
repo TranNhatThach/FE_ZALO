@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskApi } from '../api/task.api';
 import { QUERY_KEYS } from '../api/queryKeys';
-import { TaskStatus } from '../types/task.types';
+import { TaskStatus, TaskCheckInRequest, TaskCompleteRequest } from '../types/task.types';
 
 /**
  * Hook lấy danh sách task của người dùng hiện tại.
- * Gọi GET /v1/tasks/my-tasks thông qua custom fetcher (có auto token refresh).
  */
 export function useGetMyTasks() {
   return useQuery({
@@ -20,7 +19,7 @@ export function useGetMyTasks() {
  */
 export function useGetTasksByTenant(tenantId?: string | number) {
   return useQuery({
-    queryKey: [QUERY_KEYS.TASKS.MY_TASKS, tenantId],
+    queryKey: [QUERY_KEYS.TASKS.MY_TASKS, 'tenant', tenantId],
     queryFn: () => taskApi.getTasksByTenant(tenantId!),
     enabled: !!tenantId,
     retry: 1,
@@ -28,8 +27,18 @@ export function useGetTasksByTenant(tenantId?: string | number) {
 }
 
 /**
+ * Hook lấy danh sách task chưa giao cho ai.
+ */
+export function useGetUnassignedTasks() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.TASKS.MY_TASKS, 'unassigned'],
+    queryFn: taskApi.getUnassignedTasks,
+    retry: 1,
+  });
+}
+
+/**
  * Mutation hook cập nhật trạng thái của một task.
- * Sau khi thành công, tự động invalidate cache MY_TASKS để làm mới danh sách.
  */
 export function useUpdateTaskStatusMutation() {
   const queryClient = useQueryClient();
@@ -39,7 +48,48 @@ export function useUpdateTaskStatusMutation() {
       taskApi.updateStatus({ taskId, status }),
 
     onSuccess: () => {
-      // Invalidate & refetch danh sách task để UI cập nhật tức thì
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
+    },
+  });
+}
+
+/**
+ * Mutation hook check-in công việc.
+ */
+export function useTaskCheckInMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: TaskCheckInRequest) => taskApi.checkIn(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
+    },
+  });
+}
+
+/**
+ * Mutation hook hoàn thành công việc.
+ */
+export function useTaskCompleteMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: TaskCompleteRequest) => taskApi.complete(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
+    },
+  });
+}
+
+/**
+ * Mutation hook nhận task chưa giao.
+ */
+export function useClaimTaskMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) => taskApi.claimTask(taskId),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
     },
   });

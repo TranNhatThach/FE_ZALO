@@ -32,6 +32,7 @@ const AttendanceHistoryPage = lazy(() => import('@/pages/checkin/AttendanceHisto
 const UserHomePage = lazy(() => import('@/pages/Home/UserHomePage'));
 const UserAttendanceAdminPage = lazy(() => import('@/pages/users/UserAttendanceAdminPage'));
 const AdminAiAgentPage = lazy(() => import('@/pages/ai/AdminAiAgentPage'));
+const TaxInvoicesPage = lazy(() => import('@/pages/finance/TaxInvoicesPage'));
 
 const queryClient = new QueryClient();
 
@@ -50,14 +51,7 @@ const AppContent = () => {
         }
     }, [tenantConfig, setPrimaryColor]);
 
-    if (isTenantLoading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black">
-                <Spin size="large" tip="Đang khởi tạo ứng dụng..." />
-            </div>
-        );
-    }
-
+    // Không block UI khi tenant đang loading — cho app hiển thị luôn
     return (
         <ConfigProvider
             theme={{
@@ -109,9 +103,9 @@ const RouterContent = () => {
     if (!isAuthenticated && isAuthPage) {
         return (
             <AnimationRoutes>
-                <Route path="/" element={<Page className="page"><LoginPage /></Page>}></Route>
-                <Route path="/login" element={<Page className="page"><LoginPage /></Page>}></Route>
-                <Route path="/register" element={<Page className="page"><RegisterPage /></Page>}></Route>
+                <Route path="/" element={<LoginPage />}></Route>
+                <Route path="/login" element={<LoginPage />}></Route>
+                <Route path="/register" element={<RegisterPage />}></Route>
                 <Route path="/error" element={<HomePage />}></Route>
             </AnimationRoutes>
         );
@@ -124,75 +118,80 @@ const RouterContent = () => {
                     {/* KHU VỰC DÀNH CHO ADMIN */}
                     <Route path="/dashboard" element={
                         <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
-                            <Page className="page"><Dashboard /></Page>
+                            <Dashboard />
                         </RoleGuard>
                     }></Route>
                     <Route path="/users" element={
                         <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
-                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                <Page className="page"><UsersPage /></Page>
+                            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                                <UsersPage />
                             </Suspense>
                         </RoleGuard>
                     }></Route>
                     <Route path="/attendance-admin" element={
                         <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
-                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                <Page className="page"><UserAttendanceAdminPage /></Page>
+                            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                                <UserAttendanceAdminPage />
                             </Suspense>
                         </RoleGuard>
                     }></Route>
                     <Route path="/ai-agent" element={
                         <RoleGuard allowedRoles={['ADMIN']} fallbackPath="/tasks">
-                            <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                                <Page className="page"><AdminAiAgentPage /></Page>
+                            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                                <AdminAiAgentPage />
                             </Suspense>
                         </RoleGuard>
                     }></Route>
 
                     {/* KHU VỰC DÀNH CHO NHÂN VIÊN/KHÁCH HÀNG */}
                     <Route path="/goods" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><GoodsPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <GoodsPage />
                         </Suspense>
                     }></Route>
                     <Route path="/suppliers" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><SuppliersPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <SuppliersPage />
                         </Suspense>
                     }></Route>
                     <Route path="/user-home" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><UserHomePage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <UserHomePage />
                         </Suspense>
                     }></Route>
                     <Route path="/tasks" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><TasksPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <TasksPage />
                         </Suspense>
                     }></Route>
                     <Route path="/branches" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><BranchesPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <BranchesPage />
                         </Suspense>
                     }></Route>
                     <Route path="/checkin" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><CheckInPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <CheckInPage />
                         </Suspense>
                     }></Route>
                     <Route path="/register-face" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><RegisterFacePage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <RegisterFacePage />
                         </Suspense>
                     }></Route>
                     <Route path="/attendance-history" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><AttendanceHistoryPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <AttendanceHistoryPage />
                         </Suspense>
                     }></Route>
                     <Route path="/settings" element={
-                        <Suspense fallback={<Page className="page"><Skeleton active /></Page>}>
-                            <Page className="page"><SettingsPage /></Page>
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <SettingsPage />
+                        </Suspense>
+                    }></Route>
+                    <Route path="/finance" element={
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <TaxInvoicesPage />
                         </Suspense>
                     }></Route>
                 </AnimationRoutes>

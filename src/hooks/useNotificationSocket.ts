@@ -16,12 +16,21 @@ export const useNotificationSocket = () => {
 
         try {
             const baseURL = import.meta.env.VITE_API_BASE_URL || '';
+            const wsBaseURL = baseURL.replace(/\/api$/, '');
             
-            // Log để kiểm tra baseURL
-            console.log('Connecting to WebSocket at:', `${baseURL}/ws-notification`);
+            // Không kết nối WebSocket nếu đang chạy trên Zalo (không reach được localhost)
+            if (!wsBaseURL || wsBaseURL.includes('localhost')) {
+                const currentHost = window.location.hostname;
+                if (currentHost !== 'localhost' && currentHost !== '127.0.0.1') {
+                    console.log('Skipping WebSocket: running on mobile, cannot reach localhost backend');
+                    return;
+                }
+            }
+
+            console.log('Connecting to WebSocket at:', `${wsBaseURL}/ws-notification`);
 
             // Sử dụng global WebSocket nếu có thể, hoặc SockJS
-            socket = new SockJS(`${baseURL}/ws-notification`);
+            socket = new SockJS(`${wsBaseURL}/ws-notification`);
             stompClient = Stomp.over(socket);
 
             stompClient.debug = () => { };

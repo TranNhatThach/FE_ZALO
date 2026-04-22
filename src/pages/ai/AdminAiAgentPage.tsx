@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Page, Header, useNavigate } from 'zmp-ui';
 import { useThemeStore } from '@/stores/theme.store';
-import { Input, Button, Avatar, Spin, Typography } from 'antd';
-import { SendOutlined, RobotOutlined, UserOutlined, BulbOutlined } from '@ant-design/icons';
+import { Input, Button, Avatar, Spin, Typography, message } from 'antd';
+import { SendOutlined, RobotOutlined, UserOutlined, BulbOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
 
@@ -11,6 +12,10 @@ interface ChatMessage {
   role: 'user' | 'ai';
   content: string;
   timestamp: Date;
+  action?: {
+      type: 'CREATE_TASK' | 'GENERATE_REPORT';
+      payload: any;
+  };
 }
 
 export const AdminAiAgentPage: React.FC = () => {
@@ -49,13 +54,26 @@ export const AdminAiAgentPage: React.FC = () => {
         setInputValue('');
         setIsTyping(true);
 
-        // TODO: Call actual AI Agent API here
+        // Giả lập AI nhận diện ý định tạo Task
+        const isTaskRequest = inputValue.toLowerCase().includes('tạo task') || inputValue.toLowerCase().includes('giao việc');
+
         setTimeout(() => {
             const aiMsg: ChatMessage = {
                 id: (Date.now() + 1).toString(),
                 role: 'ai',
-                content: 'Đây là tính năng Demo. Sắp tới AI sẽ nhận lệnh này để tự gọi API hệ thống thay sếp nhé!',
-                timestamp: new Date()
+                content: isTaskRequest 
+                    ? 'Tôi đã soạn thảo nội dung công việc dựa trên yêu cầu của sếp. Sếp kiểm tra lại và nhấn xác nhận để giao việc nhé!'
+                    : 'Đây là tính năng Demo. Sắp tới AI sẽ nhận lệnh này để tự gọi API hệ thống theo ý sếp.',
+                timestamp: new Date(),
+                action: isTaskRequest ? {
+                    type: 'CREATE_TASK',
+                    payload: {
+                        title: 'Kiểm tra tiến độ kho',
+                        description: 'Thực hiện kiểm kê 10 mặt hàng sắp hết trong kho chi nhánh 1',
+                        priority: 'HIGH',
+                        deadline: dayjs().add(1, 'day').format('YYYY-MM-DD HH:mm')
+                    }
+                } : undefined
             };
             setMessages(prev => [...prev, aiMsg]);
             setIsTyping(false);
@@ -73,7 +91,7 @@ export const AdminAiAgentPage: React.FC = () => {
             <Header title="Trợ Lý AI Kế Toán/Quản Trị" showBackIcon />
             
             {/* Chat Area - Added scrollbar-hide and overflow-x-hidden */}
-            <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 mt-12 mb-[160px] scroll-smooth scrollbar-hide">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-4 mb-[160px] scroll-smooth scrollbar-hide relative">
                 <div className="flex flex-col gap-4 w-full">
                     {messages.map((msg) => (
                         <div key={msg.id} className={`flex w-full ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
@@ -89,6 +107,46 @@ export const AdminAiAgentPage: React.FC = () => {
                                     <Text className={msg.role === 'user' ? 'text-white' : isDarkMode ? 'text-gray-200' : 'text-gray-800'}>
                                         {msg.content}
                                     </Text>
+                                    
+                                    {/* Tool Action Card */}
+                                    {msg.action?.type === 'CREATE_TASK' && (
+                                        <div className={`mt-3 p-3 rounded-xl border ${isDarkMode ? 'bg-[#1a1a1c] border-gray-700' : 'bg-blue-50 border-blue-100 shadow-inner'}`}>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <BulbOutlined className="text-yellow-500" />
+                                                <span className="font-bold text-[13px] text-blue-600 uppercase tracking-tight">Dự thảo công việc</span>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-gray-500 font-bold uppercase">Tiêu đề</span>
+                                                    <span className={`text-[13px] font-black ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>{msg.action.payload.title}</span>
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] text-gray-500 font-bold uppercase">Mô tả</span>
+                                                    <span className={`text-[12px] opacity-80 ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>{msg.action.payload.description}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center bg-white/40 p-2 rounded-lg mt-2">
+                                                    <div>
+                                                        <span className="text-[10px] text-gray-500 font-bold uppercase block leading-none">Ưu tiên</span>
+                                                        <span className="text-red-500 font-black text-[11px] uppercase">{msg.action.payload.priority}</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="text-[10px] text-gray-500 font-bold uppercase block leading-none">Hạn chót</span>
+                                                        <span className={`text-[11px] font-black ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{msg.action.payload.deadline}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Button 
+                                                type="primary" 
+                                                size="small" 
+                                                block 
+                                                className="mt-4 rounded-lg bg-blue-600 font-black text-[12px] h-9 shadow-sm"
+                                                onClick={() => message.success('Đã xác nhận và tạo task thành công!')}
+                                            >
+                                                XÁC NHẬN GIAO VIỆC
+                                            </Button>
+                                        </div>
+                                    )}
+
                                     <div className={`text-[10px] mt-1 ${msg.role === 'user' ? 'text-blue-200 text-right' : 'text-gray-400 text-left'}`}>
                                         {msg.timestamp.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}
                                     </div>

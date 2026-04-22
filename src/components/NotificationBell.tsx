@@ -107,7 +107,13 @@ export const NotificationBell: React.FC = () => {
       onOpenChange={setVisible}
       placement="bottomRight"
       overlayClassName="noti-popover"
-      overlayInnerStyle={{ padding: 0, borderRadius: '16px', overflow: 'hidden' }}
+      styles={{
+        content: {
+          padding: 0,
+          borderRadius: '16px',
+          overflow: 'hidden'
+        }
+      }}
     >
       <Badge
         count={unreadCount}

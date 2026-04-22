@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Page } from 'zmp-ui';
 import { useThemeStore } from '@/stores/theme.store';
 import { checkinApi } from '@/api/checkin.api';
 import { Spin, DatePicker, Typography, Card, Tag, Empty } from 'antd';
@@ -16,8 +17,10 @@ export const AttendanceHistoryPage: React.FC = () => {
         try {
             setLoading(true);
             const res = await checkinApi.getHistoryByMonth(month, year);
-            if (res && res.data) {
-                setHistory(res.data);
+            if (Array.isArray(res)) {
+                setHistory(res);
+            } else if (res && (res as any).data) {
+                setHistory((res as any).data);
             }
         } catch (error) {
             console.error('Failed to fetch history', error);
@@ -37,7 +40,7 @@ export const AttendanceHistoryPage: React.FC = () => {
     };
 
     return (
-        <div className={`p-4 min-h-screen ${isDarkMode ? 'bg-[#121212] text-white' : 'bg-gray-50 text-gray-900'}`}>
+        <Page className={`p-4 min-h-screen ${isDarkMode ? 'bg-[#121212] text-white' : 'bg-gray-50 text-gray-900'}`}>
             <Title level={4} className={isDarkMode ? '!text-white' : ''}>Lịch sử chấm công cá nhân</Title>
             <div className="mb-4">
                 <DatePicker 
@@ -78,7 +81,7 @@ export const AttendanceHistoryPage: React.FC = () => {
                     ))}
                 </div>
             )}
-        </div>
+        </Page>
     );
 };
 

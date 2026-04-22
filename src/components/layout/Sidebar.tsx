@@ -19,10 +19,14 @@ export const Sidebar: React.FC = () => {
   const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
   const [openKeys, setOpenKeys] = useState<string[]>([]);
 
-  // Lọc menu dựa trên Role
-  const filteredMenu = isAdmin 
-    ? menuConfig 
-    : menuConfig.filter(item => ['/user-home', '/tasks'].includes(item.path as string));
+  // Lọc menu dựa trên Role - Memoize để tránh Re-render vô tận
+  const filteredMenu = React.useMemo(() => {
+    return isAdmin 
+      ? menuConfig 
+      : menuConfig.filter(item => 
+          ['/user-home', '/tasks', '/checkin', '/attendance-history', '/finance', '/settings'].includes(item.path as string)
+        );
+  }, [isAdmin]);
 
   useEffect(() => {
     const path = location.pathname;
@@ -142,7 +146,12 @@ export const Sidebar: React.FC = () => {
       closable={false}
       onClose={() => setSidebarCollapsed(true)}
       open={!isSidebarCollapsed}
-      styles={{ body: { padding: 0 } }}
+      styles={{ 
+        body: { 
+          padding: 0,
+          width: 280
+        } 
+      }}
       width={280}
       zIndex={1001}
     >

@@ -243,7 +243,7 @@ const LoginPage: React.FC = () => {
 
           {/* LIÊN KẾT HỖ TRỢ (Tùy chọn) */}
           <div className="mt-8 flex items-center justify-center gap-1 text-[13px] text-gray-400 shrink-0">
-            <span>© 2024 VANGUARD ENTERPRISE SOLUTIONS</span>
+            <span>© 2026 VANGUARD ENTERPRISE SOLUTIONS</span>
           </div>
 
         </div>
@@ -265,7 +265,7 @@ const LoginPage: React.FC = () => {
           </div>
 
           <div className="text-center text-[12px] font-normal text-[#9CA3AF] leading-[16px]">
-            © 2024 VANGUARD ENTERPRISE SOLUTIONS
+            © 2026 VANGUARD ENTERPRISE SOLUTIONS
           </div>
 
         </div>

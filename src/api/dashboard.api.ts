@@ -7,6 +7,9 @@ export interface DashboardSummary {
   pendingTasks: number;
   totalProducts: number;
   inventoryValue: number;
+  operationalEfficiency: number;
+  weeklyActivity: { day: string; value: number }[];
+  recentTasks: any[]; // You can define a Task interface if you have one
 }
 
 export const dashboardApi = {

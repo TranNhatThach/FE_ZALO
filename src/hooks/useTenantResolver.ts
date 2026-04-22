@@ -13,14 +13,15 @@ export const useTenantResolver = () => {
   } = useQuery({
     queryKey: QUERY_KEYS.TENANT.CONFIG(tenantId),
     queryFn: () => tenantApi.getConfig(tenantId),
-    retry: 1, // Only retry once to fail fast
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours caching
+    retry: false, // Không retry — nếu fail thì dùng default
+    staleTime: 1000 * 60 * 60 * 24,
+    enabled: tenantId !== 'default', // Chỉ gọi khi có tenantId thật
   });
 
   return {
     tenantId,
-    tenantConfig,
-    isLoading,
+    tenantConfig: tenantConfig || null,
+    isLoading: tenantId !== 'default' ? isLoading : false,
     error,
   };
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Page } from 'zmp-ui';
 import { useQuery } from '@tanstack/react-query';
 import { useThemeStore } from '@/stores/theme.store';
 import {
@@ -31,7 +32,7 @@ const UsersPage: React.FC = () => {
   const activeUsers = users.filter((u: any) => u.status === 'ACTIVE').length;
 
   return (
-    <div className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f9]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f9]'}`}>
 
       {/* 1. Header Area */}
       <div className={`flex items-center justify-between px-4 pt-6 pb-2 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f9]'}`}>
@@ -163,7 +164,7 @@ const UsersPage: React.FC = () => {
           onSuccess={() => setModalVisible(false)}
         />
       )}
-    </div>
+    </Page>
   );
 };
 

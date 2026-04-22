@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useThemeStore } from '../../stores/theme.store';
 import { useAuthStore } from '../../stores/auth.store';
-import { useNavigate } from 'zmp-ui';
+import { useTenantResolver } from '../../hooks/useTenantResolver';
+import { useNavigate, Page } from 'zmp-ui';
 import {
   RightOutlined,
   SettingOutlined,
@@ -20,6 +21,7 @@ import { message, Switch } from 'antd';
 const SettingsPage: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useThemeStore();
   const { user, logout } = useAuthStore();
+  const { tenantConfig } = useTenantResolver();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(true);
 
@@ -29,7 +31,7 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <div className={`flex flex-col w-full h-full relative pb-24 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-24 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
 
       {/* Header */}
       <div className={`flex items-center px-5 pt-8 pb-4 sticky top-0 z-50 ${isDarkMode ? 'bg-[#121212] border-b border-gray-800' : 'bg-[#f4f5f8]'}`}>
@@ -48,10 +50,10 @@ const SettingsPage: React.FC = () => {
           </div>
           <div className="flex flex-col flex-1">
             <h2 className={`text-[16px] font-bold m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {user?.username || 'Admin Portal'}
+              {tenantConfig?.brandName || user?.username || 'Admin Portal'}
             </h2>
             <p className="text-[12px] text-gray-400 font-medium m-0 mt-0.5">
-              {user?.roles?.[0] || 'Enterprise Admin'}
+              {user?.fullName || user?.name || user?.roles?.[0] || 'Enterprise Admin'}
             </p>
           </div>
           <button className="bg-[#eff6ff] text-[#1d4ed8] text-[12px] font-bold py-1.5 px-3 rounded-full border-none active:scale-95 transition-transform">
@@ -121,7 +123,7 @@ const SettingsPage: React.FC = () => {
         </button>
 
       </div>
-    </div>
+    </Page>
   );
 };
 

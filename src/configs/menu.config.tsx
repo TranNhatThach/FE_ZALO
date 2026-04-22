@@ -8,7 +8,11 @@ import {
   SettingOutlined,
   TeamOutlined,
   CheckSquareOutlined,
-  RobotOutlined
+  RobotOutlined,
+  CalculatorOutlined,
+  HomeOutlined,
+  CameraOutlined,
+  HistoryOutlined
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 
@@ -19,6 +23,27 @@ export type MenuItem = Required<MenuProps>['items'][number] & {
 };
 
 export const menuConfig: MenuItem[] = [
+  {
+    key: '/user-home',
+    icon: <HomeOutlined />,
+    label: 'Trang chủ (Staff)',
+    title: 'Trang chủ',
+    path: '/user-home',
+  },
+  {
+    key: '/checkin',
+    icon: <CameraOutlined />,
+    label: 'Chấm công',
+    title: 'Chấm công',
+    path: '/checkin',
+  },
+  {
+    key: '/attendance-history',
+    icon: <HistoryOutlined />,
+    label: 'Lịch sử chấm công',
+    title: 'Lịch sử chấm công',
+    path: '/attendance-history',
+  },
   {
     key: '/dashboard',
     icon: <AppstoreOutlined />,
@@ -74,5 +99,12 @@ export const menuConfig: MenuItem[] = [
     label: 'Trợ lý AI (Admin)',
     title: 'Trợ lý AI (Admin)',
     path: '/ai-agent',
+  },
+  {
+    key: '/finance',
+    icon: <CalculatorOutlined />,
+    label: 'Tài chính & Thuế',
+    title: 'Tài chính & Thuế',
+    path: '/finance',
   },
 ];

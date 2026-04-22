@@ -191,7 +191,7 @@ export const RegisterFacePage: React.FC = () => {
   }
 
   return (
-    <div className={`flex flex-col w-full min-h-screen relative pb-10 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
+    <Page className={`flex flex-col w-full min-h-screen relative pb-10 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
       <Header title="Lấy mẫu khuôn mặt" showBackIcon />
 
       <div className="px-5 mt-6 space-y-8">
@@ -329,7 +329,7 @@ export const RegisterFacePage: React.FC = () => {
           display: none;
         }
       `}</style>
-    </div>
+    </Page>
   );
 };
 

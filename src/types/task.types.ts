@@ -2,7 +2,7 @@
 // Task Domain Types
 // ============================================================
 
-export type TaskStatus = 'TO DO' | 'IN PROGRESS' | 'REVIEW' | 'DONE';
+export type TaskStatus = 'TO DO' | 'IN PROGRESS' | 'CHECKED IN' | 'REVIEW' | 'DONE';
 export type TaskPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface Task {
@@ -21,6 +21,21 @@ export interface Task {
   assigneeName?: string;
   createdAt?: string;
   updatedAt?: string;
+  reportImages?: string;
+
+  // ── Check-in fields ──
+  checkInTime?: string;
+  checkInLatitude?: number;
+  checkInLongitude?: number;
+  checkInPhoto?: string;
+  checkInNote?: string;
+
+  // ── Completion fields ──
+  completionPhoto?: string;
+  completionTime?: string;
+  resultNote?: string;
+  customerConfirmed?: boolean;
+  durationMinutes?: number;
 }
 
 export interface CreateTaskRequest {
@@ -35,6 +50,21 @@ export interface CreateTaskRequest {
 export interface UpdateTaskStatusRequest {
   taskId: string;
   status: TaskStatus;
+}
+
+export interface TaskCheckInRequest {
+  taskId: string;
+  photo?: File | Blob;
+  lat: number;
+  lon: number;
+  note?: string;
+}
+
+export interface TaskCompleteRequest {
+  taskId: string;
+  photo?: File | Blob;
+  resultNote?: string;
+  customerConfirmed?: boolean;
 }
 
 export interface TaskPageResponse {

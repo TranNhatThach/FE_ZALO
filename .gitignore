@@ -29,6 +29,8 @@ node_modules/
 
 # dotenv environment variables file
 .env
+.env.development
+.env.production
 
 # Misc
 .DS_Store

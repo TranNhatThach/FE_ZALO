@@ -101,13 +101,13 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
         </Form.Item>
 
         <Form.Item
-          label={<span className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Người thực hiện</span>}
+          label={<span className="text-[13px] font-bold text-gray-600 uppercase tracking-wider">Người thực hiện (Để trống nếu muốn nhân viên tự nhận)</span>}
           name="assigneeId"
-          rules={[{ required: true, message: 'Vui lòng chọn người thực hiện' }]}
         >
           <Select
-            placeholder="Chọn nhân viên..."
+            placeholder="Để trống để làm việc nhóm / Ai cũng có thể nhận..."
             className="h-11 rounded-xl overflow-hidden"
+            allowClear
             showSearch
             filterOption={(input, option) =>
               (option?.label ?? '').toLowerCase().includes(input.toLowerCase())

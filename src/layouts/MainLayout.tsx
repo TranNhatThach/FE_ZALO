@@ -17,7 +17,8 @@ import {
   ShopOutlined,
   EllipsisOutlined,
   EnvironmentOutlined,
-  CheckSquareOutlined
+  CheckSquareOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 
 const { Content } = Layout;
@@ -39,7 +40,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     { key: '/dashboard', label: 'HOME', icon: <HomeOutlined /> },
     { key: '/tasks', label: 'TASKS', icon: <CheckSquareOutlined /> },
     { key: '/goods', label: 'GOODS', icon: <ShoppingOutlined /> },
-    { key: '/suppliers', label: 'SUPPLIERS', icon: <ShopOutlined /> },
+    { key: '/finance', label: 'FINANCE', icon: <CalculatorOutlined /> },
     { key: 'more', label: 'MORE', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
   ];
 
@@ -64,23 +65,36 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         className={`w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}
       >
         {/* Content Wrapper using safe-area-insent to avoid notch overlap */}
+        {/* Premium Top Bar (Brand + Notifications) */}
+        <div 
+          className={`flex items-center justify-between px-5 sticky top-0 z-[1000] border-b transition-all duration-300 ${
+            isDarkMode 
+            ? 'bg-[#121212]/80 backdrop-blur-2xl border-white/5 shadow-lg' 
+            : 'bg-white/80 backdrop-blur-2xl border-gray-100 shadow-sm'
+          }`}
+          style={{ 
+            paddingTop: 'calc(var(--zaui-safe-area-inset-top, 24px) + 8px)',
+            height: 'calc(var(--zaui-safe-area-inset-top, 24px) + 60px)',
+            paddingBottom: '10px'
+          }}
+        >
+          <div className="flex flex-col">
+            <span className={`text-[11px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full ${
+              isDarkMode ? 'bg-blue-900/40 text-blue-400 border border-blue-800/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
+            }`}>Vanguard</span>
+            <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ml-1 opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+              Enterprise OS
+            </span>
+          </div>
+          <NotificationBell />
+        </div>
+
         <Content
           className="flex-1 w-full m-0 p-0 relative"
           style={{
             paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 64px)'
           }}
         >
-          {/* Top Header with Notification Bell */}
-          <div 
-            className="flex items-center justify-between pl-4 pr-[100px] pb-2 sticky top-0 z-[99] border-b border-gray-100/50 bg-white/70 backdrop-blur-xl"
-            style={{ paddingTop: 'calc(var(--zaui-safe-area-inset-top, 24px) + 8px)' }}
-          >
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black text-blue-600 uppercase tracking-widest border border-blue-200/60 px-2.5 py-0.5 rounded-full bg-blue-50/80 w-fit shadow-sm">Vanguard</span>
-            </div>
-            <NotificationBell />
-          </div>
-
           <ErrorBoundary>
             <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
               {children}
