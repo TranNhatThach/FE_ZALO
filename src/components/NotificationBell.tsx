@@ -105,7 +105,7 @@ export const NotificationBell: React.FC = () => {
       trigger="click"
       open={visible}
       onOpenChange={setVisible}
-      placement="bottomRight"
+      placement="bottom"
       overlayClassName="noti-popover"
       styles={{
         content: {

@@ -36,6 +36,13 @@ export interface Task {
   resultNote?: string;
   customerConfirmed?: boolean;
   durationMinutes?: number;
+
+  // ── Customer Info ──
+  customerName?: string;
+  companyName?: string;
+  address?: string;
+  phoneNumber?: string;
+  estimatedPrice?: number;
 }
 
 export interface CreateTaskRequest {
@@ -45,6 +52,13 @@ export interface CreateTaskRequest {
   dueDate: string;
   description?: string;
   assigneeId?: string;
+
+  // Customer Info
+  customerName?: string;
+  companyName?: string;
+  address?: string;
+  phoneNumber?: string;
+  estimatedPrice?: number;
 }
 
 export interface UpdateTaskStatusRequest {

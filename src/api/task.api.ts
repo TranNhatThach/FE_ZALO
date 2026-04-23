@@ -64,4 +64,10 @@ export const taskApi = {
    * Nhận task (Nhân viên tự nhận task chưa giao)
    */
   claimTask: (taskId: string): Promise<Task> => api.post<Task>(`/v1/tasks/${taskId}/claim`, {}),
+
+  /**
+   * DELETE /v1/tasks/:taskId
+   * Xóa một task.
+   */
+  deleteTask: (taskId: string | number): Promise<void> => api.del(`/v1/tasks/${taskId}`),
 };

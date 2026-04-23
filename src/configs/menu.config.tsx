@@ -87,13 +87,6 @@ export const menuConfig: MenuItem[] = [
     path: '/branches',
   },
   {
-    key: '/settings',
-    icon: <SettingOutlined />,
-    label: 'Cài đặt hệ thống',
-    title: 'Cài đặt hệ thống',
-    path: '/settings',
-  },
-  {
     key: '/ai-agent',
     icon: <RobotOutlined style={{ color: '#8b5cf6' }} />,
     label: 'Trợ lý AI (Admin)',
@@ -106,5 +99,12 @@ export const menuConfig: MenuItem[] = [
     label: 'Tài chính & Thuế',
     title: 'Tài chính & Thuế',
     path: '/finance',
+  },
+  {
+    key: '/settings',
+    icon: <SettingOutlined />,
+    label: 'Cài đặt hệ thống',
+    title: 'Cài đặt hệ thống',
+    path: '/settings',
   },
 ];

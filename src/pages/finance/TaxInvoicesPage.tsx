@@ -71,7 +71,7 @@ export const TaxInvoicesPage: React.FC = () => {
                         </div>
                         <div>
                             <span className={`text-[12px] font-bold uppercase tracking-widest opacity-70 ${isDarkMode ? 'text-blue-400' : 'text-white'}`}>Tài chính & Thuế</span>
-                            <Title level={3} style={{ margin: 0, fontWeight: 900, color: 'inherit' }}>Quản lý Hóa đơn</Title>
+                            <Title level={3} style={{ margin: 0, fontWeight: 900, color: 'inherit' }}>Hóa đơn & Chứng từ</Title>
                         </div>
                     </div>
                 </div>
@@ -125,9 +125,9 @@ export const TaxInvoicesPage: React.FC = () => {
                                 </div>
                                 <div className="text-right">
                                     <div className={`text-[16px] font-black ${isDarkMode ? 'text-blue-400' : 'text-[#1e3ba1]'}`}>
-                                        {item.finalAmount.toLocaleString('vi-VN')} đ
+                                        {item.type === 'SELL' ? '+' : '-'}{item.finalAmount.toLocaleString('vi-VN')} đ
                                     </div>
-                                    <div className="text-[10px] text-gray-400 font-bold">Thuế: {item.taxAmount.toLocaleString('vi-VN')} đ</div>
+                                    <div className="text-[10px] text-gray-400 font-bold uppercase">Thuế: {item.taxAmount.toLocaleString('vi-VN')} đ</div>
                                 </div>
                             </div>
                         ))}
@@ -157,7 +157,7 @@ export const TaxInvoicesPage: React.FC = () => {
                         <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
                             <CalculatorOutlined className="text-blue-600" />
                         </div>
-                        <span className="font-black text-gray-800 text-lg uppercase tracking-tight">Kê khai hóa đơn & Thuế</span>
+                        <span className="font-black text-gray-800 text-lg uppercase tracking-tight">Kê khai Hóa đơn Nhập / Thuế</span>
                     </div>
                 }
                 open={modalVisible}
@@ -171,10 +171,10 @@ export const TaxInvoicesPage: React.FC = () => {
                         <Form.Item name="invoiceNumber" label={<span className="text-[11px] font-black uppercase text-gray-400">Số hóa đơn</span>}>
                             <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="HD-888..." />
                         </Form.Item>
-                        <Form.Item name="type" label={<span className="text-[11px] font-black uppercase text-gray-400">Loại</span>}>
+                        <Form.Item name="type" label={<span className="text-[11px] font-black uppercase text-gray-400">Loại hóa đơn</span>}>
                             <Select className="h-11 rounded-xl" options={[
-                                { value: 'SELL', label: 'Bán ra' },
-                                { value: 'BUY', label: 'Nhập vào' }
+                                { value: 'SELL', label: 'Hóa đơn Bán (Doanh thu)' },
+                                { value: 'BUY', label: 'Hóa đơn Nhập (Kê khai chi phí)' }
                             ]} />
                         </Form.Item>
                     </div>

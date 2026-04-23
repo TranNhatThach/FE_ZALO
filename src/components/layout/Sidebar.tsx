@@ -21,11 +21,14 @@ export const Sidebar: React.FC = () => {
 
   // Lọc menu dựa trên Role - Memoize để tránh Re-render vô tận
   const filteredMenu = React.useMemo(() => {
-    return isAdmin 
-      ? menuConfig 
-      : menuConfig.filter(item => 
-          ['/user-home', '/tasks', '/checkin', '/attendance-history', '/finance', '/settings'].includes(item.path as string)
-        );
+    if (isAdmin) {
+      return menuConfig.filter(item => 
+        !['/user-home', '/checkin', '/attendance-history'].includes(item.path as string)
+      );
+    }
+    return menuConfig.filter(item => 
+      ['/user-home', '/tasks', '/checkin', '/attendance-history', '/finance', '/settings', '/support'].includes(item.path as string)
+    );
   }, [isAdmin]);
 
   useEffect(() => {

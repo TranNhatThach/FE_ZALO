@@ -107,7 +107,7 @@ const SettingsPage: React.FC = () => {
         <div className="flex flex-col gap-2">
           <span className="text-[12px] font-bold text-gray-500 uppercase tracking-widest pl-2">Khác</span>
           <div className={`rounded-[20px] flex flex-col overflow-hidden shadow-sm ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
-            <SettingRow icon={<QuestionCircleOutlined className="text-gray-500" />} label="Trung tâm trợ giúp" isDarkMode={isDarkMode} showArrow />
+            <SettingRow icon={<QuestionCircleOutlined className="text-gray-500" />} label="Trung tâm trợ giúp" isDarkMode={isDarkMode} showArrow onClick={() => navigate('/support')} />
             <div className={`h-[1px] ml-[50px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}></div>
             <SettingRow icon={<SettingOutlined className="text-gray-500" />} label="Về Zalo Mini App" isDarkMode={isDarkMode} showArrow />
           </div>

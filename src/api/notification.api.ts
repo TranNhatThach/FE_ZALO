@@ -1,16 +1,26 @@
-import { fetchData } from '@/api/fetcher';
+import { api } from '@/api/fetcher';
 import { Notification } from '@/stores/notification.store';
 
 export const notificationApi = {
-  getNotifications: () => 
-    fetchData<Notification[]>('/api/v1/notifications'),
+  getNotifications: () =>
+    api.get<Notification[]>('/v1/notifications'),
 
   getUnreadCount: () =>
-    fetchData<number>('/api/v1/notifications/unread-count'),
+    api.get<number>('/v1/notifications/unread-count'),
 
   markAsRead: (id: number) =>
-    fetchData<void>(`/api/v1/notifications/${id}/read`, { method: 'PUT' }),
+    api.put<void>(`/v1/notifications/${id}/read`, {}),
 
   markAllAsRead: () =>
-    fetchData<void>('/api/v1/notifications/mark-all-read', { method: 'PUT' })
+    api.put<void>('/v1/notifications/mark-all-read', {}),
+
+  createAnnouncement: (title: string, message: string, file?: Blob) => {
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('message', message);
+    if (file) {
+      formData.append('file', file);
+    }
+    return api.post<void>('/v1/notifications/announcement', formData);
+  }
 };

@@ -66,27 +66,27 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       >
         {/* Content Wrapper using safe-area-insent to avoid notch overlap */}
         {/* Premium Top Bar (Brand + Notifications) */}
-        <div 
-          className={`flex items-center justify-between px-5 sticky top-0 z-[1000] border-b transition-all duration-300 ${
-            isDarkMode 
-            ? 'bg-[#121212]/80 backdrop-blur-2xl border-white/5 shadow-lg' 
+        <div
+          className={`flex items-center justify-between px-5 sticky top-0 z-[1000] border-b transition-all duration-300 ${isDarkMode
+            ? 'bg-[#121212]/80 backdrop-blur-2xl border-white/5 shadow-lg'
             : 'bg-white/80 backdrop-blur-2xl border-gray-100 shadow-sm'
-          }`}
-          style={{ 
+            }`}
+          style={{
             paddingTop: 'calc(var(--zaui-safe-area-inset-top, 24px) + 8px)',
             height: 'calc(var(--zaui-safe-area-inset-top, 24px) + 60px)',
             paddingBottom: '10px'
           }}
         >
           <div className="flex flex-col">
-            <span className={`text-[11px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full ${
-              isDarkMode ? 'bg-blue-900/40 text-blue-400 border border-blue-800/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
-            }`}>Vanguard</span>
+            <span className={`text-[11px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/40 text-blue-400 border border-blue-800/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
+              }`}>Vanguard</span>
             <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ml-1 opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
               Enterprise OS
             </span>
           </div>
-          <NotificationBell />
+          <div className="mr-20">
+            <NotificationBell />
+          </div>
         </div>
 
         <Content
@@ -105,8 +105,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         {/* Premium Mobile Bottom Navigation (Glassmorphism) */}
         <div
           className={`fixed bottom-0 left-0 right-0 flex items-center justify-around px-2 z-[1000] border-t transition-all duration-300 ${isDarkMode
-              ? 'bg-[#1a1a1c]/80 backdrop-blur-xl border-gray-800 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]'
-              : 'bg-white/90 backdrop-blur-xl border-white/[0.2] shadow-[0_-8px_30px_rgba(0,0,0,0.04)]'
+            ? 'bg-[#1a1a1c]/80 backdrop-blur-xl border-gray-800 shadow-[0_-4px_24px_rgba(0,0,0,0.4)]'
+            : 'bg-white/90 backdrop-blur-xl border-white/[0.2] shadow-[0_-8px_30px_rgba(0,0,0,0.04)]'
             }`}
           style={{
             height: 'calc(64px + env(safe-area-inset-bottom, 0px))',

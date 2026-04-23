@@ -33,6 +33,7 @@ const UserHomePage = lazy(() => import('@/pages/Home/UserHomePage'));
 const UserAttendanceAdminPage = lazy(() => import('@/pages/users/UserAttendanceAdminPage'));
 const AdminAiAgentPage = lazy(() => import('@/pages/ai/AdminAiAgentPage'));
 const TaxInvoicesPage = lazy(() => import('@/pages/finance/TaxInvoicesPage'));
+const SupportPage = lazy(() => import('@/pages/support/SupportPage'));
 
 const queryClient = new QueryClient();
 
@@ -192,6 +193,11 @@ const RouterContent = () => {
                     <Route path="/finance" element={
                         <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
                             <TaxInvoicesPage />
+                        </Suspense>
+                    }></Route>
+                    <Route path="/support" element={
+                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                            <SupportPage />
                         </Suspense>
                     }></Route>
                 </AnimationRoutes>

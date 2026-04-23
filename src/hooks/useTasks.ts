@@ -108,3 +108,17 @@ export function useCreateTaskMutation() {
     },
   });
 }
+
+/**
+ * Mutation hook để xóa task.
+ */
+export function useDeleteTaskMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string | number) => taskApi.deleteTask(taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
+    },
+  });
+}

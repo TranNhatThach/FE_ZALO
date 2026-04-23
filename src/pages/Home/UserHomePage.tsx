@@ -16,7 +16,11 @@ import {
   TrophyFilled
 } from '@ant-design/icons';
 import { useNavigate, Page } from 'zmp-ui';
-import { Spin, Skeleton, Progress } from 'antd';
+import { Spin, Skeleton, Progress, Modal, Form, Input, Button, Upload, message } from 'antd';
+import { notificationApi } from '@/api/notification.api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { QUERY_KEYS } from '@/api/queryKeys';
+import { PlusOutlined, FileImageOutlined, SendOutlined } from '@ant-design/icons';
 
 export const UserHomePage: React.FC = () => {
   const { isDarkMode } = useThemeStore();
@@ -26,6 +30,49 @@ export const UserHomePage: React.FC = () => {
   const { data: tasks = [], isLoading } = useGetMyTasks();
   const { data: progress } = useGetMyProgress();
   const { mutate: updateStatus, isPending } = useUpdateTaskStatusMutation();
+  const queryClient = useQueryClient();
+
+  // News/Announcement logic
+  const { data: announcements = [] } = useQuery({
+    queryKey: ['announcements'],
+    queryFn: async () => {
+      // Mock data for now, should call a real API
+      return [
+        {
+          id: 1,
+          title: 'Thông báo lịch nghỉ lễ 30/04 - 01/05',
+          message: 'Toàn thể nhân viên được nghỉ từ ngày 30/04 đến hết ngày 01/05. Chúc mọi người có kỳ nghỉ vui vẻ.',
+          imageUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop',
+          createdAt: '2024-04-20T10:00:00Z'
+        }
+      ];
+    },
+    refetchInterval: 60000
+  });
+
+  const [selectedNews, setSelectedNews] = React.useState<any>(null);
+  const [isAdminNoticeVisible, setIsAdminNoticeVisible] = React.useState(false);
+  const [form] = Form.useForm();
+  const [fileList, setFileList] = React.useState<any[]>([]);
+
+  const announcementMutation = useMutation({
+    mutationFn: ({ title, message, file }: { title: string, message: string, file?: Blob }) =>
+      notificationApi.createAnnouncement(title, message, file),
+    onSuccess: () => {
+      message.success('Thông báo đã được gửi tới toàn thể nhân viên!');
+      setIsAdminNoticeVisible(false);
+      form.resetFields();
+      setFileList([]);
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+    }
+  });
+
+  const handleCreateAnnouncement = async (values: any) => {
+    const file = fileList.length > 0 ? fileList[0].originFileObj : undefined;
+    announcementMutation.mutate({ ...values, file });
+  };
+
+  const isAdmin = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase().includes('ADMIN');
 
   // Safeguard: Nếu chưa có user (đang nạp session), hiện loading
   if (!user && !isLoading) {
@@ -66,13 +113,11 @@ export const UserHomePage: React.FC = () => {
             </span>
           </div>
         </div>
-        <button className={`w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800 text-white' : 'bg-white border-gray-100 text-gray-600'}`}>
-          <BellOutlined className="text-[18px]" />
-        </button>
+
       </div>
 
-      {/* 2. Face Registration CTA (Only if not registered) */}
-      {!user?.isFaceRegistered && (
+      {/* 2. Face Registration CTA chi khi nguoi dung chua dang ki mat*/}
+      {user?.isFaceRegistered && (
         <div className="px-5 mb-6">
           <div className={`p-5 rounded-[28px] flex items-center justify-between gap-4 border-2 border-dashed border-blue-400 bg-blue-50/50 shadow-sm transition-all hover:bg-blue-50`}>
             <div className="flex items-center gap-4">
@@ -150,12 +195,12 @@ export const UserHomePage: React.FC = () => {
               <span className="text-gray-500 uppercase tracking-tighter">Tiến độ tháng này</span>
               <span className={`${isDarkMode ? 'text-blue-400' : 'text-blue-600'}`}>{Math.round(progress?.completionPercentage || 0)}%</span>
             </div>
-            <Progress 
-               percent={progress?.completionPercentage || 0} 
-               showInfo={false} 
-               strokeColor={{ '0%': '#1e3ba1', '100%': '#2563eb' }}
-               trailColor={isDarkMode ? '#333' : '#f0f4ff'}
-               strokeWidth={10}
+            <Progress
+              percent={progress?.completionPercentage || 0}
+              showInfo={false}
+              strokeColor={{ '0%': '#1e3ba1', '100%': '#2563eb' }}
+              trailColor={isDarkMode ? '#333' : '#f0f4ff'}
+              strokeWidth={10}
             />
           </div>
         </div>
@@ -223,16 +268,16 @@ export const UserHomePage: React.FC = () => {
           {[
             { icon: '/icons/attendance.svg', label: 'Chấm công', path: '/checkin', color: 'bg-orange-100 text-orange-600' },
             { icon: '/icons/leave.svg', label: 'Nghỉ phép', path: '/settings', color: 'bg-green-100 text-green-600' },
-            { icon: '/icons/payroll.svg', label: 'Bảng lương', path: '/finance', color: 'bg-purple-100 text-purple-600' },
-            { icon: '/icons/news.svg', label: 'Tin tức', path: '/user-home', color: 'bg-blue-100 text-blue-600' },
+            { icon: '/icons/payroll.svg', label: 'Kê khai Hóa đơn', path: '/finance', color: 'bg-purple-100 text-purple-600' },
+            { icon: '/icons/news.svg', label: 'Tin mới nhất', path: '/user-home', color: 'bg-blue-100 text-blue-600' },
           ].map((action, idx) => (
             <div key={idx} className="flex flex-col items-center gap-2" onClick={() => navigate(action.path)}>
               <div className={`w-14 h-14 rounded-2xl ${action.color} flex items-center justify-center shadow-sm active:scale-90 transition-transform`}>
-                 <img src={action.icon} alt={action.label} className="w-7 h-7" style={{ filter: 'brightness(1)' }} 
+                <img src={action.icon} alt={action.label} className="w-7 h-7" style={{ filter: 'brightness(1)' }}
                   onError={(e) => {
-                     (e.target as HTMLImageElement).src = 'https://api.dicebear.com/7.x/icons/svg?seed=' + action.label;
+                    (e.target as HTMLImageElement).src = 'https://api.dicebear.com/7.x/icons/svg?seed=' + action.label;
                   }}
-                 />
+                />
               </div>
               <span className="text-[11px] font-bold text-gray-500 text-center">{action.label}</span>
             </div>
@@ -242,39 +287,146 @@ export const UserHomePage: React.FC = () => {
 
       {/* 7. Company News / Announcements */}
       <div className="px-5 mb-4">
-        <div className={`p-5 rounded-[28px] overflow-hidden relative ${isDarkMode ? 'bg-gray-800' : 'bg-gray-900'} text-white`}>
-           <div className="flex flex-col gap-1 relative z-10">
+        {announcements.map((news: any) => (
+          <div
+            key={news.id}
+            onClick={() => setSelectedNews(news)}
+            className={`p-5 mb-4 rounded-[28px] overflow-hidden relative shadow-lg active:scale-[0.98] transition-all ${isDarkMode ? 'bg-gray-800' : 'bg-gray-900'} text-white cursor-pointer`}
+          >
+            <div className="flex flex-col gap-1 relative z-10">
               <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">Tin công ty</span>
-              <h3 className="text-[16px] font-black leading-tight mb-2">Thông báo lịch nghỉ lễ Quốc khánh 02/09</h3>
-              <p className="text-[12px] opacity-70 line-clamp-2">Toàn thể cán bộ nhân viên được nghỉ 02 ngày từ ngày 01/09 đến hết...</p>
-           </div>
-           <div className="absolute top-0 right-0 p-4 opacity-20">
+              <h3 className="text-[16px] font-black leading-tight mb-2">{news.title}</h3>
+              <p className="text-[12px] opacity-70 line-clamp-2">{news.message}</p>
+            </div>
+            <div className="absolute top-0 right-0 p-4 opacity-20">
               <ThunderboltFilled className="text-4xl" />
-           </div>
-           <div className="mt-4 flex items-center justify-between relative z-10">
+            </div>
+            <div className="mt-4 flex items-center justify-between relative z-10">
               <div className="flex -space-x-2">
-                 {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-full border-2 border-gray-900 bg-gray-700 overflow-hidden">
-                    <img src={`https://i.pravatar.cc/100?u=${i}`} alt="user" className="w-full h-full object-cover" />
-                 </div>)}
-                 <div className="w-6 h-6 rounded-full border-2 border-gray-900 bg-gray-800 flex items-center justify-center text-[8px] font-bold">+12</div>
+                <div className="w-6 h-6 rounded-full border-2 border-gray-900 bg-blue-600 flex items-center justify-center text-[8px] font-bold">ZMA</div>
               </div>
-              <span className="text-[11px] font-bold text-blue-400">Xem chi tiết</span>
-           </div>
-        </div>
+              <span className="text-[11px] font-bold text-blue-400">Xem chi tiết & Thông tư</span>
+            </div>
+          </div>
+        ))}
       </div>
 
       {/* 8. Support Shortcut */}
       <div className="px-5 mt-4 mb-4">
-        <div className={`p-4 rounded-[24px] flex items-center gap-4 ${isDarkMode ? 'bg-blue-900/10' : 'bg-blue-50'}`}>
+        <div 
+          onClick={() => navigate('/support')}
+          className={`p-4 rounded-[24px] flex items-center gap-4 active:scale-95 transition-transform cursor-pointer relative z-10 ${isDarkMode ? 'bg-blue-900/10 border border-blue-800/20' : 'bg-blue-50'}`}
+        >
           <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center shadow-sm">
-             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Support" alt="support" className="w-8 h-8" />
+            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Support" alt="support" className="w-8 h-8" />
           </div>
-          <div className="flex flex-col">
+          <div className="flex flex-col flex-1">
             <span className="text-[14px] font-bold text-[#1e3ba1]">Trung tâm trợ giúp</span>
             <span className="text-[11px] font-medium text-gray-500">Chúng tôi luôn sẵn sàng hỗ trợ bạn 24/7.</span>
           </div>
+          <ArrowRightOutlined className="text-blue-400 opacity-50" />
         </div>
       </div>
+      {/* ADMIN QUICK ACTIONS: Create News */}
+      {isAdmin && (
+        <div className="px-5 mb-8">
+          <button
+            onClick={() => setIsAdminNoticeVisible(true)}
+            className="w-full py-4 bg-gradient-to-r from-blue-600 to-indigo-700 text-white rounded-[24px] font-black text-[14px] shadow-lg border-none active:scale-95 transition-transform flex items-center justify-center gap-2"
+          >
+            <PlusOutlined /> TẠO THÔNG BÁO NHANH (ADMIN)
+          </button>
+        </div>
+      )}
+
+      {/* MODALS */}
+      {/* 1. Modal Xem Thông báo / Thông tư */}
+      <Modal
+        open={!!selectedNews}
+        onCancel={() => setSelectedNews(null)}
+        footer={null}
+        centered
+        width={360}
+        styles={{ body: { padding: 0 } }}
+        closable={false}
+      >
+        {selectedNews && (
+          <div className="flex flex-col">
+            <div className="w-full aspect-[4/3] relative">
+              <img src={selectedNews.imageUrl} alt="notice" className="w-full h-full object-cover" />
+              <button
+                onClick={() => setSelectedNews(null)}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/40 text-white flex items-center justify-center backdrop-blur-sm border-none"
+              >✕</button>
+            </div>
+            <div className="p-6">
+              <span className="text-[10px] font-black text-blue-600 uppercase tracking-[0.2em] mb-2 block">Thông báo chính thức</span>
+              <h2 className="text-[20px] font-black text-gray-900 leading-tight mb-4">{selectedNews.title}</h2>
+              <p className="text-[14px] text-gray-600 leading-relaxed mb-6 font-medium">{selectedNews.message}</p>
+
+              <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                    <ClockCircleOutlined className="text-orange-600" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-bold text-gray-400 uppercase">Ngày ban hành</span>
+                    <span className="text-[13px] font-black text-gray-800">22 tháng 04, 2024</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setSelectedNews(null)}
+                className="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-[14px] border-none active:scale-95 transition-transform"
+              >ĐÃ HIỂU</button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 2. Modal Tạo Thông báo Nhanh (Admin) */}
+      <Modal
+        title={<span className="font-black text-gray-800 text-lg uppercase">Phát tin toàn hệ thống</span>}
+        open={isAdminNoticeVisible}
+        onCancel={() => setIsAdminNoticeVisible(false)}
+        footer={null}
+        centered
+      >
+        <Form form={form} layout="vertical" onFinish={handleCreateAnnouncement}>
+          <Form.Item name="title" label={<span className="text-[11px] font-black uppercase text-gray-400">Tiêu đề thông báo</span>} rules={[{ required: true }]}>
+            <Input className="h-12 rounded-xl bg-gray-50 border-none font-bold" placeholder="Nhập tiêu đề..." />
+          </Form.Item>
+          <Form.Item name="message" label={<span className="text-[11px] font-black uppercase text-gray-400">Nội dung chi tiết (Thông tư)</span>} rules={[{ required: true }]}>
+            <Input.TextArea rows={4} className="rounded-xl bg-gray-50 border-none font-medium" placeholder="Mô tả nội dung..." />
+          </Form.Item>
+          <Form.Item label={<span className="text-[11px] font-black uppercase text-gray-400">Ảnh thông tư / Đính kèm</span>}>
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onChange={({ fileList }) => setFileList(fileList)}
+              beforeUpload={() => false}
+              maxCount={1}
+            >
+              {fileList.length < 1 && (
+                <div className="flex flex-col items-center">
+                  <FileImageOutlined className="text-xl text-gray-300" />
+                  <div className="text-[10px] font-bold text-gray-400 mt-1 uppercase">Tải ảnh</div>
+                </div>
+              )}
+            </Upload>
+          </Form.Item>
+          <Button
+            type="primary"
+            htmlType="submit"
+            loading={announcementMutation.isPending}
+            className="w-full h-14 rounded-2xl bg-blue-600 text-white font-black border-none shadow-lg mt-4"
+            icon={<SendOutlined />}
+          >
+            GỬI THÔNG BÁO NGAY
+          </Button>
+        </Form>
+      </Modal>
     </Page>
   );
 };
