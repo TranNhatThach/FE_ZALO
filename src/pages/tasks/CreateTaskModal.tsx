@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
 import { userService } from '@/services/user.service';
 import dayjs from 'dayjs';
+import { customerApi, Customer } from '@/api/customer.api';
 
 const { Title, Text } = Typography;
 
@@ -37,13 +38,33 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
     queryFn: () => userService.getAll(),
   });
 
+  const [customerSearch, setCustomerSearch] = React.useState('');
+  const { data: customers = [] } = useQuery({
+    queryKey: ['customers', customerSearch],
+    queryFn: () => customerApi.search(customerSearch),
+    enabled: customerSearch.length >= 2,
+  });
+
+  const handleCustomerSelect = (customerId: number) => {
+    const selected = customers.find(c => c.id === customerId);
+    if (selected) {
+      form.setFieldsValue({
+        customerName: selected.name,
+        phoneNumber: selected.phoneNumber,
+        companyName: selected.companyName,
+        address: selected.address,
+      });
+    }
+  };
+
   const handleCreate = async () => {
     try {
       const values = await form.validateFields();
       const payload = {
         ...values,
         tenantId: user?.tenantId,
-        dueDate: values.dueDate ? dayjs(values.dueDate).startOf('day').toISOString() : undefined,
+        dueDate: values.dueDate ? dayjs(values.dueDate).startOf('day').format('YYYY-MM-DDTHH:mm:ss') : undefined,
+        estimatedPrice: values.estimatedPrice ? Number(values.estimatedPrice) : 0,
         status: 'TO DO',
       };
 
@@ -121,10 +142,14 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
 
             <Form.Item name="assigneeId">
               <Select
-                placeholder="Giao việc cho nhân viên..."
+                placeholder="Tìm & Giao việc cho nhân viên..."
                 className="modern-select h-14"
                 allowClear
                 showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
+                }
                 suffixIcon={<UserOutlined className="text-gray-400" />}
                 options={users.map((u: any) => ({
                   value: u.id,
@@ -140,10 +165,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
                   className="modern-select h-12"
                   suffixIcon={<TagOutlined className="text-gray-400" />}
                 >
-                  <Select.Option value="MARKETING">Marketing</Select.Option>
-                  <Select.Option value="TECHNICAL">Technical</Select.Option>
-                  <Select.Option value="DESIGN">Design</Select.Option>
-                  <Select.Option value="SALES">Sales</Select.Option>
+                  <Select.Option value="MARKETING">Tiếp thị</Select.Option>
+                  <Select.Option value="TECHNICAL">Kỹ thuật</Select.Option>
+                  <Select.Option value="DESIGN">Thiết kế</Select.Option>
+                  <Select.Option value="SALES">Bán hàng</Select.Option>
                 </Select>
               </Form.Item>
 
@@ -153,9 +178,9 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
                   className="modern-select h-12"
                   suffixIcon={<FlagOutlined className="text-gray-400" />}
                 >
-                  <Select.Option value="HIGH"><span className="text-red-500 font-black">HIGH</span></Select.Option>
-                  <Select.Option value="MEDIUM"><span className="text-orange-500 font-black">MEDIUM</span></Select.Option>
-                  <Select.Option value="LOW"><span className="text-gray-400 font-black">LOW</span></Select.Option>
+                  <Select.Option value="HIGH"><span className="text-red-500 font-black">CAO</span></Select.Option>
+                  <Select.Option value="MEDIUM"><span className="text-orange-500 font-black">TRUNG BÌNH</span></Select.Option>
+                  <Select.Option value="LOW"><span className="text-gray-400 font-black">THẤP</span></Select.Option>
                 </Select>
               </Form.Item>
             </div>
@@ -178,13 +203,59 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
             </div>
 
             <div className="grid grid-cols-2 gap-4 mb-4">
-              <Form.Item name="customerName" style={{ marginBottom: 0 }}>
-                <Input placeholder="Tên khách" prefix={<UserOutlined className="text-gray-300" />} className="h-12 rounded-2xl" />
+              <Form.Item
+                name="customerName"
+                label={<span className="text-[11px] font-black uppercase text-gray-400">Tên khách hàng</span>}
+                style={{ marginBottom: 0 }}
+                rules={[{ required: true, message: 'Nhập tên khách hàng' }]}
+              >
+                <Select
+                  showSearch
+                  placeholder="Gõ tên hoặc SĐT khách..."
+                  className="modern-select h-12"
+                  filterOption={false}
+                  onSearch={(val) => setCustomerSearch(val)}
+                  onSelect={(val, option: any) => {
+                    const selected = option.data;
+                    if (selected) {
+                      form.setFieldsValue({
+                        customerName: selected.name,
+                        phoneNumber: selected.phoneNumber,
+                        companyName: selected.companyName,
+                        address: selected.address,
+                        customerId: selected.id
+                      });
+                    }
+                  }}
+                  onChange={(val) => {
+                    // Nếu người dùng tự gõ tay không chọn từ list
+                    if (!customers.find(c => c.name === val)) {
+                      form.setFieldsValue({ customerId: undefined });
+                    }
+                  }}
+                  suffixIcon={<UserOutlined className="text-gray-300" />}
+                >
+                  {customers.map(c => (
+                    <Select.Option key={c.id} value={c.name} data={c}>
+                      <div className="flex flex-col py-1">
+                        <span className="font-bold text-[14px]">{c.name}</span>
+                        <span className="text-[11px] text-gray-400">{c.phoneNumber}</span>
+                      </div>
+                    </Select.Option>
+                  ))}
+                  {/* Nếu đang search mà không thấy, cho phép dùng luôn text đang gõ */}
+                  {customerSearch && !customers.find(c => c.name === customerSearch) && (
+                    <Select.Option key="new" value={customerSearch} data={null}>
+                      Sử dụng mới: "{customerSearch}"
+                    </Select.Option>
+                  )}
+                </Select>
               </Form.Item>
-              <Form.Item name="phoneNumber" style={{ marginBottom: 0 }}>
+              <Form.Item name="phoneNumber" label={<span className="text-[11px] font-black uppercase text-gray-400">Số điện thoại</span>} style={{ marginBottom: 0 }}>
                 <Input placeholder="SĐT liên hệ" prefix={<PhoneOutlined className="text-gray-300" />} className="h-12 rounded-2xl" />
               </Form.Item>
             </div>
+            <Form.Item name="customerId" hidden><Input /></Form.Item>
 
             <Form.Item name="companyName" className="mt-4">
               <Input placeholder="Tên công ty / Tổ chức" prefix={<BankOutlined className="text-gray-300" />} className="h-12 rounded-2xl" />

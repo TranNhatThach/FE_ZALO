@@ -19,6 +19,7 @@ export const authApi = {
     api.post<LoginResponse>('/auth/login/zalo', data),
 
   getMe: (): Promise<User> => api.get<User>('/v1/users/profile'),
+  updateProfile: (data: Partial<User>): Promise<User> => api.put<User>('/v1/users/profile', data),
 
   logout: (): Promise<void> => api.post<void>('/auth/logout', {}),
 };

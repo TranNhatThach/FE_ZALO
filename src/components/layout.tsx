@@ -12,6 +12,10 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTenantResolver } from '@/hooks/useTenantResolver';
 import { useThemeStore } from '@/stores/theme.store';
+import dayjs from 'dayjs';
+import 'dayjs/locale/vi';
+
+dayjs.locale('vi');
 
 // Pages
 import HomePage from '@/pages/index';
@@ -35,7 +39,16 @@ const AdminAiAgentPage = lazy(() => import('@/pages/ai/AdminAiAgentPage'));
 const TaxInvoicesPage = lazy(() => import('@/pages/finance/TaxInvoicesPage'));
 const SupportPage = lazy(() => import('@/pages/support/SupportPage'));
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            retry: 2,
+            refetchOnWindowFocus: false,
+            staleTime: 1000 * 5, // 5 seconds
+            gcTime: 1000 * 60 * 30, // 30 minutes
+        },
+    },
+});
 
 const AppContent = () => {
     const { tenantConfig, isLoading: isTenantLoading } = useTenantResolver();
@@ -199,6 +212,13 @@ const RouterContent = () => {
                         <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
                             <SupportPage />
                         </Suspense>
+                    }></Route>
+                    <Route path="/" element={
+                        <RoleGuard allowedRoles={['ADMIN', 'STAFF', 'USER']} fallbackPath="/login">
+                            <Suspense fallback={<Skeleton active />}>
+                                {user?.roleName === 'ADMIN' ? <Dashboard /> : <UserHomePage />}
+                            </Suspense>
+                        </RoleGuard>
                     }></Route>
                 </AnimationRoutes>
             </MainLayout>

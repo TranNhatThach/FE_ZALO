@@ -36,18 +36,15 @@ export const UserHomePage: React.FC = () => {
   const { data: announcements = [] } = useQuery({
     queryKey: ['announcements'],
     queryFn: async () => {
-      // Mock data for now, should call a real API
-      return [
-        {
-          id: 1,
-          title: 'Thông báo lịch nghỉ lễ 30/04 - 01/05',
-          message: 'Toàn thể nhân viên được nghỉ từ ngày 30/04 đến hết ngày 01/05. Chúc mọi người có kỳ nghỉ vui vẻ.',
-          imageUrl: 'https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop',
-          createdAt: '2024-04-20T10:00:00Z'
-        }
-      ];
+      // Fetch notifications as announcements for now
+      try {
+        const res = await notificationApi.getNotifications();
+        // Filter or map if needed, for now just return empty or real notifications
+        return res || [];
+      } catch (err) {
+        return [];
+      }
     },
-    refetchInterval: 60000
   });
 
   const [selectedNews, setSelectedNews] = React.useState<any>(null);
@@ -86,11 +83,11 @@ export const UserHomePage: React.FC = () => {
   }
 
   // Lọc các task mới chưa nhận (TO DO)
-  const todoTasks = tasks.filter(t => t.status === 'TO DO').slice(0, 3);
-  const inProgressTasks = tasks.filter(t => t.status === 'IN PROGRESS');
+  const todoTasks = tasks.filter(t => t.status === 'TO_DO').slice(0, 3);
+  const inProgressTasks = tasks.filter(t => t.status === 'IN_PROGRESS');
 
   const handleAcceptTask = (taskId: string) => {
-    updateStatus({ taskId, status: 'IN PROGRESS' }, {
+    updateStatus({ taskId, status: 'IN_PROGRESS' }, {
       onSuccess: () => {
         // Sau khi nhận xong có thể chuyển sang trang Tasks để làm tiếp
         navigate('/tasks');
@@ -199,8 +196,8 @@ export const UserHomePage: React.FC = () => {
               percent={progress?.completionPercentage || 0}
               showInfo={false}
               strokeColor={{ '0%': '#1e3ba1', '100%': '#2563eb' }}
-              trailColor={isDarkMode ? '#333' : '#f0f4ff'}
-              strokeWidth={10}
+              railColor={isDarkMode ? '#333' : '#f0f4ff'}
+              size={10}
             />
           </div>
         </div>
@@ -229,7 +226,7 @@ export const UserHomePage: React.FC = () => {
                 <div className="flex justify-between items-start">
                   <div className="flex flex-col gap-1">
                     <span className={`text-[10px] font-black py-0.5 px-2 rounded-md bg-blue-50 text-[#1e3ba1] w-fit uppercase tracking-tighter`}>
-                      {task.category}
+                      {task.category === 'MARKETING' ? 'Tiếp thị' : task.category === 'TECHNICAL' ? 'Kỹ thuật' : task.category === 'DESIGN' ? 'Thiết kế' : 'Khác'}
                     </span>
                     <h3 className={`text-[15px] font-bold m-0 leading-snug ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
                       {task.title}

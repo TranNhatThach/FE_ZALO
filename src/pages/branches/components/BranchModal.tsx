@@ -27,10 +27,10 @@ const BranchModal: React.FC<BranchModalProps> = ({ visible, branch, onClose, onS
       const values = await form.validateFields();
       if (isEdit && branch) {
         await branchService.update(branch.id, values);
-        message.success('Updated branch successfully');
+        message.success('Cập nhật chi nhánh thành công');
       } else {
         await branchService.create(values);
-        message.success('Created branch successfully');
+        message.success('Tạo chi nhánh thành công');
       }
       onSuccess();
       onClose();
@@ -41,7 +41,7 @@ const BranchModal: React.FC<BranchModalProps> = ({ visible, branch, onClose, onS
 
   return (
     <Modal
-      title={isEdit ? 'Edit Branch' : 'Add Branch'}
+      title={isEdit ? 'Chỉnh sửa Chi nhánh' : 'Thêm Chi Nhánh'}
       open={visible}
       onCancel={onClose}
       onOk={handleSubmit}
@@ -50,25 +50,25 @@ const BranchModal: React.FC<BranchModalProps> = ({ visible, branch, onClose, onS
       <Form form={form} layout="vertical" initialValues={{ status: 'ACTIVE' }}>
         <Form.Item
           name="name"
-          label="Branch Name"
-          rules={[{ required: true, message: 'Please input the branch name!' }]}
+          label="Tên Chi Nhánh"
+          rules={[{ required: true, message: 'Vui lòng nhập tên chi nhánh!' }]}
         >
-          <Input placeholder="Enter branch name" />
+          <Input placeholder="Nhập tên chi nhánh" />
         </Form.Item>
         <Form.Item
           name="address"
-          label="Address"
-          rules={[{ required: true, message: 'Please input the address!' }]}
+          label="Địa Chỉ"
+          rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
         >
-          <Input placeholder="Enter address" />
+          <Input placeholder="Nhập địa chỉ" />
         </Form.Item>
-        <Form.Item name="phone" label="Phone Number">
-          <Input placeholder="Enter phone number" />
+        <Form.Item name="phone" label="Số Điện Thoại">
+          <Input placeholder="Nhập số điện thoại" />
         </Form.Item>
-        <Form.Item name="status" label="Status">
+        <Form.Item name="status" label="Trạng Thái">
           <Select>
-            <Select.Option value="ACTIVE">Active</Select.Option>
-            <Select.Option value="INACTIVE">Inactive</Select.Option>
+            <Select.Option value="ACTIVE">Hoạt động</Select.Option>
+            <Select.Option value="INACTIVE">Ngừng hoạt động</Select.Option>
           </Select>
         </Form.Item>
       </Form>

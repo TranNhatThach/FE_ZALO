@@ -29,17 +29,17 @@ export async function fetchData<T>(
   const { _retry = false, ...fetchOptions } = options;
 
   const token = localStorage.getItem(ACCESS_TOKEN_KEY);
-  
+
   // Thử lấy tenantId từ nhiều nguồn
   let tenantId = localStorage.getItem('tenant_id');
   if (!tenantId) {
-      const userData = localStorage.getItem(USER_DATA_KEY);
-      if (userData) {
-          try {
-              const user = JSON.parse(userData);
-              tenantId = user.tenant?.id?.toString() || user.tenantId?.toString();
-          } catch (e) {}
-      }
+    const userData = localStorage.getItem(USER_DATA_KEY);
+    if (userData) {
+      try {
+        const user = JSON.parse(userData);
+        tenantId = user.tenant?.id?.toString() || user.tenantId?.toString();
+      } catch (e) { }
+    }
   }
   tenantId = tenantId || '1'; // Mặc định là '1' thay vì 'default' để tránh lỗi parse Long ở BE
 
@@ -56,94 +56,107 @@ export async function fetchData<T>(
     delete headers['Content-Type'];
   }
 
-  const response = await fetch(`${BASE_URL}${endpoint}`, {
-    ...fetchOptions,
-    headers,
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
-  if (response.status === 401 && !_retry) {
-    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+  try {
+    const response = await fetch(`${BASE_URL}${endpoint}`, {
+      ...fetchOptions,
+      headers,
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
 
-    if (!refreshToken) {
-      useAuthStore.getState().logout();
-      throw new Error('Unauthorized');
-    }
+    if (response.status === 401 && !_retry) {
+      const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
-    if (isRefreshing) {
-      return new Promise<T>((resolve, reject) => {
-        pendingQueue.push({
-          resolve: (newToken: string) => {
-            resolve(
-              fetchData<T>(endpoint, {
-                ...options,
-                _retry: true,
-                headers: {
-                  ...(fetchOptions.headers as Record<string, string>),
-                  Authorization: `Bearer ${newToken}`,
-                },
-              })
-            );
-          },
-          reject,
-        });
-      });
-    }
-
-    isRefreshing = true;
-
-    try {
-      const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ refreshToken }),
-      });
-
-      if (!refreshResponse.ok) {
-        throw new Error('Token refresh failed');
+      if (!refreshToken) {
+        useAuthStore.getState().logout();
+        throw new Error('Unauthorized');
       }
 
-      const refreshData = (await refreshResponse.json()) as { accessToken: string };
-      const newToken = refreshData.accessToken;
+      if (isRefreshing) {
+        return new Promise<T>((resolve, reject) => {
+          pendingQueue.push({
+            resolve: (newToken: string) => {
+              resolve(
+                fetchData<T>(endpoint, {
+                  ...options,
+                  _retry: true,
+                  headers: {
+                    ...(fetchOptions.headers as Record<string, string>),
+                    Authorization: `Bearer ${newToken}`,
+                  },
+                })
+              );
+            },
+            reject,
+          });
+        });
+      }
 
-      localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
-      useAuthStore.setState({ accessToken: newToken });
+      isRefreshing = true;
 
-      flushQueue(null, newToken);
+      try {
+        const refreshResponse = await fetch(`${BASE_URL}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
 
-      return fetchData<T>(endpoint, {
-        ...options,
-        _retry: true,
-        headers: {
-          ...(fetchOptions.headers as Record<string, string>),
-          Authorization: `Bearer ${newToken}`,
-        },
-      });
-    } catch (refreshError) {
-      flushQueue(refreshError, null);
-      useAuthStore.getState().logout();
-      throw refreshError;
-    } finally {
-      isRefreshing = false;
+        if (!refreshResponse.ok) {
+          throw new Error('Token refresh failed');
+        }
+
+        const refreshData = (await refreshResponse.json()) as { accessToken: string };
+        const newToken = refreshData.accessToken;
+
+        localStorage.setItem(ACCESS_TOKEN_KEY, newToken);
+        useAuthStore.setState({ accessToken: newToken });
+
+        flushQueue(null, newToken);
+
+        return fetchData<T>(endpoint, {
+          ...options,
+          _retry: true,
+          headers: {
+            ...(fetchOptions.headers as Record<string, string>),
+            Authorization: `Bearer ${newToken}`,
+          },
+        });
+      } catch (refreshError) {
+        flushQueue(refreshError, null);
+        useAuthStore.getState().logout();
+        throw refreshError;
+      } finally {
+        isRefreshing = false;
+      }
     }
-  }
 
-  if (!response.ok) {
-    let errorMessage = `Error ${response.status}`;
-    try {
-      const errBody = (await response.json()) as { message?: string; error?: string };
-      errorMessage = errBody.message ?? errBody.error ?? errorMessage;
-    } catch {
-      // Body not JSON
+    if (!response.ok) {
+      let errorMessage = `Error ${response.status}`;
+      try {
+        const errBody = (await response.json()) as { message?: string; error?: string };
+        errorMessage = errBody.message ?? errBody.error ?? errorMessage;
+      } catch {
+        // Body not JSON
+      }
+      throw new Error(errorMessage);
     }
-    throw new Error(errorMessage);
-  }
 
-  const json = (await response.json()) as { data?: T } | T;
+    const json = (await response.json()) as { data?: T } | T;
 
-  if (json !== null && typeof json === 'object' && 'data' in json) {
-    return (json as { data: T }).data;
+    if (json !== null && typeof json === 'object' && 'data' in json) {
+      return (json as { data: T }).data;
+    }
+    return json as T;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      throw new Error('Kết nối tới máy chủ quá hạn (Timeout)');
+    }
+    throw err;
   }
-  return json as T;
 }
 
 export const api = {

@@ -10,8 +10,8 @@ export const ServerErrorPage: React.FC = () => {
       <Result
         status="500"
         title="500"
-        subTitle="Sorry, something went wrong on our server."
-        extra={<Button type="primary" onClick={() => navigate('/')}>Back Home</Button>}
+        subTitle="Xin lỗi, có lỗi xảy ra từ máy chủ."
+        extra={<Button type="primary" onClick={() => navigate('/')}>Quay lại Trang chủ</Button>}
       />
     </div>
   );

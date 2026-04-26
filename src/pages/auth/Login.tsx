@@ -9,6 +9,7 @@ const LoginPage: React.FC = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const navigate = useNavigate();
   const { login } = useAuthStore();
@@ -20,10 +21,10 @@ const LoginPage: React.FC = () => {
     const userRolesRaw = [...(userData.roles || []), userData.roleName || ''];
     const allRoles = userRolesRaw.join(',').toUpperCase();
 
-    console.log("🛠️ Role Detection:", { 
-        roleName: userData.roleName, 
-        roles: userData.roles, 
-        allRoles 
+    console.log("🛠️ Role Detection:", {
+      roleName: userData.roleName,
+      roles: userData.roles,
+      allRoles
     });
 
     if (allRoles.includes('ADMIN')) {
@@ -31,7 +32,7 @@ const LoginPage: React.FC = () => {
     } else if (allRoles.includes('STAFF') || allRoles.includes('EMPLOYEE')) {
       navigate('/tasks', { replace: true });
     } else {
-      navigate('/user-home', { replace: true }); 
+      navigate('/user-home', { replace: true });
     }
   };
 
@@ -48,7 +49,7 @@ const LoginPage: React.FC = () => {
         navigateByRole(data.user);
       },
       onError: (error: any) => {
-        alert(error.message || 'Đăng nhập thất bại. Vui lòng thử lại.');
+        setErrorMsg(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.');
       },
     });
   };
@@ -120,7 +121,6 @@ const LoginPage: React.FC = () => {
         `}
       </style>
 
-      {/* Thêm class hide-scrollbar vào thẻ div bao ngoài cùng */}
       <div className="flex flex-col h-screen w-full bg-white relative max-w-[390px] mx-auto overflow-y-auto hide-scrollbar">
 
         {/* 1. HEADER */}
@@ -132,10 +132,8 @@ const LoginPage: React.FC = () => {
           <div className="w-10"></div>
         </div>
 
-        {/* 2. BODY CONTENT */}
         <div className="flex flex-col items-center w-full px-5 pt-6 pb-8 bg-white shrink-0">
 
-          {/* CẬP NHẬT: LOGO CHỈ CÓ ICON (Không có vòng tròn bao quanh) */}
           <img
             src="/icons/login.svg"
             alt="Renren App Logo"
@@ -157,7 +155,6 @@ const LoginPage: React.FC = () => {
 
             <div className="flex items-center w-full h-[52px] border border-gray-300 rounded-[12px] px-3.5 focus-within:border-[#1E40AF] focus-within:ring-1 focus-within:ring-[#1E40AF] transition-colors bg-white overflow-hidden">
 
-              {/* Icon User đầu ô nhập */}
               <img src="/icons/user.svg" alt="user" className="w-5 h-5 mr-2.5 brightness-0" />
 
               <input
@@ -165,7 +162,10 @@ const LoginPage: React.FC = () => {
                 placeholder="Email hoặc số điện thoại"
                 className="flex-1 bg-transparent border-none outline-none text-[16px] text-gray-900 placeholder-gray-400 w-full"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  if (errorMsg) setErrorMsg(null);
+                }}
               />
 
               {phone.length > 0 && (
@@ -187,7 +187,7 @@ const LoginPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="flex items-center w-full h-[52px] border border-gray-300 rounded-[12px] px-3.5 focus-within:border-[#1E40AF] focus-within:ring-1 focus-within:ring-[#1E40AF] transition-colors bg-white overflow-hidden">
+            <div className={`flex items-center w-full h-[52px] border rounded-[12px] px-3.5 focus-within:ring-1 transition-colors bg-white overflow-hidden ${errorMsg ? 'border-red-500 focus-within:border-red-500 focus-within:ring-red-500' : 'border-gray-300 focus-within:border-[#1E40AF] focus-within:ring-[#1E40AF]'}`}>
 
               <img src="/icons/lock.svg" alt="password-security-icon" className="w-5 h-5 mr-2.5 brightness-0" />
 
@@ -196,7 +196,10 @@ const LoginPage: React.FC = () => {
                 placeholder="Nhập mật khẩu"
                 className="flex-1 bg-transparent border-none outline-none text-[16px] text-gray-900 placeholder-gray-400 w-full"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errorMsg) setErrorMsg(null);
+                }}
               />
 
               <button onClick={() => setShowPassword(!showPassword)} className="p-1 ml-2 outline-none">
@@ -207,6 +210,7 @@ const LoginPage: React.FC = () => {
                 />
               </button>
             </div>
+            {errorMsg && <p className="text-red-500 text-[12px] mt-1.5 ml-1 font-medium italic animate-pulse">⚠️ {errorMsg}</p>}
           </div>
 
           {/* NÚT ĐĂNG NHẬP */}

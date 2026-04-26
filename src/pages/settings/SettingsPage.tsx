@@ -16,18 +16,53 @@ import {
   CameraOutlined,
   CheckCircleOutlined
 } from '@ant-design/icons';
-import { message, Switch } from 'antd';
+import { message, Switch, Modal, Input } from 'antd';
+import { authApi } from '../../api/auth.api';
+import { getUserInfo } from 'zmp-sdk';
 
 const SettingsPage: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useThemeStore();
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
   const { tenantConfig } = useTenantResolver();
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(true);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [newName, setNewName] = useState(user?.fullName || user?.name || '');
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const handleLogout = () => {
     logout();
     navigate('/login');
+  };
+
+  const handleUpdateName = async () => {
+    if (!newName.trim()) {
+      message.error('Vui lòng nhập tên!');
+      return;
+    }
+    setIsUpdating(true);
+    try {
+      const updatedUser = await authApi.updateProfile({ fullName: newName });
+      setUser(updatedUser);
+      message.success('Cập nhật tên thành công!');
+      setIsEditModalVisible(false);
+    } catch (err) {
+      message.error('Lỗi khi cập nhật tên!');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSyncZalo = async () => {
+    try {
+      const { userInfo } = await getUserInfo({});
+      if (userInfo && userInfo.name) {
+        setNewName(userInfo.name);
+        message.info(`Đã lấy tên từ Zalo: ${userInfo.name}`);
+      }
+    } catch (err) {
+      message.error('Không thể lấy thông tin từ Zalo!');
+    }
   };
 
   return (
@@ -46,20 +81,59 @@ const SettingsPage: React.FC = () => {
         <div className={`rounded-[20px] p-5 flex items-center gap-4 shadow-sm ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
           {/* Avatar */}
           <div className="w-[60px] h-[60px] rounded-full overflow-hidden border border-gray-100 flex-shrink-0">
-            <img src="https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal" alt="Profile" className="w-full h-full object-cover bg-blue-50" />
+            <img src={user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal"} alt="Profile" className="w-full h-full object-cover bg-blue-50" />
           </div>
           <div className="flex flex-col flex-1">
             <h2 className={`text-[16px] font-bold m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-              {tenantConfig?.brandName || user?.username || 'Admin Portal'}
+               {user?.fullName || user?.name || user?.username || 'Thành viên'}
             </h2>
             <p className="text-[12px] text-gray-400 font-medium m-0 mt-0.5">
-              {user?.fullName || user?.name || user?.roles?.[0] || 'Enterprise Admin'}
+              {user?.roles?.[0] || 'Member'} • {user?.phone || 'No phone'}
             </p>
           </div>
-          <button className="bg-[#eff6ff] text-[#1d4ed8] text-[12px] font-bold py-1.5 px-3 rounded-full border-none active:scale-95 transition-transform">
+          <button 
+            onClick={() => {
+              setNewName(user?.fullName || user?.name || '');
+              setIsEditModalVisible(true);
+            }}
+            className="bg-[#eff6ff] text-[#1d4ed8] text-[12px] font-bold py-1.5 px-3 rounded-full border-none active:scale-95 transition-transform"
+          >
             Sửa
           </button>
         </div>
+
+        {/* Modal Sửa Tên */}
+        <Modal
+          title={<span className="font-black text-gray-800">Chỉnh sửa tên hiển thị</span>}
+          open={isEditModalVisible}
+          onCancel={() => setIsEditModalVisible(false)}
+          onOk={handleUpdateName}
+          confirmLoading={isUpdating}
+          okText="Lưu thay đổi"
+          cancelText="Hủy"
+          centered
+          className="rounded-2xl overflow-hidden"
+        >
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-400 uppercase tracking-wider pl-1">Họ và tên</label>
+              <Input 
+                value={newName} 
+                onChange={(e) => setNewName(e.target.value)} 
+                placeholder="Nhập tên của bạn..."
+                className="h-12 rounded-xl bg-gray-50 border-none font-bold text-gray-800"
+              />
+            </div>
+            
+            <button 
+              onClick={handleSyncZalo}
+              className="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-black text-[13px] border-none flex items-center justify-center gap-2 active:scale-95 transition-transform"
+            >
+              <img src="https://hstatic.net/0/0/global/design/theme-default/zalo-icon.png" className="w-5 h-5" alt="zalo" />
+              ĐỒNG BỘ TÊN TỪ ZALO
+            </button>
+          </div>
+        </Modal>
 
         {/* Group 1: Tuỳ chỉnh */}
         <div className="flex flex-col gap-2">

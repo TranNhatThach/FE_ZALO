@@ -90,8 +90,8 @@ export const Sidebar: React.FC = () => {
           />
         </div>
         <div className="flex flex-col">
-          <span className="text-[17px] font-extrabold text-[#1d4ed8] tracking-tight">{isAdmin ? 'Admin Portal' : 'User Portal'}</span>
-          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1.5">{isAdmin ? 'Enterprise Management' : 'Employee Workspace'}</span>
+          <span className="text-[17px] font-extrabold text-[#1d4ed8] tracking-tight">{isAdmin ? 'Quản trị hệ thống' : 'Kênh nhân viên'}</span>
+          <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1.5">{isAdmin ? 'Quản lý doanh nghiệp' : 'Không gian làm việc'}</span>
         </div>
       </div>
 
@@ -137,7 +137,7 @@ export const Sidebar: React.FC = () => {
           className="flex items-center justify-center w-full gap-2 py-4 bg-transparent border-none outline-none cursor-pointer active:scale-95 transition-transform"
         >
           <LogoutOutlined className="text-[18px] text-[#1d4ed8] font-bold" />
-          <span className="text-[15px] font-extrabold text-[#1d4ed8]">Logout</span>
+          <span className="text-[15px] font-extrabold text-[#1d4ed8]">Đăng xuất</span>
         </button>
       </div>
     </div>

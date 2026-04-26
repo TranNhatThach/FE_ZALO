@@ -1,13 +1,7 @@
 import React from 'react';
 
-// Dữ liệu mẫu (Mock Data)
-const CHAT_DATA = [
-  { id: 1, name: 'Mã giảm giá Tiki', message: '🔥 Sale sốc 9.9...', time: '3 phút trước', avatar: 'https://salt.tikicdn.com/ts/upload/2f/51/80/5250ad1769188099bc11287c2b6fce7c.png', isOfficial: false, badge: 0, hasStar: true },
-  { id: 2, name: 'Nguyễn Minh', message: 'Vừa mới truy cập', time: '3 phút trước', avatar: 'https://i.pravatar.cc/150?img=11', isOfficial: false, badge: 0, online: true },
-  { id: 3, name: 'Zalo OA', message: 'Tinh giản giám, ứ đọng cầm cố ...', time: 'Hôm qua', avatar: 'https://stc-zalo.zdn.vn/images/zalo-favicon-2x.png', isOfficial: true, badge: 1 },
-];
-
 const ChatLayout: React.FC = () => {
+  const CHAT_DATA: any[] = [];
   return (
     <div className="flex flex-col h-screen w-full bg-white relative">
       

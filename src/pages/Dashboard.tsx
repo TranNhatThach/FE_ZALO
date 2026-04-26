@@ -21,29 +21,14 @@ import { QUERY_KEYS } from '@/api/queryKeys';
 
 const { Title, Text } = Typography;
 
-// Mock data
-const activityData = [
-  { day: 'T2', value: 30 },
-  { day: 'T3', value: 45 },
-  { day: 'T4', value: 65 }, // High
-  { day: 'T5', value: 40 },
-  { day: 'T6', value: 35 },
-  { day: 'T7', value: 85 }, // Peak
-  { day: 'CN', value: 42 },
-];
-
-const contractData = [
-  { name: '1', value: 10 },
-  { name: '2', value: 25 },
-  { name: '3', value: 18 },
-  { name: '4', value: 30 },
-  { name: '5', value: 22 },
-];
-
 const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
   const { isDarkMode } = useThemeStore();
   const today = dayjs().locale('vi').format('dddd, D [Tháng] M, YYYY');
+
+  // Empty data for fallbacks
+  const activityData: any[] = [];
+  const contractData: any[] = [];
 
   // Fetch real summary data
   const { data: stats, isLoading, error } = useQuery({
@@ -53,7 +38,6 @@ const Dashboard: React.FC = () => {
         console.log("Dashboard Data Fetched:", res);
         return res;
     },
-    refetchInterval: 120000, // 2 minutes
   });
 
   const statsData = stats || {
@@ -147,7 +131,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div className="h-10 w-24">
+        <div style={{ width: '100%', height: 40 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={contractData}>
               <Bar
@@ -173,7 +157,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div className="h-48 w-full">
+        <div style={{ width: '100%', height: 192 }}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : activityData} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
               <XAxis
@@ -221,7 +205,7 @@ const Dashboard: React.FC = () => {
               <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>HIỆU SUẤT VẬN HÀNH</Text>
               <Text className={`text-[11px] font-black ${isDarkMode ? 'text-blue-400' : 'text-[#1a3faf]'}`}>{statsData.operationalEfficiency.toFixed(1)}%</Text>
             </div>
-            <Progress percent={statsData.operationalEfficiency} showInfo={false} strokeColor={isDarkMode ? '#3b82f6' : '#1a3faf'} trailColor={isDarkMode ? '#1e293b' : '#f1f5f9'} strokeWidth={12} strokeLinecap="round" />
+            <Progress percent={statsData.operationalEfficiency} showInfo={false} strokeColor={isDarkMode ? '#3b82f6' : '#1a3faf'} railColor={isDarkMode ? '#1e293b' : '#f1f5f9'} size={12} strokeLinecap="round" />
           </div>
 
           <div className="space-y-3.5">
@@ -229,7 +213,7 @@ const Dashboard: React.FC = () => {
               <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>ĐÁNH GIÁ RỦI RO</Text>
               <Text className="text-[11px] font-black text-[#ef4444]">8%</Text>
             </div>
-            <Progress percent={8} showInfo={false} strokeColor="#ef4444" trailColor={isDarkMode ? '#1e293b' : '#f1f5f9'} strokeWidth={12} strokeLinecap="round" />
+            <Progress percent={8} showInfo={false} strokeColor="#ef4444" railColor={isDarkMode ? '#1e293b' : '#f1f5f9'} size={12} strokeLinecap="round" />
           </div>
 
           <div className="space-y-3.5">
@@ -237,7 +221,7 @@ const Dashboard: React.FC = () => {
               <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>TỶ LỆ GIỮ CHÂN</Text>
               <Text className={`text-[11px] font-black ${isDarkMode ? 'text-gray-400' : 'text-[#64748b]'}`}>98.5%</Text>
             </div>
-            <Progress percent={98.5} showInfo={false} strokeColor={isDarkMode ? '#64748b' : '#64748b'} trailColor={isDarkMode ? '#1e293b' : '#f1f5f9'} strokeWidth={12} strokeLinecap="round" />
+            <Progress percent={98.5} showInfo={false} strokeColor={isDarkMode ? '#64748b' : '#64748b'} railColor={isDarkMode ? '#1e293b' : '#f1f5f9'} size={12} strokeLinecap="round" />
           </div>
         </div>
       </div>

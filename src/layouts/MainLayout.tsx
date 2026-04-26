@@ -37,18 +37,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const isAdmin = allRoles.includes('ADMIN');
 
   let navItems = [
-    { key: '/dashboard', label: 'HOME', icon: <HomeOutlined /> },
-    { key: '/tasks', label: 'TASKS', icon: <CheckSquareOutlined /> },
-    { key: '/goods', label: 'GOODS', icon: <ShoppingOutlined /> },
-    { key: '/finance', label: 'FINANCE', icon: <CalculatorOutlined /> },
-    { key: 'more', label: 'MORE', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
+    { key: '/dashboard', label: 'TRANG CHỦ', icon: <HomeOutlined /> },
+    { key: '/tasks', label: 'CÔNG VIỆC', icon: <CheckSquareOutlined /> },
+    { key: '/goods', label: 'HÀNG HÓA', icon: <ShoppingOutlined /> },
+    { key: '/finance', label: 'TÀI CHÍNH', icon: <CalculatorOutlined /> },
+    { key: 'more', label: 'THÊM', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
   ];
 
   if (!isAdmin) {
     navItems = [
-      { key: '/user-home', label: 'HOME', icon: <HomeOutlined /> },
-      { key: '/tasks', label: 'TASKS', icon: <CheckSquareOutlined /> },
-      { key: 'more', label: 'MORE', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
+      { key: '/user-home', label: 'TRANG CHỦ', icon: <HomeOutlined /> },
+      { key: '/tasks', label: 'CÔNG VIỆC', icon: <CheckSquareOutlined /> },
+      { key: 'more', label: 'THÊM', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
     ];
   }
 

@@ -53,13 +53,13 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
       if (isEdit && user) {
         await userService.update(user.id, values);
         message.success({
-          content: 'Updated user information successfully',
+          content: 'Cập nhật thông tin thành công',
           style: { marginTop: '10vh' },
         });
       } else {
         await userService.create(values);
         message.success({
-          content: 'New user created successfully',
+          content: 'Tạo tài khoản mới thành công',
           style: { marginTop: '10vh' },
         });
       }
@@ -68,7 +68,7 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
       onClose();
     } catch (error: any) {
       console.error('Submit error:', error);
-      message.error(error?.message || 'Action failed. Please try again.');
+      message.error(error?.message || 'Thao tác thất bại. Vui lòng thử lại.');
     } finally {
       setLoading(false);
     }
@@ -89,9 +89,9 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
             {isEdit ? <IdcardOutlined className="text-xl" /> : <UserOutlined className="text-xl" />}
           </div>
           <div>
-            <Title level={4} style={{ margin: 0 }}>{isEdit ? 'Edit User' : 'Create New User'}</Title>
+            <Title level={4} style={{ margin: 0 }}>{isEdit ? 'Chỉnh sửa tài khoản' : 'Thêm tài khoản mới'}</Title>
             <Text type="secondary" className="text-xs">
-              {isEdit ? 'Update details for ' + user.name : 'Enter details for the new staff member'}
+              {isEdit ? 'Cập nhật thông tin cho ' + user.name : 'Nhập thông tin nhân viên mới để tham gia hệ thống'}
             </Text>
           </div>
         </div>
@@ -108,36 +108,36 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
         <div className="grid grid-cols-1 gap-x-4">
           <Form.Item
             name="name"
-            label={<Text strong className="text-gray-600">Full Name</Text>}
-            rules={[{ required: true, message: 'Full name is required' }]}
+            label={<Text strong className="text-gray-600">Họ và tên</Text>}
+            rules={[{ required: true, message: 'Họ và tên là bắt buộc' }]}
           >
             <Input 
               prefix={<UserOutlined className="text-gray-400" />} 
-              placeholder="e.g. John Doe"
+              placeholder="VD: Nguyễn Văn A"
               className="rounded-lg h-10 border-gray-200"
             />
           </Form.Item>
-
+ 
           <Form.Item
             name="email"
-            label={<Text strong className="text-gray-600">Email Address</Text>}
+            label={<Text strong className="text-gray-600">Địa chỉ Email</Text>}
             rules={[
-              { required: true, message: 'Email is required' },
-              { type: 'email', message: 'Please enter a valid email' }
+              { required: true, message: 'Email là bắt buộc' },
+              { type: 'email', message: 'Vui lòng nhập đúng định dạng email' }
             ]}
           >
             <Input 
               prefix={<MailOutlined className="text-gray-400" />} 
-              placeholder="john@example.com"
+              placeholder="nguyenvana@example.com"
               className="rounded-lg h-10 border-gray-200"
               disabled={isEdit}
             />
           </Form.Item>
-
+ 
           <Form.Item
             name="phone"
-            label={<Text strong className="text-gray-600">Phone Number</Text>}
-            rules={[{ required: true, message: 'Phone number is required' }]}
+            label={<Text strong className="text-gray-600">Số điện thoại</Text>}
+            rules={[{ required: true, message: 'Số điện thoại là bắt buộc' }]}
           >
             <Input 
               prefix={<PhoneOutlined className="text-gray-400" />} 
@@ -145,12 +145,12 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
               className="rounded-lg h-10 border-gray-200"
             />
           </Form.Item>
-
+ 
           {!isEdit && (
             <Form.Item
               name="password"
-              label={<Text strong className="text-gray-600">Initial Password</Text>}
-              rules={[{ required: true, message: 'Initial password is required' }]}
+              label={<Text strong className="text-gray-600">Mật khẩu khởi tạo</Text>}
+              rules={[{ required: true, message: 'Mật khẩu là bắt buộc' }]}
             >
               <Input.Password 
                 prefix={<LockOutlined className="text-gray-400" />} 
@@ -159,51 +159,51 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
               />
             </Form.Item>
           )}
-
+ 
           <div className="grid grid-cols-2 gap-4">
             <Form.Item
               name="roles"
-              label={<Text strong className="text-gray-600">Roles</Text>}
-              rules={[{ required: true, message: 'Select at least one role' }]}
+              label={<Text strong className="text-gray-600">Vai trò</Text>}
+              rules={[{ required: true, message: 'Chọn ít nhất một vai trò' }]}
             >
               <Select 
                 mode="multiple" 
-                placeholder="Assign roles"
+                placeholder="Giao quyền"
                 className="w-full"
                 maxTagCount="responsive"
                 suffixIcon={<SafetyCertificateOutlined />}
               >
-                <Option value="ADMIN">Admin</Option>
-                <Option value="MANAGER">Manager</Option>
-                <Option value="STAFF">Staff</Option>
+                <Option value="ADMIN">Quản trị viên</Option>
+                <Option value="MANAGER">Quản lý</Option>
+                <Option value="STAFF">Nhân viên</Option>
               </Select>
             </Form.Item>
-
+ 
             <Form.Item
               name="status"
-              label={<Text strong className="text-gray-600">Account Status</Text>}
+              label={<Text strong className="text-gray-600">Trạng thái tài khoản</Text>}
             >
               <Select className="w-full">
                 <Option value="ACTIVE">
-                  <Tag color="success" className="m-0 border-none">Active</Tag>
+                  <Tag color="success" className="m-0 border-none">Đang hoạt động</Tag>
                 </Option>
                 <Option value="INACTIVE">
-                  <Tag color="error" className="m-0 border-none">Inactive</Tag>
+                  <Tag color="error" className="m-0 border-none">Bị vô hiệu hóa</Tag>
                 </Option>
               </Select>
             </Form.Item>
           </div>
         </div>
-
+ 
         <Divider className="my-6" />
-
+ 
         <div className="flex justify-end items-center space-x-3">
           <Button 
             onClick={onClose} 
             icon={<CloseOutlined />}
             className="rounded-lg h-10 px-6 border-gray-200 hover:border-gray-400 hover:text-gray-600"
           >
-            Cancel
+            Hủy
           </Button>
           <Button 
             type="primary" 
@@ -212,7 +212,7 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
             icon={<SaveOutlined />}
             className="rounded-lg h-10 px-8 bg-gradient-to-r from-blue-600 to-indigo-500 border-none shadow-md hover:shadow-lg transition-all"
           >
-            {isEdit ? 'Update User' : 'Create User'}
+            {isEdit ? 'Cập nhật tài khoản' : 'Tạo tài khoản'}
           </Button>
         </div>
       </Form>

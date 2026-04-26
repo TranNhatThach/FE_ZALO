@@ -22,7 +22,7 @@ const BranchesPage: React.FC = () => {
       setBranches(data);
     } catch (error) {
       console.error('Fetch branches error:', error);
-      message.error('Failed to fetch branches');
+      message.error('Lỗi khi tải danh sách chi nhánh');
     } finally {
       setLoading(false);
     }
@@ -39,15 +39,15 @@ const BranchesPage: React.FC = () => {
 
   const handleDelete = (id: string) => {
     Modal.confirm({
-      title: 'Are you sure you want to delete this branch?',
-      content: 'All data associated with this branch will be affected.',
+      title: 'Bạn có chắc chắn muốn xóa chi nhánh này?',
+      content: 'Tất cả dữ liệu liên quan sẽ bị ảnh hưởng.',
       onOk: async () => {
         try {
           await branchService.delete(id);
-          message.success('Deleted successfully');
+          message.success('Đã xóa thành công');
           fetchBranches();
         } catch (error) {
-          message.error('Delete failed');
+          message.error('Xóa thất bại');
         }
       },
     });
@@ -56,16 +56,16 @@ const BranchesPage: React.FC = () => {
   const handleToggleStatus = async (id: string) => {
     try {
       await branchService.toggleStatus(id);
-      message.success('Status updated');
+      message.success('Đã cập nhật trạng thái');
       fetchBranches();
     } catch (error) {
-      message.error('Update status failed');
+      message.error('Cập nhật trạng thái thất bại');
     }
   };
 
   const columns = [
     {
-      title: 'Branch Name',
+      title: 'Tên Chi Nhánh',
       dataIndex: 'name',
       render: (name: string) => (
         <Space>
@@ -75,16 +75,16 @@ const BranchesPage: React.FC = () => {
       ),
     },
     {
-      title: 'Address',
+      title: 'Địa Chỉ',
       dataIndex: 'address',
     },
     {
-      title: 'Phone',
+      title: 'Số Điện Thoại',
       dataIndex: 'phone',
       render: (phone: string) => phone || 'N/A',
     },
     {
-      title: 'Status',
+      title: 'Trạng Thái',
       dataIndex: 'status',
       render: (status: string, record: Branch) => (
         <Space>
@@ -99,7 +99,7 @@ const BranchesPage: React.FC = () => {
       ),
     },
     {
-      title: 'Actions',
+      title: 'Thao Tác',
       dataIndex: 'actions',
       className: 'text-right',
       render: (_: any, record: Branch) => (
@@ -123,7 +123,7 @@ const BranchesPage: React.FC = () => {
   return (
     <Page className="space-y-4">
       <div className="flex justify-between items-center">
-        <Title level={3} style={{ margin: 0 }}>Branch Management</Title>
+        <Title level={3} style={{ margin: 0 }}>Quản lý Chi nhánh</Title>
         <Button 
           type="primary" 
           icon={<PlusOutlined />} 
@@ -132,7 +132,7 @@ const BranchesPage: React.FC = () => {
             setModalVisible(true);
           }}
         >
-          Add Branch
+          Thêm Chi Nhánh
         </Button>
       </div>
 

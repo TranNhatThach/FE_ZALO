@@ -59,19 +59,24 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
     });
   };
 
-  console.log('Task Data in Modal:', task);
   if (!task) return null;
 
-  const priorityColors = {
+  const priorityColors: Record<string, string> = {
     HIGH: 'red',
     MEDIUM: 'orange',
     LOW: 'blue'
   };
 
+  const priorityLabels: Record<string, string> = {
+    HIGH: 'CA0',
+    MEDIUM: 'TRUNG BÌNH',
+    LOW: 'THẤP'
+  };
+
   const statusLabels = {
-    'TO DO': 'Sẵn sàng',
-    'IN PROGRESS': 'Đang thực hiện',
-    'CHECKED IN': 'Tại hiện trường',
+    'TO_DO': 'Sẵn sàng',
+    'IN_PROGRESS': 'Đang thực hiện',
+    'CHECKED_IN': 'Tại hiện trường',
     'REVIEW': 'Chờ phê duyệt',
     'DONE': 'Đã hoàn thành'
   };
@@ -111,8 +116,8 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
                   <DeleteOutlined className="text-[14px]" />
                 </button>
               )}
-              <Tag color={priorityColors[task.priority]} className="rounded-full font-black uppercase text-[10px] px-3 m-0 border-none shadow-lg">
-                {task.priority}
+              <Tag color={priorityColors[task.priority] || 'default'} className="rounded-full font-black uppercase text-[10px] px-3 m-0 border-none shadow-lg">
+                {priorityLabels[task.priority] || task.priority}
               </Tag>
             </div>
           </div>
