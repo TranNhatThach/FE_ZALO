@@ -90,6 +90,16 @@ const SettingsPage: React.FC = () => {
             <p className="text-[12px] text-gray-400 font-medium m-0 mt-0.5">
               {user?.roles?.[0] || 'Member'} • {user?.phone || 'No phone'}
             </p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2">
+              {user?.gender && <span className="text-[10px] bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full font-bold">Giới tính: {user.gender}</span>}
+              {user?.birthday && <span className="text-[10px] bg-orange-50 text-orange-600 px-2 py-0.5 rounded-full font-bold">Ngày sinh: {user.birthday}</span>}
+              {user?.identityCard && <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-bold">CCCD: {user.identityCard}</span>}
+            </div>
+            {user?.address && (
+              <p className="text-[11px] text-gray-400 mt-2 line-clamp-1 italic">
+                Địa chỉ: {user.address}
+              </p>
+            )}
           </div>
           <button 
             onClick={() => {

@@ -7,6 +7,8 @@ export interface Customer {
   companyName?: string;
   address?: string;
   email?: string;
+  taxCode?: string;
+  note?: string;
 }
 
 export const customerApi = {

@@ -13,6 +13,10 @@ export interface User {
   tenantId?: string | number;
   tenantCode?: string;
   isFaceRegistered?: boolean;
+  birthday?: string;
+  gender?: string;
+  address?: string;
+  identityCard?: string;
 }
 
 export interface AuthState {
