@@ -2,7 +2,7 @@
 // Task Domain Types
 // ============================================================
 
-export type TaskStatus = 'TO_DO' | 'IN_PROGRESS' | 'CHECKED_IN' | 'REVIEW' | 'DONE';
+export type TaskStatus = 'TO_DO' | 'IN_PROGRESS' | 'CHECKED_IN' | 'REVIEW' | 'REJECTED' | 'DONE';
 export type TaskPriority = 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface Task {
@@ -43,6 +43,14 @@ export interface Task {
   address?: string;
   phoneNumber?: string;
   estimatedPrice?: number;
+  projectId?: string;
+  projectName?: string;
+  
+  // ── Review & Config ──
+  requirePhoto?: boolean;
+  reviewNote?: string;
+  reviewedBy?: string;
+  reviewedAt?: string;
 }
 
 export interface CreateTaskRequest {
@@ -59,6 +67,8 @@ export interface CreateTaskRequest {
   address?: string;
   phoneNumber?: string;
   estimatedPrice?: number;
+  projectId?: string;
+  requirePhoto?: boolean;
 }
 
 export interface UpdateTaskStatusRequest {

@@ -48,6 +48,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     navItems = [
       { key: '/user-home', label: 'TRANG CHỦ', icon: <HomeOutlined /> },
       { key: '/tasks', label: 'CÔNG VIỆC', icon: <CheckSquareOutlined /> },
+      { key: '/checkin', label: 'CHẤM CÔNG', icon: <EnvironmentOutlined /> },
       { key: 'more', label: 'THÊM', icon: <EllipsisOutlined />, action: 'toggle-sidebar' },
     ];
   }

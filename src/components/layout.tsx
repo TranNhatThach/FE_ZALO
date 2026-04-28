@@ -21,6 +21,8 @@ dayjs.locale('vi');
 import HomePage from '@/pages/index';
 import LoginPage from '@/pages/auth/Login';
 import RegisterPage from '@/pages/auth/Register';
+import ForgotPasswordPage from '@/pages/auth/ForgotPassword';
+import ResetPasswordPage from '@/pages/auth/ResetPassword';
 import Dashboard from '@/pages/Dashboard';
 
 // Lazy load feature pages
@@ -44,8 +46,8 @@ const queryClient = new QueryClient({
         queries: {
             retry: 2,
             refetchOnWindowFocus: false,
-            staleTime: 1000 * 5, // 5 seconds
-            gcTime: 1000 * 60 * 30, // 30 minutes
+            staleTime: 1000 * 60, // 1 minute
+            gcTime: 1000 * 60 * 5, // 5 minutes
         },
     },
 });
@@ -95,7 +97,7 @@ const RouterContent = () => {
     // Khởi tạo kết nối WebSocket lắng nghe thông báo
     useNotificationSocket();
 
-    const isAuthPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
+    const isAuthPage = ['/', '/login', '/register', '/error', '/forgot-password', '/reset-password'].includes(location.pathname);
 
     // Điều hướng gốc dựa trên Role
     useEffect(() => {
@@ -120,6 +122,8 @@ const RouterContent = () => {
                 <Route path="/" element={<LoginPage />}></Route>
                 <Route path="/login" element={<LoginPage />}></Route>
                 <Route path="/register" element={<RegisterPage />}></Route>
+                <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
+                <Route path="/reset-password" element={<ResetPasswordPage />}></Route>
                 <Route path="/error" element={<HomePage />}></Route>
             </AnimationRoutes>
         );

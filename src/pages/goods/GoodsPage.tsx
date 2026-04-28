@@ -14,23 +14,28 @@ import {
 } from '@ant-design/icons';
 import { useGetProducts } from '@/hooks/useProducts';
 import { Spin, Modal, Form, InputNumber, message, Input, Select } from 'antd';
-import { LoadingOutlined } from '@ant-design/icons';
+import { LoadingOutlined, UploadOutlined } from '@ant-design/icons';
 import { productApi } from '@/api/product.api';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/api/queryKeys';
+import { Upload } from 'antd';
 
 export const GoodsPage: React.FC = () => {
   const { setSidebarCollapsed, isSidebarCollapsed, isDarkMode } = useThemeStore();
-  const [searchTerm, setSearchTerm] = useState('');
+   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState('ALL');
+  const [activeCategory, setActiveCategory] = useState('ALL');
   const [checkModalVisible, setCheckModalVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
+  const [fileList, setFileList] = useState<any[]>([]);
   const [form] = Form.useForm();
   const [createForm] = Form.useForm();
   const queryClient = useQueryClient();
 
   const { data: products = [], isLoading } = useGetProducts();
+
+  const categories = ['ALL', ...new Set(products.map(p => p.category))];
 
   const handleOpenCheck = (item: any) => {
     setSelectedProduct(item);
@@ -56,11 +61,14 @@ export const GoodsPage: React.FC = () => {
   const handleCreateProduct = async () => {
     try {
         const values = await createForm.validateFields();
-        await productApi.createProduct(values);
+        const imageFile = fileList.length > 0 ? fileList[0].originFileObj : undefined;
+        
+        await productApi.createProduct(values, imageFile);
         message.success('Thêm sản phẩm mới thành công!');
         queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LIST });
         setCreateModalVisible(false);
         createForm.resetFields();
+        setFileList([]);
     } catch (err) {
         console.error(err);
         message.error('Lỗi khi thêm sản phẩm');
@@ -68,11 +76,19 @@ export const GoodsPage: React.FC = () => {
   };
 
   const filteredProducts = products.filter(item => {
-    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          item.sku.toLowerCase().includes(searchTerm.toLowerCase());
-    if (activeFilter === 'LOW') return matchesSearch && item.status === 'SẮP HẾT';
-    if (activeFilter === 'HIDDEN') return matchesSearch && item.status === 'HẾT HÀNG';
-    return matchesSearch;
+    const matchesSearch = 
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      item.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStatus = 
+      activeFilter === 'ALL' || 
+      (activeFilter === 'LOW' && item.status === 'SẮP HẾT') ||
+      (activeFilter === 'HIDDEN' && item.status === 'HẾT HÀNG');
+    
+    const matchesCategory = activeCategory === 'ALL' || item.category === activeCategory;
+    
+    return matchesSearch && matchesStatus && matchesCategory;
   });
 
   return (
@@ -96,21 +112,47 @@ export const GoodsPage: React.FC = () => {
 
       <div className="px-4 mt-2">
         {/* 2. Search Bar */}
-        <div className="mb-4">
+        <div className="mb-4 relative">
           <div className={`flex items-center h-[44px] rounded-[14px] px-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)] transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border border-gray-800' : 'bg-white'}`}>
             <SearchOutlined className={`text-lg mr-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
             <input 
               type="text" 
-              placeholder="Tìm kiếm sản phẩm, SKU..." 
+              placeholder="Tìm kiếm sản phẩm, SKU, danh mục..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`flex-1 bg-transparent border-none outline-none text-[14px] ${isDarkMode ? 'text-gray-200 placeholder-gray-600' : 'text-gray-700 placeholder-gray-400'}`}
             />
           </div>
+          
+          {/* Smart Suggestions Dropdown */}
+          {searchTerm && products.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 && (
+            <div className={`absolute top-[48px] left-0 right-0 z-[110] rounded-xl shadow-xl border p-2 max-h-[300px] overflow-y-auto ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
+              <div className="px-2 py-1 mb-1 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Gợi ý sản phẩm</div>
+              {products
+                .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                .slice(0, 6)
+                .map(p => (
+                  <div 
+                    key={p.id}
+                    onClick={() => setSearchTerm(p.name)}
+                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer transition-colors ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}
+                  >
+                    <img src={p.imageUrl} className="w-10 h-10 rounded-lg object-cover bg-gray-100" alt={p.name} />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-[13px] font-bold truncate ${isDarkMode ? 'text-gray-200' : 'text-gray-900'}`}>{p.name}</div>
+                      <div className="text-[10px] text-gray-500 font-medium uppercase">SKU: {p.sku}</div>
+                    </div>
+                    <div className="text-[12px] font-black text-blue-600">
+                      {new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(p.price)}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          )}
         </div>
 
-        {/* 3. Filter Chips */}
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+        {/* 3. Filter Chips (Status) */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
            <button 
              onClick={() => setActiveFilter('ALL')}
              className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full border-none font-semibold text-[13px] transition-colors ${activeFilter === 'ALL' ? (isDarkMode ? 'bg-[#3b82f6] text-white shadow-md' : 'bg-[#1e3ba1] text-white shadow-md shadow-blue-900/20') : (isDarkMode ? 'bg-[#2a2a2c] text-gray-400' : 'bg-[#eef2f9] text-[#4b5563]')}`}
@@ -127,8 +169,25 @@ export const GoodsPage: React.FC = () => {
              onClick={() => setActiveFilter('HIDDEN')}
              className={`flex-shrink-0 flex items-center px-4 py-2 rounded-full border font-semibold text-[13px] transition-colors ${activeFilter === 'HIDDEN' ? (isDarkMode ? 'bg-gray-800 border-gray-700 text-gray-300' : 'bg-gray-100 border-gray-200 text-gray-800') : (isDarkMode ? 'bg-[#1a1a1c] border-gray-800 text-gray-400' : 'bg-white border-gray-200 text-[#4b5563]')}`}
            >
-             <StopOutlined className="mr-1.5" /> Đang ẩn
+             <StopOutlined className="mr-1.5" /> Hết hàng
            </button>
+        </div>
+
+        {/* 3b. Category Chips */}
+        <div className="flex gap-2 overflow-x-auto pb-2 mb-4 scrollbar-hide" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          {categories.map((cat: any) => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              className={`flex-shrink-0 px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
+                activeCategory === cat 
+                ? (isDarkMode ? 'bg-blue-600 border-blue-500 text-white' : 'bg-blue-50 border-blue-200 text-blue-600')
+                : (isDarkMode ? 'bg-transparent border-gray-800 text-gray-500' : 'bg-white border-gray-100 text-gray-400')
+              }`}
+            >
+              {cat === 'ALL' ? 'Tất cả danh mục' : cat}
+            </button>
+          ))}
         </div>
 
         {/* 4. Statistics Dashboard */}
@@ -267,11 +326,13 @@ export const GoodsPage: React.FC = () => {
               <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="SKU-001" />
             </Form.Item>
             <Form.Item name="category" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Danh mục</span>} rules={[{ required: true }]}>
-              <Select className="h-11 rounded-xl" options={[
+               <Select className="h-11 rounded-xl" options={[
                   { value: 'Điện tử', label: 'Điện tử' },
                   { value: 'Công cụ', label: 'Công cụ' },
                   { value: 'Vật liệu', label: 'Vật liệu' },
-                  { value: 'Hóa chất', label: 'Hóa chất' }
+                  { value: 'Hóa chất', label: 'Hóa chất' },
+                  { value: 'Phụ kiện', label: 'Phụ kiện' },
+                  { value: 'Khác', label: 'Khác' }
               ]} />
             </Form.Item>
           </div>
@@ -285,7 +346,24 @@ export const GoodsPage: React.FC = () => {
             </Form.Item>
           </div>
 
-          <Form.Item name="imageUrl" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Link ảnh sản phẩm</span>}>
+          <Form.Item label={<span className="text-[11px] font-bold text-gray-400 uppercase">Ảnh sản phẩm</span>}>
+            <Upload
+              listType="picture-card"
+              fileList={fileList}
+              onChange={({ fileList }) => setFileList(fileList)}
+              beforeUpload={() => false}
+              maxCount={1}
+            >
+              {fileList.length < 1 && (
+                <div>
+                  <PlusOutlined />
+                  <div style={{ marginTop: 8 }}>Upload</div>
+                </div>
+              )}
+            </Upload>
+          </Form.Item>
+
+          <Form.Item name="imageUrl" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Hoặc Link ảnh</span>}>
             <Input className="h-11 rounded-xl bg-gray-50 border-none" placeholder="https://..." />
           </Form.Item>
         </Form>

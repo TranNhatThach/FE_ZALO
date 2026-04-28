@@ -61,13 +61,17 @@ export const TaskWorkflowModal: React.FC<TaskWorkflowModalProps> = ({
   const handleSubmit = async () => {
     if (!task) return;
 
+    // Validate: Nếu task yêu cầu ảnh bắt buộc
+    if (task.requirePhoto && !imageFile) {
+      message.warning(`Công việc này yêu cầu ảnh minh chứng để ${mode === 'CHECK_IN' ? 'bắt đầu' : 'hoàn thành'}.`);
+      return;
+    }
+
     if (mode === 'CHECK_IN') {
       try {
         setIsGettingLocation(true);
-        // 1. Get GPS Location via ZMP SDK
         const { latitude, longitude } = await getLocation();
         
-        // 2. Submit Check-in
         await checkInMutation.mutateAsync({
           taskId: task.id,
           photo: imageFile?.blob || undefined,

@@ -78,6 +78,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
     'IN_PROGRESS': 'Đang thực hiện',
     'CHECKED_IN': 'Tại hiện trường',
     'REVIEW': 'Chờ phê duyệt',
+    'REJECTED': 'Cần làm lại',
     'DONE': 'Đã hoàn thành'
   };
 
@@ -97,7 +98,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
     >
       <div className={`overflow-hidden ${isDarkMode ? 'bg-[#121212] text-white' : 'bg-[#fcfdff]'}`}>
         {/* Modern Header with Identity Color */}
-        <div className="bg-gradient-to-r from-[#1e3ba1] to-[#2563eb] p-6 pb-8 relative">
+        <div className={`p-6 pb-8 relative ${task.status === 'REJECTED' ? 'bg-gradient-to-r from-red-600 to-red-500' : 'bg-gradient-to-r from-[#1e3ba1] to-[#2563eb]'}`}>
           <div className="absolute top-[-20px] right-[-20px] w-40 h-40 bg-white/10 rounded-full blur-3xl" />
           
           <div className="flex items-center justify-between mb-4 relative z-10">
@@ -108,13 +109,10 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
               <ArrowLeftOutlined /> Quay lại
             </button>
             <div className="flex items-center gap-2">
-              {(user?.roleName === 'ADMIN' || user?.roleName === 'TENANT_ADMIN' || user?.roles?.includes('ADMIN')) && (
-                <button 
-                  onClick={handleDelete}
-                  className="w-8 h-8 flex items-center justify-center bg-red-500/20 hover:bg-red-500 text-red-200 hover:text-white border-none rounded-full transition-all active:scale-90"
-                >
-                  <DeleteOutlined className="text-[14px]" />
-                </button>
+              {task.requirePhoto && (
+                <Tag icon={<CameraOutlined />} color="error" className="rounded-full font-black uppercase text-[8px] px-2 m-0 border-none shadow-lg">
+                  BẮT BUỘC ẢNH
+                </Tag>
               )}
               <Tag color={priorityColors[task.priority] || 'default'} className="rounded-full font-black uppercase text-[10px] px-3 m-0 border-none shadow-lg">
                 {priorityLabels[task.priority] || task.priority}
@@ -140,6 +138,22 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
         {/* Floating Content Body */}
         <div className="mt-[-20px] relative z-20 bg-[#fcfdff] rounded-t-[28px] p-6">
            
+           {/* Section 0: Review Note (If Rejected) */}
+           {task.status === 'REJECTED' && task.reviewNote && (
+             <div className="bg-red-50 border border-red-100 rounded-3xl p-5 mb-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <ExclamationCircleOutlined className="text-red-500" />
+                  <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">Lý do từ chối của Admin</span>
+                </div>
+                <div className="text-[13px] font-bold text-red-700 leading-relaxed italic">
+                  "{task.reviewNote}"
+                </div>
+                <div className="text-[10px] text-red-400 mt-2 font-medium">
+                   Vui lòng chỉnh sửa và nộp lại báo cáo.
+                </div>
+             </div>
+           )}
+
            {/* Section 1: Business Details (Card based) */}
            {(task.customerName || task.companyName || task.estimatedPrice) && (
              <div className="bg-white rounded-3xl p-5 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-50">

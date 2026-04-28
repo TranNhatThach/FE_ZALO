@@ -124,20 +124,16 @@ const LoginPage: React.FC = () => {
       <div className="flex flex-col h-screen w-full bg-white relative max-w-[390px] mx-auto overflow-y-auto hide-scrollbar">
 
         {/* 1. HEADER */}
-        <div className="h-[56px] flex items-center justify-between px-4 bg-white shrink-0">
-          <button className="p-2 -ml-2 cursor-pointer outline-none">
-            <img src="/icons/arrow-left-black.svg" alt="back" className="w-6 h-6" />
-          </button>
+        <div className="h-[56px] flex items-center justify-center px-4 bg-white shrink-0 border-b border-gray-100">
           <h1 className="text-[18px] font-semibold text-gray-900">Đăng nhập</h1>
-          <div className="w-10"></div>
         </div>
 
-        <div className="flex flex-col items-center w-full px-5 pt-6 pb-8 bg-white shrink-0">
+        <div className="flex flex-col items-center w-full px-5 pt-14 pb-8 bg-white shrink-0">
 
           <img
-            src="/icons/login.svg"
-            alt="Renren App Logo"
-            className="w-[108px] h-[88px] object-contain mb-5 shrink-0"
+            src="/Logo.png"
+            alt="Vanguard Logo"
+            className="w-[120px] h-[120px] object-contain mb-5 shrink-0"
           />
 
           <h2 className="text-[22px] font-bold text-gray-900 mb-1.5 text-center shrink-0">
@@ -182,7 +178,10 @@ const LoginPage: React.FC = () => {
               <label className="text-[14px] font-medium text-gray-700">
                 Mật khẩu <span className="text-red-500">*</span>
               </label>
-              <button className="text-[14px] font-medium text-[#00288E] hover:underline active:opacity-70 outline-none bg-transparent p-0">
+              <button
+                className="text-[14px] font-medium text-[#00288E] hover:underline active:opacity-70 outline-none bg-transparent p-0"
+                onClick={() => navigate('/forgot-password')}
+              >
                 Quên mật khẩu?
               </button>
             </div>

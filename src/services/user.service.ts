@@ -8,4 +8,11 @@ export const userService = {
   update: (id: string, data: Partial<User>) => api.put<User>(`/v1/users/${id}`, data),
   delete: (id: string) => api.del<void>(`/v1/users/${id}`),
   restore: (id: string) => api.patch<void>(`/v1/users/${id}/restore`, {}),
+  updateAvatar: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.patch<User>('/v1/users/profile/avatar', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+  }
 };

@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useThemeStore } from '../../stores/theme.store';
 import { useAuthStore } from '../../stores/auth.store';
 import { useTenantResolver } from '../../hooks/useTenantResolver';
+import { userService } from '../../services/user.service';
 import { useNavigate, Page } from 'zmp-ui';
 import {
   RightOutlined,
@@ -29,6 +30,8 @@ const SettingsPage: React.FC = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [newName, setNewName] = useState(user?.fullName || user?.name || '');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleLogout = () => {
     logout();
@@ -50,6 +53,36 @@ const SettingsPage: React.FC = () => {
       message.error('Lỗi khi cập nhật tên!');
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  const handleAvatarClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      message.error('Vui lòng chọn file ảnh!');
+      return;
+    }
+
+    setIsUploadingAvatar(true);
+    const hide = message.loading('Đang tải ảnh lên...', 0);
+
+    try {
+      const updatedUser = await userService.updateAvatar(file);
+      setUser(updatedUser);
+      message.success('Cập nhật ảnh đại diện thành công!');
+    } catch (err) {
+      console.error(err);
+      message.error('Lỗi khi tải ảnh lên!');
+    } finally {
+      setIsUploadingAvatar(false);
+      hide();
+      if (fileInputRef.current) fileInputRef.current.value = '';
     }
   };
 
@@ -79,13 +112,36 @@ const SettingsPage: React.FC = () => {
 
         {/* Profile Card */}
         <div className={`rounded-[20px] p-5 flex items-center gap-4 shadow-sm ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
-          {/* Avatar */}
-          <div className="w-[60px] h-[60px] rounded-full overflow-hidden border border-gray-100 flex-shrink-0">
-            <img src={user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal"} alt="Profile" className="w-full h-full object-cover bg-blue-50" />
+          {/* Avatar with Upload Trigger */}
+          <div
+            onClick={handleAvatarClick}
+            className="relative w-[60px] h-[60px] rounded-full overflow-hidden border border-gray-100 flex-shrink-0 cursor-pointer group"
+          >
+            <img
+              src={user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal"}
+              alt="Profile"
+              className={`w-full h-full object-cover bg-blue-50 transition-opacity ${isUploadingAvatar ? 'opacity-30' : 'group-hover:opacity-70'}`}
+            />
+            {isUploadingAvatar ? (
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+                <CameraOutlined className="text-white text-[18px]" />
+              </div>
+            )}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleAvatarChange}
+              className="hidden"
+              accept="image/*"
+            />
           </div>
           <div className="flex flex-col flex-1">
             <h2 className={`text-[16px] font-bold m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-               {user?.fullName || user?.name || user?.username || 'Thành viên'}
+              {user?.fullName || user?.name || user?.username || 'Thành viên'}
             </h2>
             <p className="text-[12px] text-gray-400 font-medium m-0 mt-0.5">
               {user?.roles?.[0] || 'Member'} • {user?.phone || 'No phone'}
@@ -101,7 +157,7 @@ const SettingsPage: React.FC = () => {
               </p>
             )}
           </div>
-          <button 
+          <button
             onClick={() => {
               setNewName(user?.fullName || user?.name || '');
               setIsEditModalVisible(true);
@@ -124,18 +180,42 @@ const SettingsPage: React.FC = () => {
           centered
           className="rounded-2xl overflow-hidden"
         >
-          <div className="space-y-4 py-4">
+          <div className="space-y-6 py-4">
+            {/* Thêm phần đổi ảnh vào trong Modal */}
+            <div className="flex flex-col items-center gap-3 pb-2 border-b border-gray-50">
+              <div className="relative group" onClick={handleAvatarClick}>
+                <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-blue-100 shadow-sm relative">
+                  <img 
+                    src={user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal"} 
+                    alt="Avatar" 
+                    className={`w-full h-full object-cover bg-blue-50 ${isUploadingAvatar ? 'opacity-40' : ''}`}
+                  />
+                  {isUploadingAvatar && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white border-4 border-white shadow-sm cursor-pointer active:scale-90 transition-transform">
+                  <CameraOutlined className="text-[14px]" />
+                </div>
+              </div>
+              <span className="text-[11px] font-bold text-blue-600 uppercase tracking-wider cursor-pointer" onClick={handleAvatarClick}>
+                Bấm để đổi ảnh đại diện
+              </span>
+            </div>
+
             <div className="flex flex-col gap-1.5">
               <label className="text-[12px] font-bold text-gray-400 uppercase tracking-wider pl-1">Họ và tên</label>
-              <Input 
-                value={newName} 
-                onChange={(e) => setNewName(e.target.value)} 
+              <Input
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
                 placeholder="Nhập tên của bạn..."
                 className="h-12 rounded-xl bg-gray-50 border-none font-bold text-gray-800"
               />
             </div>
-            
-            <button 
+
+            <button
               onClick={handleSyncZalo}
               className="w-full py-3 bg-blue-50 text-blue-600 rounded-xl font-black text-[13px] border-none flex items-center justify-center gap-2 active:scale-95 transition-transform"
             >
@@ -163,10 +243,10 @@ const SettingsPage: React.FC = () => {
         <div className="flex flex-col gap-2">
           <span className="text-[12px] font-bold text-gray-500 uppercase tracking-widest pl-2">Doanh nghiệp</span>
           <div className={`rounded-[20px] flex flex-col overflow-hidden shadow-sm ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
-            <SettingRow 
-              icon={<CameraOutlined className="text-blue-500" />} 
-              label="Đăng ký khuôn mặt" 
-              isDarkMode={isDarkMode} 
+            <SettingRow
+              icon={<CameraOutlined className="text-blue-500" />}
+              label="Đăng ký khuôn mặt"
+              isDarkMode={isDarkMode}
               showArrow={!user?.isFaceRegistered}
               onClick={() => !user?.isFaceRegistered && navigate('/register-face')}
             >
@@ -214,7 +294,7 @@ const SettingsPage: React.FC = () => {
 // Helper component for Setting Rows
 const SettingRow = ({ icon, label, children, showArrow, isDarkMode, onClick }: any) => {
   return (
-    <div 
+    <div
       onClick={onClick}
       className={`flex items-center justify-between px-4 py-4 transition-colors cursor-pointer ${isDarkMode ? 'active:bg-gray-800' : 'active:bg-gray-50'}`}
     >

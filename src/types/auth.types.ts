@@ -57,3 +57,14 @@ export interface ZaloLoginRequest {
   avatar: string;
   phone: string;
 }
+
+export interface ForgotPasswordRequest {
+  email: string;
+}
+
+export interface ResetPasswordRequest {
+  email: string;
+  otp: string;
+  newPassword: string;
+  confirmPassword: string;
+}

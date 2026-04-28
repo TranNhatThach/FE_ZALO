@@ -14,7 +14,8 @@ import {
   RocketOutlined,
   UsergroupAddOutlined,
   ExportOutlined,
-  DeleteOutlined
+  DeleteOutlined,
+  ExclamationCircleOutlined
 } from '@ant-design/icons';
 import { message, Modal } from 'antd';
 import {
@@ -25,6 +26,7 @@ import {
   useUpdateTaskStatusMutation,
   useDeleteTaskMutation
 } from '@/hooks/useTasks';
+import { useGetProjects } from '@/hooks/useProjects';
 import { Task, TaskStatus } from '@/types/task.types';
 import { TaskWorkflowModal } from './TaskWorkflowModal';
 import { useNavigate, Page } from 'zmp-ui';
@@ -118,6 +120,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
           <h5 className={`text-[14px] font-black leading-tight mb-0 line-clamp-2 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>
             {task.title}
           </h5>
+          {normalizeStatus(task.status) === 'REJECTED' && (
+            <div className="flex items-center gap-1.5 mt-1">
+               <ExclamationCircleOutlined className="text-red-500 text-[10px]" />
+               <span className="text-[10px] font-black text-red-500 uppercase tracking-tighter italic">Bị từ chối - Cần làm lại</span>
+            </div>
+          )}
         </div>
 
         {isAdmin && (
@@ -163,11 +171,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
               onClick={(e) => { e.stopPropagation(); handleClaim(); }}
               className="flex-1 py-1.5 rounded-lg text-[11px] font-black bg-[#1e3ba1] text-white border-none"
             >NHẬN VIỆC</button>
-          ) : (normalizeStatus(task.status) === 'TO_DO' || normalizeStatus(task.status) === 'IN_PROGRESS') ? (
+          ) : (normalizeStatus(task.status) === 'TO_DO' || normalizeStatus(task.status) === 'IN_PROGRESS' || normalizeStatus(task.status) === 'REJECTED') ? (
             <button
               onClick={(e) => { e.stopPropagation(); onWorkflowClick?.(task, 'CHECK_IN'); }}
-              className="flex-1 py-1.5 rounded-lg text-[11px] font-black bg-blue-100 text-[#1e3ba1] border-none"
-            >BẮT ĐẦU</button>
+              className={`flex-1 py-1.5 rounded-lg text-[11px] font-black border-none ${normalizeStatus(task.status) === 'REJECTED' ? 'bg-red-600 text-white shadow-sm shadow-red-200' : 'bg-blue-100 text-[#1e3ba1]'}`}
+            >{normalizeStatus(task.status) === 'REJECTED' ? 'LÀM LẠI NGAY' : 'BẮT ĐẦU'}</button>
           ) : normalizeStatus(task.status) === 'CHECKED_IN' ? (
             <button
               onClick={(e) => { e.stopPropagation(); onWorkflowClick?.(task, 'COMPLETE'); }}
@@ -198,6 +206,7 @@ export const TasksPage: React.FC = () => {
   const allRoles = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase();
   const isAdmin = allRoles.includes('ADMIN');
   const [tab, setTab] = useState<'MY' | 'UNASSIGNED'>('MY');
+  const [viewMode, setViewMode] = useState<'TASKS' | 'PROJECTS'>('TASKS');
 
   const [workflowModal, setWorkflowModal] = useState<{ visible: boolean, mode: 'CHECK_IN' | 'COMPLETE', task: Task | null }>({
     visible: false,
@@ -215,12 +224,26 @@ export const TasksPage: React.FC = () => {
   const tenantTasksQuery = useGetTasksByTenant(isAdmin ? user?.tenantId : undefined);
   const unassignedTasksQuery = useGetUnassignedTasks();
 
+  const { data: projects = [], isLoading: isLoadingProjects } = useGetProjects();
+
   const activeQuery = isAdmin ? tenantTasksQuery : (tab === 'MY' ? myTasksQuery : unassignedTasksQuery);
   const { data: tasks = [], isLoading, isError, error, refetch } = activeQuery;
 
+  // Update title based on viewMode
+  const getPageTitle = () => {
+    if (viewMode === 'PROJECTS') return 'Danh sách Dự án';
+    if (isAdmin) return 'Quản lý Tổng quát';
+    return tab === 'MY' ? 'Công việc hôm nay' : 'Cơ hội nhận việc';
+  };
+
+  const getPageSubTitle = () => {
+    if (viewMode === 'PROJECTS') return 'Theo dõi các dự án đang triển khai.';
+    return tab === 'MY' ? 'Bắt đầu ngày mới với các đầu việc đã được giao.' : 'Chọn thêm công việc phù hợp để tăng thu nhập.';
+  };
+
   const todoTasks = tasks.filter((t) => {
     const s = normalizeStatus(t.status);
-    return s === 'TO_DO' || s === 'IN_PROGRESS';
+    return s === 'TO_DO' || s === 'IN_PROGRESS' || s === 'REJECTED';
   });
   const activeTasks = tasks.filter((t) => normalizeStatus(t.status) === 'CHECKED_IN');
   const reviewTasks = tasks.filter((t) => normalizeStatus(t.status) === 'REVIEW');
@@ -334,8 +357,20 @@ export const TasksPage: React.FC = () => {
       </div>
 
       <div className="px-5 mt-6">
-        {/* Tab Selection (User Only) */}
-        {!isAdmin && (
+        {/* View Mode Switcher (Tasks vs Projects) */}
+        <div className="flex items-center gap-2 mb-6">
+            <button 
+                onClick={() => setViewMode('TASKS')}
+                className={`px-4 py-2 rounded-full text-[12px] font-black transition-all ${viewMode === 'TASKS' ? 'bg-[#1e3ba1] text-white' : 'bg-gray-100 text-gray-500'}`}
+            >CÔNG VIỆC</button>
+            <button 
+                onClick={() => setViewMode('PROJECTS')}
+                className={`px-4 py-2 rounded-full text-[12px] font-black transition-all ${viewMode === 'PROJECTS' ? 'bg-[#1e3ba1] text-white' : 'bg-gray-100 text-gray-500'}`}
+            >DỰ ÁN ĐANG CÓ</button>
+        </div>
+
+        {/* Tab Selection (User Only) - Only show in Tasks mode */}
+        {!isAdmin && viewMode === 'TASKS' && (
           <div className="flex p-1 bg-gray-100 rounded-2xl mb-6">
             <button
               onClick={() => setTab('MY')}
@@ -355,10 +390,10 @@ export const TasksPage: React.FC = () => {
         {/* Title Content */}
         <div className="mb-6">
           <h2 className={`text-[24px] font-black tracking-tight mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
-            {isAdmin ? 'Quản lý Tổng quát' : (tab === 'MY' ? 'Công việc hôm nay' : 'Cơ hội nhận việc')}
+            {getPageTitle()}
           </h2>
           <p className="text-[13px] text-gray-400 font-medium">
-            {tab === 'MY' ? 'Bắt đầu ngày mới với các đầu việc đã được giao.' : 'Chọn thêm công việc phù hợp để tăng thu nhập.'}
+            {getPageSubTitle()}
           </p>
         </div>
 
@@ -374,68 +409,103 @@ export const TasksPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ── Kanban Columns ── */}
-        {(isLoading && tasks.length === 0) ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-3">
-            <LoadingOutlined className="text-[#1e3ba1] text-[36px]" />
-            <p className="text-[13px] font-bold text-gray-400">Đang tải công việc...</p>
-          </div>
-        ) : tasks.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
-            <RocketOutlined className="text-[64px] text-gray-300" />
-            <p className="text-[14px] font-bold text-gray-500">Hiện không có công việc nào!</p>
-          </div>
+        {/* ── Content Area (Projects vs Tasks) ── */}
+        {viewMode === 'PROJECTS' ? (
+           isLoadingProjects ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <LoadingOutlined className="text-[#1e3ba1] text-[36px]" />
+              <p className="text-[13px] font-bold text-gray-400">Đang tải dự án...</p>
+            </div>
+           ) : projects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
+              <RocketOutlined className="text-[64px] text-gray-300" />
+              <p className="text-[14px] font-bold text-gray-500">Hiện không có dự án nào!</p>
+            </div>
+           ) : (
+            <div className="flex flex-col gap-3">
+               {projects.map(project => (
+                 <div key={project.id} className={`p-4 rounded-2xl border ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100 shadow-sm'}`}>
+                    <div className="flex justify-between items-start mb-2">
+                       <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded text-[9px] font-black uppercase">{project.status}</span>
+                       <span className="text-[10px] text-gray-400 font-bold">{dayjs(project.startDate).format('DD/MM')} - {dayjs(project.endDate).format('DD/MM')}</span>
+                    </div>
+                    <h4 className={`text-[15px] font-black mb-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{project.name}</h4>
+                    <p className="text-[11px] text-gray-500 line-clamp-2 mb-3">{project.description}</p>
+                    <div className="flex items-center justify-between pt-3 border-t border-gray-50/50">
+                       <div className="flex items-center gap-2">
+                          <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-[10px] text-amber-600 font-bold">
+                             {project.managerName?.charAt(0)}
+                          </div>
+                          <span className="text-[11px] font-bold text-gray-600">{project.managerName}</span>
+                       </div>
+                       <button className="text-[11px] font-black text-blue-600 bg-transparent border-none">XEM CHI TIẾT</button>
+                    </div>
+                 </div>
+               ))}
+            </div>
+           )
         ) : (
-          <div className="flex flex-col gap-4">
+          /* ── Kanban Columns ── */
+          (isLoading && tasks.length === 0) ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-3">
+              <LoadingOutlined className="text-[#1e3ba1] text-[36px]" />
+              <p className="text-[13px] font-bold text-gray-400">Đang tải công việc...</p>
+            </div>
+          ) : tasks.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 gap-4 opacity-40">
+              <RocketOutlined className="text-[64px] text-gray-300" />
+              <p className="text-[14px] font-bold text-gray-500">Hiện không có công việc nào!</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {/* NHÓM MỚI / ĐANG CHUẨN BỊ (Hoặc Tab Việc chưa nhận) */}
+              {(todoTasks.length > 0 || tab === 'UNASSIGNED') && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-1 rounded-full bg-blue-400" />
+                    <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">
+                      {tab === 'UNASSIGNED' ? 'Cơ hội nhận việc' : 'Sẵn sàng / Đang thực hiện'}
+                    </h4>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {todoTasks.map(task => (
+                      <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
+                    ))}
+                  </div>
+                </div>
+              )}
 
-            {/* NHÓM MỚI / ĐANG CHUẨN BỊ (Hoặc Tab Việc chưa nhận) */}
-            {(todoTasks.length > 0 || tab === 'UNASSIGNED') && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-4 h-1 rounded-full bg-blue-400" />
-                  <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">
-                    {tab === 'UNASSIGNED' ? 'Cơ hội nhận việc' : 'Sẵn sàng / Đang thực hiện'}
-                  </h4>
+              {/* NHÓM ĐÃ CHECK_IN (Đang làm tại hiện trường) */}
+              {activeTasks.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-1 rounded-full bg-orange-400" />
+                    <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">Đang tại hiện trường</h4>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {activeTasks.map(task => (
+                      <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  {todoTasks.map(task => (
-                    <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
 
-            {/* NHÓM ĐÃ CHECK_IN (Đang làm tại hiện trường) */}
-            {activeTasks.length > 0 && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-4 h-1 rounded-full bg-orange-400" />
-                  <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">Đang tại hiện trường</h4>
+              {/* NHÓM CHỜ DUYỆT / XONG */}
+              {(reviewTasks.length > 0 || doneTasks.length > 0) && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-4 h-1 rounded-full bg-emerald-400" />
+                    <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">Hoàn thành / Chờ duyệt</h4>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    {[...reviewTasks, ...doneTasks].map(task => (
+                      <TaskCard key={task.id} task={task} onDetailsClick={showDetails} />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                  {activeTasks.map(task => (
-                    <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* NHÓM CHỜ DUYỆT / XONG */}
-            {(reviewTasks.length > 0 || doneTasks.length > 0) && (
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-4 h-1 rounded-full bg-emerald-400" />
-                  <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">Hoàn thành / Chờ duyệt</h4>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {[...reviewTasks, ...doneTasks].map(task => (
-                    <TaskCard key={task.id} task={task} onDetailsClick={showDetails} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-          </div>
+              )}
+            </div>
+          )
         )}
       </div>
 

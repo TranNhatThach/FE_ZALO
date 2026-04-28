@@ -19,6 +19,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
 import { userService } from '@/services/user.service';
 import dayjs from 'dayjs';
+import { useGetProjects } from '@/hooks/useProjects';
 import { customerApi, Customer } from '@/api/customer.api';
 
 const { Title, Text } = Typography;
@@ -37,6 +38,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
     queryKey: ['users'],
     queryFn: () => userService.getAll(),
   });
+  const { data: projects = [] } = useGetProjects();
 
   const [customerSearch, setCustomerSearch] = React.useState('');
   const { data: customers = [] } = useQuery({
@@ -158,6 +160,19 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
               />
             </Form.Item>
 
+            <Form.Item name="projectId">
+              <Select
+                placeholder="Thuộc dự án nào? (Tùy chọn)"
+                className="modern-select h-14"
+                allowClear
+                options={projects.map((p: any) => ({
+                  value: p.id,
+                  label: p.name,
+                }))}
+                suffixIcon={<SolutionOutlined className="text-gray-400" />}
+              />
+            </Form.Item>
+
             <div className="grid grid-cols-2 gap-4">
               <Form.Item name="category" rules={[{ required: true }]}>
                 <Select
@@ -205,9 +220,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
             <div className="grid grid-cols-2 gap-4 mb-4">
               <Form.Item
                 name="customerName"
-                label={<span className="text-[11px] font-black uppercase text-gray-400">Tên khách hàng</span>}
+                label={<span className="text-[11px] font-black uppercase text-gray-400">Tên khách hàng (Tùy chọn)</span>}
                 style={{ marginBottom: 0 }}
-                rules={[{ required: true, message: 'Nhập tên khách hàng' }]}
               >
                 <Select
                   showSearch
