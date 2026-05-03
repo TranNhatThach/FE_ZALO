@@ -17,6 +17,7 @@ export interface User {
   gender?: string;
   address?: string;
   identityCard?: string;
+  isActive?: boolean;
 }
 
 export interface AuthState {

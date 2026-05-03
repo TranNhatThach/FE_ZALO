@@ -1,4 +1,5 @@
 import { api } from './fetcher';
+import { PageResponse } from './customer.api';
 
 export interface Product {
     id: number;
@@ -12,7 +13,15 @@ export interface Product {
 }
 
 export const productApi = {
-    getProducts: (): Promise<Product[]> => api.get<Product[]>('/v1/products'),
+    getProducts: (page = 0, size = 10, search = '', category = '', status = ''): Promise<PageResponse<Product>> => {
+        let params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('size', size.toString());
+        if (search) params.append('search', search);
+        if (category && category !== 'Tất cả') params.append('category', category);
+        if (status && status !== 'Tất cả') params.append('status', status);
+        return api.get<PageResponse<Product>>(`/v1/products?${params.toString()}`);
+    },
     
     createProduct: (data: any, imageFile?: File): Promise<Product> => {
         if (imageFile) {

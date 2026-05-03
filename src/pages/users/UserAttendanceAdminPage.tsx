@@ -52,9 +52,24 @@ export const UserAttendanceAdminPage: React.FC = () => {
     const columns = [
         {
             title: 'Nhân viên',
-            dataIndex: ['user', 'fullName'],
-            key: 'fullName',
-            render: (text: string, record: any) => text || record.user?.username || 'Mất kết nối mã NV',
+            key: 'employee',
+            render: (record: any) => (
+                <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                        {record.user?.avatar ? (
+                            <img src={record.user.avatar} className="w-full h-full object-cover" alt="Avatar" />
+                        ) : (
+                            <div className="w-full h-full bg-blue-500 flex items-center justify-center text-white text-[10px] font-bold">
+                                {(record.user?.fullName || record.user?.username || 'U').charAt(0).toUpperCase()}
+                            </div>
+                        )}
+                    </div>
+                    <div className="flex flex-col">
+                        <span className="font-bold text-[13px]">{record.user?.fullName || record.user?.username || 'Mất kết nối mã NV'}</span>
+                        <span className="text-[10px] text-gray-400">{record.user?.email}</span>
+                    </div>
+                </div>
+            ),
         },
         {
             title: 'Thời gian',

@@ -1,5 +1,6 @@
 import { api } from './fetcher';
 import { Task, UpdateTaskStatusRequest, TaskCheckInRequest, TaskCompleteRequest } from '../types/task.types';
+import { PageResponse } from './customer.api';
 
 export const taskApi = {
   /**
@@ -25,8 +26,8 @@ export const taskApi = {
    * GET /v1/tasks/tenant/:tenantId
    * Lấy toàn bộ task của doanh nghiệp (Dành cho Admin)
    */
-  getTasksByTenant: (tenantId: string | number): Promise<Task[]> => 
-    api.get<Task[]>(`/v1/tasks/tenant/${tenantId}`),
+  getTasksByTenant: (tenantId: string | number, page = 0, size = 10): Promise<PageResponse<Task>> => 
+    api.get<PageResponse<Task>>(`/v1/tasks/tenant/${tenantId}?page=${page}&size=${size}`),
 
   /**
    * POST /v1/tasks/:taskId/check-in
@@ -70,4 +71,18 @@ export const taskApi = {
    * Xóa một task.
    */
   deleteTask: (taskId: string | number): Promise<void> => api.del(`/v1/tasks/${taskId}`),
+
+  /**
+   * POST /v1/tasks/:taskId/approve
+   * Admin phê duyệt task.
+   */
+  approve: (taskId: string | number, note?: string): Promise<Task> =>
+    api.post<Task>(`/v1/tasks/${taskId}/approve`, { note }),
+
+  /**
+   * POST /v1/tasks/:taskId/reject
+   * Admin từ chối task.
+   */
+  reject: (taskId: string | number, reason: string): Promise<Task> =>
+    api.post<Task>(`/v1/tasks/${taskId}/reject`, { reason }),
 };

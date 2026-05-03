@@ -26,10 +26,15 @@ export const Sidebar: React.FC = () => {
         !['/user-home', '/checkin', '/attendance-history'].includes(item.path as string)
       );
     }
-    return menuConfig.filter(item => 
-      ['/user-home', '/tasks', '/checkin', '/attendance-history', '/finance', '/settings', '/support'].includes(item.path as string)
-    );
-  }, [isAdmin]);
+    
+    // Đối với các role khác (Staff, Finance, Manage...)
+    const isFinanceOrManage = allRoles.includes('FINANCE') || allRoles.includes('MANAGE');
+    return menuConfig.filter(item => {
+      const staffPaths = ['/user-home', '/tasks', '/checkin', '/attendance-history', '/settings', '/support'];
+      if (isFinanceOrManage) staffPaths.push('/finance');
+      return staffPaths.includes(item.path as string);
+    });
+  }, [isAdmin, allRoles]);
 
   useEffect(() => {
     const path = location.pathname;
@@ -152,10 +157,11 @@ export const Sidebar: React.FC = () => {
       styles={{ 
         body: { 
           padding: 0,
+        },
+        content: {
           width: 280
-        } 
+        }
       }}
-      width={280}
       zIndex={1001}
     >
       {menuContent}

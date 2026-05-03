@@ -202,7 +202,7 @@ export const RegisterFacePage: React.FC = () => {
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-[12px] font-bold transition-all duration-500 ${
                         photos.length > i ? 'bg-green-500 text-white' : 
                         photos.length === i ? 'bg-[#1e3ba1] text-white scale-110 shadow-lg' : 
-                        'bg-gray-200 text-gray-500'
+                        (isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-200 text-gray-500')
                     }`}>
                         {photos.length > i ? <CheckCircleOutlined /> : i + 1}
                     </div>
@@ -212,7 +212,7 @@ export const RegisterFacePage: React.FC = () => {
 
         {/* Camera Container */}
         <div className="flex flex-col items-center gap-6">
-            <div className={`relative w-[280px] h-[360px] rounded-[100px] overflow-hidden border-8 ${isScanning ? 'border-blue-500 animate-pulse-slow' : 'border-gray-200'} bg-black group shadow-2xl transition-all duration-500`}>
+            <div className={`relative w-[280px] h-[360px] rounded-[100px] overflow-hidden border-8 transition-all duration-500 ${isScanning ? 'border-blue-500 animate-pulse-slow' : (isDarkMode ? 'border-gray-800 shadow-2xl' : 'border-gray-200 shadow-xl')} bg-black group`}>
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover mirror" style={{ transform: 'scaleX(-1)' }} />
                 <canvas ref={canvasRef} className="hidden" />
 
@@ -307,8 +307,8 @@ export const RegisterFacePage: React.FC = () => {
                  </div>
              ))}
              {Array.from({ length: MAX_PHOTOS - previews.length }).map((_, i) => (
-                 <div key={i} className="w-20 h-24 flex-shrink-0 rounded-2xl border-2 border-dashed border-gray-300 flex items-center justify-center bg-gray-50/50">
-                     <span className="text-gray-300 text-[10px] font-bold">Mẫu {previews.length + i + 1}</span>
+                 <div key={i} className={`w-20 h-24 flex-shrink-0 rounded-2xl border-2 border-dashed flex items-center justify-center transition-colors ${isDarkMode ? 'border-gray-800 bg-gray-800/20' : 'border-gray-300 bg-gray-50/50'}`}>
+                     <span className={`text-[10px] font-bold ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>Mẫu {previews.length + i + 1}</span>
                  </div>
              ))}
         </div>

@@ -208,9 +208,11 @@ const RouterContent = () => {
                         </Suspense>
                     }></Route>
                     <Route path="/finance" element={
-                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
-                            <TaxInvoicesPage />
-                        </Suspense>
+                        <RoleGuard allowedRoles={['ADMIN', 'FINANCE', 'MANAGE']} fallbackPath="/user-home">
+                            <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
+                                <TaxInvoicesPage />
+                            </Suspense>
+                        </RoleGuard>
                     }></Route>
                     <Route path="/support" element={
                         <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>

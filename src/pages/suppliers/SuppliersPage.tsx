@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Page } from 'zmp-ui';
 import { useThemeStore } from '@/stores/theme.store';
-import { 
-  MenuOutlined, 
-  SearchOutlined, 
+import {
+  MenuOutlined,
+  SearchOutlined,
   FilterOutlined,
   PlusOutlined
 } from '@ant-design/icons';
@@ -14,12 +14,6 @@ import { QUERY_KEYS } from '@/api/queryKeys';
 
 const { Title } = Typography;
 
-const suppliersData = [
-  { id: '1', name: 'Nhà cung cấp Nam Á', phone: '0901234567', status: 'ACTIVE' },
-  { id: '2', name: 'Công ty TNHH Vật Tư A', phone: '0987654321', status: 'INACTIVE' },
-  { id: '3', name: 'Đại lý Điện Công Nghiệp', phone: '0911222333', status: 'ACTIVE' },
-];
-
 export const SuppliersPage: React.FC = () => {
   const { setSidebarCollapsed, isSidebarCollapsed, isDarkMode } = useThemeStore();
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,39 +22,39 @@ export const SuppliersPage: React.FC = () => {
   const queryClient = useQueryClient();
 
   const { data: suppliers = [], isLoading } = useQuery({
-      queryKey: QUERY_KEYS.SUPPLIER.LIST,
-      queryFn: () => supplierApi.getSuppliers(),
+    queryKey: QUERY_KEYS.SUPPLIER.LIST,
+    queryFn: () => supplierApi.getSuppliers(),
   });
 
   const handleCreateSupplier = async () => {
     try {
-        const values = await form.validateFields();
-        await supplierApi.createSupplier({
-            ...values,
-            trangThai: values.trangThai || 'HOẠT ĐỘNG'
-        });
-        message.success('Thêm nhà cung cấp thành công!');
-        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUPPLIER.LIST });
-        setModalVisible(false);
-        form.resetFields();
+      const values = await form.validateFields();
+      await supplierApi.createSupplier({
+        ...values,
+        trangThai: values.trangThai || 'HOẠT ĐỘNG'
+      });
+      message.success('Thêm nhà cung cấp thành công!');
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUPPLIER.LIST });
+      setModalVisible(false);
+      form.resetFields();
     } catch (err) {
-        console.error(err);
-        message.error('Lỗi khi thêm nhà cung cấp');
+      console.error(err);
+      message.error('Lỗi khi thêm nhà cung cấp');
     }
   };
 
-  const filteredSuppliers = suppliers.filter(s => 
+  const filteredSuppliers = suppliers.filter(s =>
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.phone.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fa]'}`}>
-      
+
       {/* Header Area */}
       <div className={`flex items-center justify-between px-4 pt-1 pb-4 sticky top-0 z-[100] shadow-md transition-colors duration-300 mt-[-10px] ${isDarkMode ? 'bg-[#1a1a1c] border-b border-gray-800 shadow-xl' : 'bg-[#1e3ba1]'}`}>
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => setSidebarCollapsed(!isSidebarCollapsed)}
             className={`w-8 h-8 flex items-center justify-start border-none bg-transparent outline-none p-0 cursor-pointer ${isDarkMode ? 'text-gray-200' : 'text-white'}`}
           >
@@ -75,9 +69,9 @@ export const SuppliersPage: React.FC = () => {
         <div className="mb-4">
           <div className={`flex items-center h-[44px] rounded-full px-4 shadow-sm border transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-100'}`}>
             <SearchOutlined className={`text-lg mr-2 ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`} />
-            <input 
-              type="text" 
-              placeholder="Tìm nhà cung cấp..." 
+            <input
+              type="text"
+              placeholder="Tìm nhà cung cấp..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={`flex-1 bg-transparent border-none outline-none text-[14px] ${isDarkMode ? 'text-gray-200 placeholder-gray-600' : 'text-gray-700 placeholder-gray-400'}`}
@@ -95,7 +89,7 @@ export const SuppliersPage: React.FC = () => {
               Tổng số
             </span>
             <div className={`text-[28px] font-bold mt-1 ${isDarkMode ? 'text-white' : ''}`}>
-              34
+              {suppliers.length}
             </div>
             <div className="absolute right-[-10%] top-[20%] w-[80px] h-[80px] rounded-full bg-white opacity-10"></div>
           </div>
@@ -104,7 +98,7 @@ export const SuppliersPage: React.FC = () => {
               Đang hoạt động
             </span>
             <div className={`text-[28px] font-bold mt-1 ${isDarkMode ? 'text-white' : 'text-gray-800'}`}>
-              30
+              {suppliers.filter(s => s.trangThai === 'ACTIVE' || s.trangThai === 'HOAT_DONG').length}
             </div>
           </div>
         </div>
@@ -127,7 +121,7 @@ export const SuppliersPage: React.FC = () => {
                       <span className={`text-[12px] ${isDarkMode ? 'text-gray-500' : 'text-gray-500'}`}>LH: {item.phone}</span>
                     </div>
                   </div>
-                  <div className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${item.trangThai === 'ACTIVE' || item.trangThai === 'HOẠT ĐỘNG' ? (isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700') : (isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700')}`}>
+                  <div className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase ${item.trangThai === 'ACTIVE' || item.trangThai === 'HOẠT ĐỘNG' || item.trangThai === 'HOAT_DONG' ? (isDarkMode ? 'bg-green-900/30 text-green-400' : 'bg-green-100 text-green-700') : (isDarkMode ? 'bg-red-900/30 text-red-400' : 'bg-red-100 text-red-700')}`}>
                     {item.trangThai}
                   </div>
                 </div>
@@ -139,7 +133,7 @@ export const SuppliersPage: React.FC = () => {
       </div>
 
       {/* Floating Action Button (+) */}
-      <button 
+      <button
         onClick={() => setModalVisible(true)}
         className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-[#1e3ba1] text-white shadow-lg flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer hover:bg-blue-800"
       >
@@ -160,30 +154,30 @@ export const SuppliersPage: React.FC = () => {
         styles={{ body: { padding: '20px 10px' } }}
       >
         <Form form={form} layout="vertical">
-          <Form.Item name="name" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Tên nhà cung cấp</span>} rules={[{ required: true }]}>
-            <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="Tên Công ty / Đại lý..." />
+          <Form.Item name="name" label={<span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Tên nhà cung cấp</span>} rules={[{ required: true }]}>
+            <Input className={`h-11 rounded-xl border-none font-bold ${isDarkMode ? 'bg-gray-800 text-white placeholder-gray-600' : 'bg-gray-50 text-gray-800'}`} placeholder="Tên Công ty / Đại lý..." />
           </Form.Item>
-          
+
           <div className="grid grid-cols-2 gap-3">
-            <Form.Item name="code" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Mã NCC</span>} rules={[{ required: true }]}>
-              <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="SUP-001" />
+            <Form.Item name="code" label={<span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Mã NCC</span>} rules={[{ required: true }]}>
+              <Input className={`h-11 rounded-xl border-none font-bold ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-800'}`} placeholder="SUP-001" />
             </Form.Item>
-            <Form.Item name="phone" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Số điện thoại</span>} rules={[{ required: true }]}>
-              <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="090..." />
+            <Form.Item name="phone" label={<span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Số điện thoại</span>} rules={[{ required: true }]}>
+              <Input className={`h-11 rounded-xl border-none font-bold ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-800'}`} placeholder="090..." />
             </Form.Item>
           </div>
 
           <Form.Item name="danhMuc" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Danh mục cung ứng</span>}>
             <Select className="h-11 rounded-xl" options={[
-                { value: 'Công nghệ', label: 'Công nghệ' },
-                { value: 'Vật tư', label: 'Vật tư' },
-                { value: 'Logistics', label: 'Logistics' },
-                { value: 'Điện máy', label: 'Điện máy' }
+              { value: 'Công nghệ', label: 'Công nghệ' },
+              { value: 'Vật tư', label: 'Vật tư' },
+              { value: 'Logistics', label: 'Logistics' },
+              { value: 'Điện máy', label: 'Điện máy' }
             ]} />
           </Form.Item>
 
-          <Form.Item name="address" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Địa chỉ</span>}>
-            <Input.TextArea className="rounded-xl bg-gray-50 border-none font-medium" rows={2} />
+          <Form.Item name="address" label={<span className={`text-[11px] font-bold uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Địa chỉ</span>}>
+            <Input.TextArea className={`rounded-xl border-none font-medium ${isDarkMode ? 'bg-gray-800 text-white' : 'bg-gray-50 text-gray-800'}`} rows={2} />
           </Form.Item>
         </Form>
       </Modal>

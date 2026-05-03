@@ -163,7 +163,7 @@ export const CheckInPage: React.FC = () => {
         <>
           <div className="px-5 mt-12 space-y-6">
             {/* Section 1: GPS Lock */}
-            <div className={`p-4 rounded-[24px] shadow-sm flex items-center justify-between ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
+            <div className={`p-4 rounded-[24px] shadow-sm flex items-center justify-between border ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-white'}`}>
               <div className="flex items-center gap-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${location ? 'bg-teal-50 text-teal-500' : 'bg-orange-50 text-orange-500'}`}>
                   <EnvironmentOutlined />
@@ -180,16 +180,16 @@ export const CheckInPage: React.FC = () => {
                   Lấy GPS
                 </button>
               ) : (
-                <div className="flex bg-gray-100 rounded-lg p-1">
+                <div className={`flex rounded-lg p-1 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
                     <button 
                       onClick={() => setActionType('IN')} 
-                      className={`px-3 py-1.5 text-[11px] font-bold rounded-md border-none ${actionType === 'IN' ? 'bg-blue-500 text-white shadow-sm' : 'bg-transparent text-gray-500'}`}
+                      className={`px-3 py-1.5 text-[11px] font-bold rounded-md border-none transition-all ${actionType === 'IN' ? 'bg-blue-500 text-white shadow-sm' : `bg-transparent ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}`}
                     >
                       BẮT ĐẦU CA
                     </button>
                     <button 
                       onClick={() => setActionType('OUT')} 
-                      className={`px-3 py-1.5 text-[11px] font-bold rounded-md border-none ${actionType === 'OUT' ? 'bg-orange-500 text-white shadow-sm' : 'bg-transparent text-gray-500'}`}
+                      className={`px-3 py-1.5 text-[11px] font-bold rounded-md border-none transition-all ${actionType === 'OUT' ? 'bg-orange-500 text-white shadow-sm' : `bg-transparent ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}`}
                     >
                       KẾT THÚC CA
                     </button>
@@ -199,7 +199,7 @@ export const CheckInPage: React.FC = () => {
 
             {/* Section 2: AI Scanner View */}
             <div className="flex flex-col items-center gap-4">
-              <div className={`relative w-full aspect-[3/4] rounded-[40px] overflow-hidden border-4 ${isScanning ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]' : 'border-gray-200'} bg-black group`}>
+              <div className={`relative w-full aspect-[3/4] rounded-[40px] overflow-hidden border-4 transition-all ${isScanning ? 'border-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.5)]' : (isDarkMode ? 'border-gray-800 shadow-xl' : 'border-gray-200')} bg-black group`}>
 
                 {/* Video Stream */}
                 <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover mirror" style={{ transform: 'scaleX(-1)' }} />

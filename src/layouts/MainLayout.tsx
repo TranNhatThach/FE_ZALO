@@ -66,29 +66,31 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
         className={`w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}
       >
         {/* Content Wrapper using safe-area-insent to avoid notch overlap */}
-        {/* Premium Top Bar (Brand + Notifications) */}
-        <div
-          className={`flex items-center justify-between px-5 sticky top-0 z-[1000] border-b transition-all duration-300 ${isDarkMode
-            ? 'bg-[#121212]/80 backdrop-blur-2xl border-white/5 shadow-lg'
-            : 'bg-white/80 backdrop-blur-2xl border-gray-100 shadow-sm'
-            }`}
-          style={{
-            paddingTop: 'calc(var(--zaui-safe-area-inset-top, 24px) + 8px)',
-            height: 'calc(var(--zaui-safe-area-inset-top, 24px) + 60px)',
-            paddingBottom: '10px'
-          }}
-        >
-          <div className="flex flex-col">
-            <span className={`text-[11px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/40 text-blue-400 border border-blue-800/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
-              }`}>Vanguard</span>
-            <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ml-1 opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
-              Enterprise OS
-            </span>
+        {/* Premium Top Bar (Brand + Notifications) - Ẩn ở trang finance để tiết kiệm diện tích */}
+        {location.pathname !== '/finance' && (
+          <div
+            className={`flex items-center justify-between px-5 sticky top-0 z-[1000] border-b transition-all duration-300 ${isDarkMode
+              ? 'bg-[#121212]/80 backdrop-blur-2xl border-white/5 shadow-lg'
+              : 'bg-white/80 backdrop-blur-2xl border-gray-100 shadow-sm'
+              }`}
+            style={{
+              paddingTop: 'calc(var(--zaui-safe-area-inset-top, 24px) + 8px)',
+              height: 'calc(var(--zaui-safe-area-inset-top, 24px) + 60px)',
+              paddingBottom: '10px'
+            }}
+          >
+            <div className="flex flex-col">
+              <span className={`text-[11px] font-black uppercase tracking-[0.25em] px-3 py-1 rounded-full ${isDarkMode ? 'bg-blue-900/40 text-blue-400 border border-blue-800/50' : 'bg-blue-50 text-blue-600 border border-blue-100'
+                }`}>Vanguard</span>
+              <span className={`text-[8px] font-bold uppercase tracking-widest mt-1 ml-1 opacity-50 ${isDarkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                Enterprise OS
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+            </div>
           </div>
-          <div className="mr-20">
-            <NotificationBell />
-          </div>
-        </div>
+        )}
 
         <Content
           className="flex-1 w-full m-0 p-0 relative"

@@ -17,10 +17,10 @@ export function useGetMyTasks() {
 /**
  * Hook lấy toàn bộ công việc của doanh nghiệp (Dành cho Admin).
  */
-export function useGetTasksByTenant(tenantId?: string | number) {
+export function useGetTasksByTenant(tenantId?: string | number, page = 0, size = 10) {
   return useQuery({
-    queryKey: [QUERY_KEYS.TASKS.MY_TASKS, 'tenant', tenantId],
-    queryFn: () => taskApi.getTasksByTenant(tenantId!),
+    queryKey: [QUERY_KEYS.TASKS.MY_TASKS, 'tenant', tenantId, page, size],
+    queryFn: () => taskApi.getTasksByTenant(tenantId!, page, size),
     enabled: !!tenantId,
     retry: 1,
   });
@@ -117,6 +117,36 @@ export function useDeleteTaskMutation() {
 
   return useMutation({
     mutationFn: (taskId: string | number) => taskApi.deleteTask(taskId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
+    },
+  });
+}
+
+/**
+ * Mutation hook để Admin phê duyệt task.
+ */
+export function useApproveTaskMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskId, note }: { taskId: string | number; note?: string }) =>
+      taskApi.approve(taskId, note),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
+    },
+  });
+}
+
+/**
+ * Mutation hook để Admin từ chối task.
+ */
+export function useRejectTaskMutation() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskId, reason }: { taskId: string | number; reason: string }) =>
+      taskApi.reject(taskId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.TASKS.MY_TASKS });
     },

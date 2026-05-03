@@ -24,6 +24,7 @@ import {
   useGetUnassignedTasks,
   useClaimTaskMutation,
   useUpdateTaskStatusMutation,
+  useApproveTaskMutation,
   useDeleteTaskMutation
 } from '@/hooks/useTasks';
 import { useGetProjects } from '@/hooks/useProjects';
@@ -51,7 +52,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
   const isAdmin = allRoles.includes('ADMIN') || allRoles.includes('TENANT_ADMIN');
 
   const { mutate: claimTask, isPending: isClaiming } = useClaimTaskMutation();
-  const { mutate: updateStatus, isPending: isUpdating } = useUpdateTaskStatusMutation();
+  const { mutate: approveTask, isPending: isApproving } = useApproveTaskMutation();
   const { mutate: deleteTask } = useDeleteTaskMutation();
 
   const handleClaim = () => {
@@ -59,7 +60,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
   };
 
   const handleApprove = () => {
-    updateStatus({ taskId: task.id, status: 'DONE' });
+    approveTask({ taskId: task.id, note: 'Đã phê duyệt qua ZMA' });
   };
 
   const handleDelete = (e: React.MouseEvent) => {
@@ -207,6 +208,8 @@ export const TasksPage: React.FC = () => {
   const isAdmin = allRoles.includes('ADMIN');
   const [tab, setTab] = useState<'MY' | 'UNASSIGNED'>('MY');
   const [viewMode, setViewMode] = useState<'TASKS' | 'PROJECTS'>('TASKS');
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(20);
 
   const [workflowModal, setWorkflowModal] = useState<{ visible: boolean, mode: 'CHECK_IN' | 'COMPLETE', task: Task | null }>({
     visible: false,
@@ -221,13 +224,16 @@ export const TasksPage: React.FC = () => {
 
   // ─── API Data ────────────────────────────────────────────────────────────────
   const myTasksQuery = useGetMyTasks();
-  const tenantTasksQuery = useGetTasksByTenant(isAdmin ? user?.tenantId : undefined);
+  const tenantTasksQuery = useGetTasksByTenant(isAdmin ? user?.tenantId : undefined, page, pageSize);
   const unassignedTasksQuery = useGetUnassignedTasks();
 
   const { data: projects = [], isLoading: isLoadingProjects } = useGetProjects();
 
   const activeQuery = isAdmin ? tenantTasksQuery : (tab === 'MY' ? myTasksQuery : unassignedTasksQuery);
-  const { data: tasks = [], isLoading, isError, error, refetch } = activeQuery;
+  const { data: tasksData, isLoading, isError, error, refetch } = activeQuery;
+
+  const tasks = Array.isArray(tasksData) ? tasksData : (tasksData?.content || []);
+  const totalPages = Array.isArray(tasksData) ? 1 : (tasksData?.totalPages || 1);
 
   // Update title based on viewMode
   const getPageTitle = () => {
@@ -323,64 +329,47 @@ export const TasksPage: React.FC = () => {
   return (
     <Page className={`flex flex-col w-full h-full relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}>
 
-      {/* 1. Header Workspace */}
-      <div className={`flex items-center justify-between px-5 pt-6 pb-2 sticky top-0 z-[100] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
-            <RocketOutlined className="text-[#1e3ba1] text-lg" />
-          </div>
-          <div>
-            <h1 className="text-[17px] font-extrabold text-[#1e3ba1] m-0 tracking-tight leading-tight">TaskFlow</h1>
-            <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider m-0 mt-0.5">Quản lý Hiện trường</p>
-          </div>
+      {/* 1. Page Title Area */}
+      <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+        <div>
+          <h1 className={`text-[24px] font-black tracking-tight m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Workflows</h1>
+          <p className={`text-[12px] font-bold uppercase tracking-widest ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Quản lý Hiện trường</p>
         </div>
-        <div className="flex items-center gap-1">
-          {isAdmin && (
-            <button
-              onClick={handleExportCSV}
-              className="w-10 h-10 rounded-full flex items-center justify-center border-none bg-blue-50 outline-none p-0 cursor-pointer active:scale-90 transition-transform mr-1"
-              title="Xuất báo cáo CSV"
-            >
-              <ExportOutlined className="text-[#1e3ba1] text-[18px]" />
-            </button>
-          )}
+        {isAdmin && (
           <button
-            onClick={() => refetch()}
-            className="w-10 h-10 rounded-full flex items-center justify-center border-none bg-transparent outline-none p-0 cursor-pointer active:scale-90 transition-transform"
+            onClick={handleExportCSV}
+            className="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-blue-50 text-[#1e3ba1] shadow-sm active:scale-90 transition-all"
           >
-            {(isLoading || activeQuery.isFetching) ? <LoadingOutlined className="text-[#1e3ba1] text-[18px]" /> : <RocketOutlined className={`text-[18px] rotate-180 ${isDarkMode ? 'text-gray-400' : 'text-[#1e3ba1]'}`} />}
+            <ExportOutlined className="text-[20px]" />
           </button>
-          <button className="w-10 h-10 rounded-full flex items-center justify-center border-none bg-transparent outline-none p-0 cursor-pointer active:scale-90 transition-transform">
-            <SearchOutlined className={`text-[20px] ${isDarkMode ? 'text-gray-300' : 'text-[#1e3ba1]'}`} />
-          </button>
-        </div>
+        )}
       </div>
 
       <div className="px-5 mt-6">
         {/* View Mode Switcher (Tasks vs Projects) */}
-        <div className="flex items-center gap-2 mb-6">
-            <button 
-                onClick={() => setViewMode('TASKS')}
-                className={`px-4 py-2 rounded-full text-[12px] font-black transition-all ${viewMode === 'TASKS' ? 'bg-[#1e3ba1] text-white' : 'bg-gray-100 text-gray-500'}`}
-            >CÔNG VIỆC</button>
-            <button 
-                onClick={() => setViewMode('PROJECTS')}
-                className={`px-4 py-2 rounded-full text-[12px] font-black transition-all ${viewMode === 'PROJECTS' ? 'bg-[#1e3ba1] text-white' : 'bg-gray-100 text-gray-500'}`}
-            >DỰ ÁN ĐANG CÓ</button>
-        </div>
+         <div className="flex items-center gap-2 mb-6">
+             <button 
+                 onClick={() => setViewMode('TASKS')}
+                 className={`px-4 py-2 rounded-full text-[12px] font-black transition-all ${viewMode === 'TASKS' ? 'bg-[#1e3ba1] text-white shadow-lg shadow-blue-900/20' : (isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500')}`}
+             >CÔNG VIỆC</button>
+             <button 
+                 onClick={() => setViewMode('PROJECTS')}
+                 className={`px-4 py-2 rounded-full text-[12px] font-black transition-all ${viewMode === 'PROJECTS' ? 'bg-[#1e3ba1] text-white shadow-lg shadow-blue-900/20' : (isDarkMode ? 'bg-gray-800 text-gray-400' : 'bg-gray-100 text-gray-500')}`}
+             >DỰ ÁN ĐANG CÓ</button>
+         </div>
 
         {/* Tab Selection (User Only) - Only show in Tasks mode */}
         {!isAdmin && viewMode === 'TASKS' && (
-          <div className="flex p-1 bg-gray-100 rounded-2xl mb-6">
+          <div className={`flex p-1 rounded-2xl mb-6 ${isDarkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>
             <button
               onClick={() => setTab('MY')}
-              className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-none transition-all ${tab === 'MY' ? 'bg-white text-[#1e3ba1] shadow-sm' : 'bg-transparent text-gray-500'}`}
+              className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-none transition-all ${tab === 'MY' ? (isDarkMode ? 'bg-gray-700 text-blue-400' : 'bg-white text-[#1e3ba1] shadow-sm') : 'bg-transparent text-gray-500'}`}
             >
               Việc của tôi
             </button>
             <button
               onClick={() => setTab('UNASSIGNED')}
-              className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-none transition-all ${tab === 'UNASSIGNED' ? 'bg-white text-[#1e3ba1] shadow-sm' : 'bg-transparent text-gray-500'}`}
+              className={`flex-1 py-2.5 rounded-xl text-[13px] font-bold border-none transition-all ${tab === 'UNASSIGNED' ? (isDarkMode ? 'bg-gray-700 text-blue-400' : 'bg-white text-[#1e3ba1] shadow-sm') : 'bg-transparent text-gray-500'}`}
             >
               Việc chưa nhận
             </button>
@@ -399,14 +388,14 @@ export const TasksPage: React.FC = () => {
 
         {/* Stats Overview (Brief) */}
         <div className="grid grid-cols-2 gap-3 mb-8">
-          <div className={`p-4 rounded-3xl ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-[#eef2ff] border border-blue-50'}`}>
-            <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Đang thực hiện</div>
-            <div className="text-[28px] font-black text-[#1e3ba1] leading-none">{activeTasks.length + todoTasks.length}</div>
-          </div>
-          <div className={`p-4 rounded-3xl ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-[#f0fdf4] border border-emerald-50'}`}>
-            <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Đã xong</div>
-            <div className="text-[28px] font-black text-emerald-700 leading-none">{doneTasks.length}</div>
-          </div>
+           <div className={`p-4 rounded-3xl transition-colors ${isDarkMode ? 'bg-gray-800/50 border border-gray-700/50' : 'bg-[#eef2ff] border border-blue-50'}`}>
+             <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Đang thực hiện</div>
+             <div className={`text-[28px] font-black leading-none ${isDarkMode ? 'text-blue-400' : 'text-[#1e3ba1]'}`}>{activeTasks.length + todoTasks.length}</div>
+           </div>
+           <div className={`p-4 rounded-3xl transition-colors ${isDarkMode ? 'bg-gray-800/50 border border-gray-700/50' : 'bg-[#f0fdf4] border border-emerald-50'}`}>
+             <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Đã xong</div>
+             <div className={`text-[28px] font-black leading-none ${isDarkMode ? 'text-emerald-500' : 'text-emerald-700'}`}>{doneTasks.length}</div>
+           </div>
         </div>
 
         {/* ── Content Area (Projects vs Tasks) ── */}
@@ -431,15 +420,15 @@ export const TasksPage: React.FC = () => {
                     </div>
                     <h4 className={`text-[15px] font-black mb-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>{project.name}</h4>
                     <p className="text-[11px] text-gray-500 line-clamp-2 mb-3">{project.description}</p>
-                    <div className="flex items-center justify-between pt-3 border-t border-gray-50/50">
-                       <div className="flex items-center gap-2">
-                          <div className="w-5 h-5 rounded-full bg-amber-100 flex items-center justify-center text-[10px] text-amber-600 font-bold">
-                             {project.managerName?.charAt(0)}
-                          </div>
-                          <span className="text-[11px] font-bold text-gray-600">{project.managerName}</span>
-                       </div>
-                       <button className="text-[11px] font-black text-blue-600 bg-transparent border-none">XEM CHI TIẾT</button>
-                    </div>
+                     <div className="flex items-center justify-between pt-3 border-t border-gray-50/50">
+                        <div className="flex items-center gap-2">
+                           <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold ${isDarkMode ? 'bg-gray-700 text-amber-500' : 'bg-amber-100 text-amber-600'}`}>
+                              {project.managerName?.charAt(0)}
+                           </div>
+                           <span className={`text-[11px] font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{project.managerName}</span>
+                        </div>
+                        <button className="text-[11px] font-black text-blue-600 bg-transparent border-none cursor-pointer">XEM CHI TIẾT</button>
+                     </div>
                  </div>
                ))}
             </div>
@@ -461,12 +450,12 @@ export const TasksPage: React.FC = () => {
               {/* NHÓM MỚI / ĐANG CHUẨN BỊ (Hoặc Tab Việc chưa nhận) */}
               {(todoTasks.length > 0 || tab === 'UNASSIGNED') && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-1 rounded-full bg-blue-400" />
-                    <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">
-                      {tab === 'UNASSIGNED' ? 'Cơ hội nhận việc' : 'Sẵn sàng / Đang thực hiện'}
-                    </h4>
-                  </div>
+                   <div className="flex items-center gap-2 mb-2">
+                     <div className="w-4 h-1 rounded-full bg-blue-400" />
+                     <h4 className={`text-[12px] font-black uppercase tracking-widest m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-900'}`}>
+                       {tab === 'UNASSIGNED' ? 'Cơ hội nhận việc' : 'Sẵn sàng / Đang thực hiện'}
+                     </h4>
+                   </div>
                   <div className="flex flex-col gap-2">
                     {todoTasks.map(task => (
                       <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
@@ -478,10 +467,10 @@ export const TasksPage: React.FC = () => {
               {/* NHÓM ĐÃ CHECK_IN (Đang làm tại hiện trường) */}
               {activeTasks.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-1 rounded-full bg-orange-400" />
-                    <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">Đang tại hiện trường</h4>
-                  </div>
+                   <div className="flex items-center gap-2 mb-2">
+                     <div className="w-4 h-1 rounded-full bg-orange-400" />
+                     <h4 className={`text-[12px] font-black uppercase tracking-widest m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-900'}`}>Đang tại hiện trường</h4>
+                   </div>
                   <div className="flex flex-col gap-2">
                     {activeTasks.map(task => (
                       <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
@@ -493,10 +482,10 @@ export const TasksPage: React.FC = () => {
               {/* NHÓM CHỜ DUYỆT / XONG */}
               {(reviewTasks.length > 0 || doneTasks.length > 0) && (
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-4 h-1 rounded-full bg-emerald-400" />
-                    <h4 className="text-[12px] font-black text-gray-900 uppercase tracking-widest m-0">Hoàn thành / Chờ duyệt</h4>
-                  </div>
+                   <div className="flex items-center gap-2 mb-2">
+                     <div className="w-4 h-1 rounded-full bg-emerald-400" />
+                     <h4 className={`text-[12px] font-black uppercase tracking-widest m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-900'}`}>Hoàn thành / Chờ duyệt</h4>
+                   </div>
                   <div className="flex flex-col gap-2">
                     {[...reviewTasks, ...doneTasks].map(task => (
                       <TaskCard key={task.id} task={task} onDetailsClick={showDetails} />
@@ -504,8 +493,32 @@ export const TasksPage: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )
           )
+        }
+
+        {/* Load More for Admin */}
+        {isAdmin && totalPages > 1 && (
+          <div className="flex justify-center mt-6 mb-10">
+            <div className="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
+               <button 
+                disabled={page === 0}
+                onClick={() => setPage(p => p - 1)}
+                className="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-blue-50 text-blue-600 disabled:opacity-50"
+               >
+                 <RocketOutlined className="rotate-270" />
+               </button>
+               <span className="text-[12px] font-black text-gray-400">TRANG {page + 1} / {totalPages}</span>
+               <button 
+                disabled={page >= totalPages - 1}
+                onClick={() => setPage(p => p + 1)}
+                className="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-blue-50 text-blue-600 disabled:opacity-50"
+               >
+                 <RocketOutlined className="rotate-90" />
+               </button>
+            </div>
+          </div>
         )}
       </div>
 

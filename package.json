@@ -20,6 +20,7 @@
     "deploy": "zmp deploy"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "@tanstack/react-query": "^5.95.0",
     "antd": "^6.3.3",
     "dayjs": "^1.11.20",
@@ -31,7 +32,6 @@
     "react-router-dom": "^7.14.0",
     "recharts": "^3.8.1",
     "sockjs-client": "^1.6.1",
-    "stompjs": "^2.3.3",
     "xlsx": "^0.18.5",
     "zmp-sdk": "latest",
     "zmp-ui": "latest",

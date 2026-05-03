@@ -1,130 +1,211 @@
 import React, { useState } from 'react';
-import { Badge, Popover, List, Typography, Empty, Button } from 'antd';
-import { BellOutlined, CheckCircleOutlined, InfoCircleOutlined, WarningOutlined } from '@ant-design/icons';
+import { Badge, List, Typography, Empty, Button, Modal, Spin } from 'antd';
+import { 
+  BellOutlined, 
+  CheckCircleOutlined, 
+  InfoCircleOutlined, 
+  WarningOutlined,
+  ClockCircleOutlined,
+  CheckOutlined,
+  DeleteOutlined,
+  NotificationOutlined
+} from '@ant-design/icons';
 import { useNotificationStore } from '@/stores/notification.store';
 import { notificationApi } from '@/api/notification.api';
 import { useAuthStore } from '@/stores/auth.store';
+import { useThemeStore } from '@/stores/theme.store';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import 'dayjs/locale/vi';
 
 dayjs.extend(relativeTime);
+dayjs.locale('vi');
 
 const { Text } = Typography;
 
 export const NotificationBell: React.FC = () => {
-  const { notifications, unreadCount, setNotifications, markAsRead, markAllAsRead } = useNotificationStore();
-  const { user } = useAuthStore();
+  const { notifications, unreadCount, setNotifications, markAsRead, markAllAsRead, clearAll } = useNotificationStore();
+  const { isDarkMode } = useThemeStore();
   const [visible, setVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const data = await notificationApi.getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error('Lỗi tải thông báo:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   React.useEffect(() => {
-    notificationApi.getNotifications()
-      .then(setNotifications)
-      .catch(console.error);
+    fetchNotifications();
   }, [setNotifications]);
 
   const handleMarkAsRead = async (id: number) => {
-    await notificationApi.markAsRead(id);
-    markAsRead(id);
+    try {
+      await notificationApi.markAsRead(id);
+      markAsRead(id);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const handleMarkAllAsRead = async () => {
-    await notificationApi.markAllAsRead();
-    markAllAsRead();
+    try {
+      await notificationApi.markAllAsRead();
+      markAllAsRead();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const getIcon = (type: string) => {
     switch (type) {
-      case 'TASK_ASSIGNED': return <InfoCircleOutlined className="text-blue-500" />;
-      case 'TASK_COMPLETED': return <CheckCircleOutlined className="text-green-500" />;
-      case 'URGENT': return <WarningOutlined className="text-red-500" />;
-      default: return <BellOutlined className="text-gray-400" />;
+      case 'TASK_ASSIGNED': 
+        return <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shadow-sm"><InfoCircleOutlined /></div>;
+      case 'TASK_COMPLETED': 
+        return <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 shadow-sm"><CheckCircleOutlined /></div>;
+      case 'URGENT': 
+        return <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center text-red-500 shadow-sm"><WarningOutlined /></div>;
+      default: 
+        return <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 shadow-sm"><NotificationOutlined /></div>;
     }
   };
 
-  const content = (
-    <div className="w-[320px] max-h-[450px] flex flex-col">
-      <div className="flex items-center justify-between p-4 border-b">
-        <span className="text-[16px] font-black text-gray-800">Thông báo {unreadCount > 0 && `(${unreadCount})`}</span>
-        {unreadCount > 0 && (
-          <Button type="link" size="small" onClick={() => handleMarkAllAsRead()} className="text-[12px] font-bold">
-            Đọc tất cả
-          </Button>
-        )}
-      </div>
-
-      <div className="flex-1 overflow-y-auto" style={{ scrollbarWidth: 'none' }}>
-        {notifications.length > 0 ? (
-          <List
-            dataSource={notifications}
-            renderItem={(item) => (
-              <List.Item
-                className={`cursor-pointer hover:bg-gray-50 transition-colors p-4 border-b last:border-b-0 ${!item.isRead ? 'bg-blue-50/50' : ''}`}
-                onClick={() => {
-                  handleMarkAsRead(item.id);
-                  setVisible(false);
-                }}
-              >
-                <div className="flex gap-3 items-start w-full">
-                  <div className="mt-1">{getIcon(item.type)}</div>
-                  <div className="flex-1 flex flex-col gap-0.5">
-                    <span className={`text-[13px] leading-tight ${!item.isRead ? 'font-bold text-gray-900' : 'font-medium text-gray-600'}`}>
-                      {item.title}
-                    </span>
-                    <span className="text-[12px] text-gray-500 line-clamp-2">
-                      {item.message}
-                    </span>
-                    <span className="text-[10px] text-gray-400 mt-1 font-medium italic">
-                      {dayjs(item.createdAt).fromNow()}
-                    </span>
-                  </div>
-                  {!item.isRead && (
-                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 shrink-0" />
-                  )}
-                </div>
-              </List.Item>
-            )}
-          />
-        ) : (
-          <div className="py-10">
-            <Empty description="Không có thông báo nào" />
-          </div>
-        )}
-      </div>
-
-      <div className="p-2 border-t text-center">
-        <Button type="text" block className="text-[12px] text-gray-500 font-bold">
-          Xem tất cả thông báo
-        </Button>
-      </div>
-    </div>
-  );
-
   return (
-    <Popover
-      content={content}
-      trigger="click"
-      open={visible}
-      onOpenChange={setVisible}
-      placement="bottom"
-      overlayClassName="noti-popover"
-      styles={{
-        content: {
-          padding: 0,
-          borderRadius: '16px',
-          overflow: 'hidden'
-        }
-      }}
-    >
+    <>
       <Badge
         count={unreadCount}
         size="small"
-        offset={[-4, 4]}
-        className="cursor-pointer active:scale-95 transition-transform"
+        offset={[-2, 6]}
+        style={{ backgroundColor: '#ff4d4f', boxShadow: '0 0 0 2px #fff' }}
+        className="cursor-pointer active:scale-95 transition-all"
       >
-        <div className="w-9 h-9 flex items-center justify-center rounded-[10px] bg-white border border-gray-100 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-          <BellOutlined className="text-[18px] text-gray-600" />
-        </div>
+        <button
+          onClick={() => setVisible(true)}
+          className={`w-10 h-10 flex items-center justify-center rounded-xl border-none transition-all ${
+            isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-600 shadow-sm border border-gray-100'
+          }`}
+        >
+          <BellOutlined className="text-[20px]" />
+        </button>
       </Badge>
-    </Popover>
+
+      <Modal
+        title={null}
+        open={visible}
+        onCancel={() => setVisible(false)}
+        footer={null}
+        width="100%"
+        centered={false}
+        closable={false}
+        styles={{
+          body: { padding: 0 },
+          mask: { backdropFilter: 'blur(10px)', backgroundColor: 'rgba(0,0,0,0.4)' }
+        }}
+        className="notification-drawer"
+      >
+        <div className={`flex flex-col h-[85vh] rounded-t-[32px] overflow-hidden ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-[#fcfdff]'}`}>
+          {/* Header */}
+          <div className="px-6 pt-6 pb-4 flex items-center justify-between border-b border-gray-100/10">
+            <div>
+              <h2 className={`text-[20px] font-black m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>Thông báo</h2>
+              <p className="text-[12px] text-gray-400 font-bold uppercase tracking-wider mt-0.5">Bạn có {unreadCount} tin mới</p>
+            </div>
+            <div className="flex items-center gap-2">
+              {unreadCount > 0 && (
+                <Button 
+                  type="text" 
+                  size="small" 
+                  onClick={handleMarkAllAsRead}
+                  className="text-blue-500 font-bold text-[12px] hover:bg-blue-50"
+                >
+                  Đọc tất cả
+                </Button>
+              )}
+              <button 
+                onClick={() => setVisible(false)}
+                className="w-8 h-8 rounded-full bg-gray-100 border-none flex items-center justify-center active:scale-90 transition-all"
+              >
+                <CheckOutlined className="text-gray-600" />
+              </button>
+            </div>
+          </div>
+
+          {/* List Content */}
+          <div className="flex-1 overflow-y-auto px-4 py-2 scrollbar-hide">
+            {loading ? (
+              <div className="h-full flex items-center justify-center"><Spin /></div>
+            ) : notifications.length > 0 ? (
+              <List
+                dataSource={notifications}
+                renderItem={(item) => (
+                  <div
+                    onClick={() => handleMarkAsRead(item.id)}
+                    className={`p-4 rounded-2xl mb-3 flex gap-4 transition-all active:scale-[0.98] border ${
+                      !item.isRead 
+                        ? (isDarkMode ? 'bg-blue-900/10 border-blue-800/30 shadow-sm' : 'bg-blue-50/50 border-blue-100/50 shadow-sm')
+                        : (isDarkMode ? 'bg-[#222] border-gray-800 opacity-60' : 'bg-white border-gray-50 opacity-80')
+                    }`}
+                  >
+                    <div className="shrink-0">{getIcon(item.type)}</div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className={`text-[14px] font-black truncate pr-2 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{item.title}</span>
+                        {!item.isRead && <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.6)]" />}
+                      </div>
+                      <p className={`text-[12px] leading-relaxed mb-2 line-clamp-2 ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{item.message}</p>
+                      <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase">
+                        <ClockCircleOutlined />
+                        <span>{dayjs(item.createdAt).fromNow()}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+            ) : (
+              <div className="h-full flex flex-center flex-col justify-center opacity-40 grayscale">
+                <Empty description={<span className="font-bold text-gray-400">Bạn đã cập nhật hết tin nhắn</span>} />
+              </div>
+            )}
+          </div>
+
+          {/* Footer Action */}
+          <div className="p-6 bg-transparent">
+            <Button 
+              block 
+              size="large" 
+              onClick={() => setVisible(false)}
+              className={`h-14 rounded-2xl font-black text-[14px] uppercase tracking-widest border-none shadow-lg ${
+                isDarkMode ? 'bg-blue-600 text-white' : 'bg-[#1e3ba1] text-white shadow-blue-900/20'
+              }`}
+            >
+              Đóng lại
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <style>{`
+        .notification-drawer .ant-modal-content {
+          background: transparent !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+        }
+        .notification-drawer {
+          position: fixed !important;
+          bottom: 0 !important;
+          margin: 0 !important;
+          padding: 0 !important;
+        }
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
+    </>
   );
 };

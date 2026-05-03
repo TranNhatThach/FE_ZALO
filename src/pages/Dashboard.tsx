@@ -26,9 +26,19 @@ const Dashboard: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const today = dayjs().locale('vi').format('dddd, D [Tháng] M, YYYY');
 
-  // Empty data for fallbacks
-  const activityData: any[] = [];
-  const contractData: any[] = [];
+  // Mock data for fallbacks to make demo look premium
+  const activityData = [
+    { day: 'T2', value: 45 },
+    { day: 'T3', value: 52 },
+    { day: 'T4', value: 38 },
+    { day: 'T5', value: 65 },
+    { day: 'T6', value: 48 },
+    { day: 'T7', value: 35 },
+    { day: 'CN', value: 20 },
+  ];
+  const contractData = [
+    { value: 40 }, { value: 70 }, { value: 45 }, { value: 90 }, { value: 65 }, { value: 80 }
+  ];
 
   // Fetch real summary data
   const { data: stats, isLoading, error } = useQuery({
@@ -131,9 +141,9 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
         </div>
-        <div style={{ width: '100%', height: 40 }}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={contractData}>
+        <div style={{ width: '100%', height: 40, minWidth: 100 }}>
+          <ResponsiveContainer width="100%" height={40}>
+            <BarChart data={contractData.length > 0 ? contractData : [{value: 0}]}>
               <Bar
                 dataKey="value"
                 fill={isDarkMode ? '#3b82f6' : '#1a3faf'}
@@ -157,8 +167,8 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        <div style={{ width: '100%', height: 192 }}>
-          <ResponsiveContainer width="100%" height="100%">
+        <div style={{ width: '100%', height: 192, minHeight: 192 }}>
+          <ResponsiveContainer width="100%" height={192}>
             <BarChart data={statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : activityData} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
               <XAxis
                 dataKey="day"

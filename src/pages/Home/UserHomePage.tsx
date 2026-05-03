@@ -265,9 +265,13 @@ export const UserHomePage: React.FC = () => {
           {[
             { icon: '/icons/attendance.svg', label: 'Chấm công', path: '/checkin', color: 'bg-orange-100 text-orange-600' },
             { icon: '/icons/leave.svg', label: 'Nghỉ phép', path: '/settings', color: 'bg-green-100 text-green-600' },
-            { icon: '/icons/payroll.svg', label: 'Kê khai Hóa đơn', path: '/finance', color: 'bg-purple-100 text-purple-600' },
+            { icon: '/icons/payroll.svg', label: 'Kê khai Hóa đơn', path: '/finance', color: 'bg-purple-100 text-purple-600', allowedRoles: ['ADMIN', 'FINANCE', 'MANAGE'] },
             { icon: '/icons/news.svg', label: 'Tin mới nhất', path: '/user-home', color: 'bg-blue-100 text-blue-600' },
-          ].map((action, idx) => (
+          ].filter(action => {
+            if (!action.allowedRoles) return true;
+            const userRoles = [...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase();
+            return action.allowedRoles.some(role => userRoles.includes(role));
+          }).map((action, idx) => (
             <div key={idx} className="flex flex-col items-center gap-2" onClick={() => navigate(action.path)}>
               <div className={`w-14 h-14 rounded-2xl ${action.color} flex items-center justify-center shadow-sm active:scale-90 transition-transform`}>
                 <img src={action.icon} alt={action.label} className="w-7 h-7" style={{ filter: 'brightness(1)' }}
@@ -361,14 +365,14 @@ export const UserHomePage: React.FC = () => {
               <h2 className="text-[20px] font-black text-gray-900 leading-tight mb-4">{selectedNews.title}</h2>
               <p className="text-[14px] text-gray-600 leading-relaxed mb-6 font-medium">{selectedNews.message}</p>
 
-              <div className="p-4 rounded-2xl bg-gray-50 border border-gray-100 mb-6">
+              <div className={`p-4 rounded-2xl border mb-6 ${isDarkMode ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-100'}`}>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center">
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isDarkMode ? 'bg-orange-900/30' : 'bg-orange-100'}`}>
                     <ClockCircleOutlined className="text-orange-600" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-[11px] font-bold text-gray-400 uppercase">Ngày ban hành</span>
-                    <span className="text-[13px] font-black text-gray-800">22 tháng 04, 2024</span>
+                    <span className={`text-[13px] font-black ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>22 tháng 04, 2024</span>
                   </div>
                 </div>
               </div>
@@ -391,11 +395,11 @@ export const UserHomePage: React.FC = () => {
         centered
       >
         <Form form={form} layout="vertical" onFinish={handleCreateAnnouncement}>
-          <Form.Item name="title" label={<span className="text-[11px] font-black uppercase text-gray-400">Tiêu đề thông báo</span>} rules={[{ required: true }]}>
-            <Input className="h-12 rounded-xl bg-gray-50 border-none font-bold" placeholder="Nhập tiêu đề..." />
+          <Form.Item name="title" label={<span className={`text-[11px] font-black uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Tiêu đề thông báo</span>} rules={[{ required: true }]}>
+            <Input className={`h-12 rounded-xl border-none font-bold ${isDarkMode ? 'bg-gray-800 text-white placeholder-gray-600' : 'bg-gray-50 text-gray-800'}`} placeholder="Nhập tiêu đề..." />
           </Form.Item>
-          <Form.Item name="message" label={<span className="text-[11px] font-black uppercase text-gray-400">Nội dung chi tiết (Thông tư)</span>} rules={[{ required: true }]}>
-            <Input.TextArea rows={4} className="rounded-xl bg-gray-50 border-none font-medium" placeholder="Mô tả nội dung..." />
+          <Form.Item name="message" label={<span className={`text-[11px] font-black uppercase ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>Nội dung chi tiết (Thông tư)</span>} rules={[{ required: true }]}>
+            <Input.TextArea rows={4} className={`rounded-xl border-none font-medium ${isDarkMode ? 'bg-gray-800 text-white placeholder-gray-600' : 'bg-gray-50 text-gray-800'}`} placeholder="Mô tả nội dung..." />
           </Form.Item>
           <Form.Item label={<span className="text-[11px] font-black uppercase text-gray-400">Ảnh thông tư / Đính kèm</span>}>
             <Upload

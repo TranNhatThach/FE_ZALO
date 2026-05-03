@@ -123,13 +123,8 @@ const LoginPage: React.FC = () => {
 
       <div className="flex flex-col h-screen w-full bg-white relative max-w-[390px] mx-auto overflow-y-auto hide-scrollbar">
 
-        {/* 1. HEADER */}
-        <div className="h-[56px] flex items-center justify-center px-4 bg-white shrink-0 border-b border-gray-100">
-          <h1 className="text-[18px] font-semibold text-gray-900">Đăng nhập</h1>
-        </div>
-
         <div className="flex flex-col items-center w-full px-5 pt-14 pb-8 bg-white shrink-0">
-
+          <h1 className="text-[22px] font-semibold text-gray-900">Đăng nhập</h1>
           <img
             src="/Logo.png"
             alt="Vanguard Logo"

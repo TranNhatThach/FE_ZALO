@@ -57,7 +57,7 @@ export async function fetchData<T>(
   }
 
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout for mobile reliability
 
   try {
     const response = await fetch(`${BASE_URL}${endpoint}`, {

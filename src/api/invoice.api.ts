@@ -8,6 +8,10 @@ export enum InvoiceType {
 export interface Invoice {
     id: number;
     invoiceNumber: string;
+    invoiceSymbol?: string;
+    taxCode?: string;
+    partnerName?: string;
+    paymentMethod?: string;
     totalAmount: number;
     taxRate: number;
     taxAmount: number;
@@ -21,12 +25,27 @@ export interface Invoice {
 
 export interface CreateInvoiceRequest {
     invoiceNumber: string;
+    invoiceSymbol?: string;
+    taxCode?: string;
+    partnerName?: string;
+    paymentMethod?: string;
     totalAmount: number;
     taxRate: number;
     invoiceDate: string;
     description: string;
     type: InvoiceType;
 }
+
+export const aiInvoiceApi = {
+    parseXml: (file: File): Promise<any> => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return fetch('http://localhost:8001/api/v1/ai/parse-xml', {
+            method: 'POST',
+            body: formData
+        }).then(res => res.json());
+    }
+};
 
 export const invoiceApi = {
     getInvoices: (): Promise<Invoice[]> => api.get<Invoice[]>('/v1/invoices'),

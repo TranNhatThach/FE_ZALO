@@ -21,6 +21,7 @@ import { userService } from '@/services/user.service';
 import dayjs from 'dayjs';
 import { useGetProjects } from '@/hooks/useProjects';
 import { customerApi, Customer } from '@/api/customer.api';
+import { useThemeStore } from '@/stores/theme.store';
 
 const { Title, Text } = Typography;
 
@@ -33,6 +34,7 @@ interface CreateTaskModalProps {
 export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClose, onSuccess }) => {
   const [form] = Form.useForm();
   const { user } = useAuthStore();
+  const { isDarkMode } = useThemeStore();
   const { mutate: createTask, isPending } = useCreateTaskMutation();
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
@@ -41,11 +43,12 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
   const { data: projects = [] } = useGetProjects();
 
   const [customerSearch, setCustomerSearch] = React.useState('');
-  const { data: customers = [] } = useQuery({
+  const { data: customerPage } = useQuery({
     queryKey: ['customers', customerSearch],
-    queryFn: () => customerApi.search(customerSearch),
+    queryFn: () => customerApi.search(customerSearch, 0, 10),
     enabled: customerSearch.length >= 2,
   });
+  const customers = customerPage?.content || [];
 
   const handleCustomerSelect = (customerId: number) => {
     const selected = customers.find(c => c.id === customerId);
@@ -90,7 +93,8 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
       open={visible}
       onCancel={onClose}
       footer={null}
-      centered
+      centered={false}
+      style={{ top: 100 }}
       width={380}
       styles={{
         mask: { backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.4)' },
@@ -98,10 +102,10 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
         header: { display: 'none' }
       }}
       closable={false}
-      className="premium-create-task-modal"
+      className={`premium-create-task-modal ${isDarkMode ? 'dark-mode' : ''}`}
     >
       {/* Header Bar with Gradient */}
-      <div className="bg-gradient-to-r from-[#1e3ba1] to-[#2563eb] p-5 relative overflow-hidden w-full m-0">
+      <div className="bg-gradient-to-r from-[#1e3ba1] to-[#2563eb] px-5 pb-5 relative overflow-hidden w-full m-0" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)' }}>
         <div className="absolute top-[-10px] right-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl" />
         <div className="relative z-10">
           <div className="flex items-center justify-between">
@@ -117,7 +121,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
         </div>
       </div>
 
-      <div className="p-5">
+      <div className={`p-5 transition-colors ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`}>
         <Form
           form={form}
           layout="vertical"
@@ -211,7 +215,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           </div>
 
           {/* Section 2: Customer Details */}
-          <div className="p-5 rounded-[28px] bg-blue-50/50 border border-blue-100/50 mb-8">
+          <div className={`p-5 rounded-[28px] border mb-8 transition-colors ${isDarkMode ? 'bg-blue-900/10 border-blue-900/30' : 'bg-blue-50/50 border-blue-100/50'}`}>
             <div className="flex items-center gap-2 mb-4">
               <UserOutlined className="text-[#1e3ba1]" />
               <span className="text-[11px] font-black text-[#1e3ba1] uppercase tracking-[0.2em]">Đối tác & Tài chính</span>
@@ -300,7 +304,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
               <Input.TextArea
                 placeholder="Nhập chi tiết kỹ thuật hoặc lưu ý cho nhân viên..."
                 rows={3}
-                className="rounded-[20px] p-4 border-gray-200 focus:border-blue-600 transition-all font-medium"
+                className={`rounded-[20px] p-4 border transition-all font-medium ${isDarkMode ? 'bg-gray-800 border-gray-700 text-white placeholder-gray-500 focus:border-blue-500' : 'bg-gray-50 border-gray-100 text-gray-800 focus:border-blue-600'}`}
               />
             </Form.Item>
           </div>
@@ -309,7 +313,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           <div className="flex gap-3 pt-4 border-t border-gray-100 mt-2">
             <button
               onClick={onClose}
-              className="flex-1 py-4 rounded-2xl font-black text-gray-400 bg-gray-100 border-none active:scale-95 transition-all"
+              className={`flex-1 py-4 rounded-2xl font-black border-none active:scale-95 transition-all ${isDarkMode ? 'bg-gray-800 text-gray-500' : 'bg-gray-100 text-gray-400'}`}
             >HỦY BỎ</button>
             <button
               onClick={handleCreate}
@@ -328,33 +332,65 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
           overflow: hidden !important;
           box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.25) !important;
           padding: 0 !important;
+          background: ${isDarkMode ? '#121212' : 'white'} !important;
         }
         .premium-create-task-modal .ant-modal-body {
           padding: 0 !important;
         }
         .modern-input {
           border-radius: 16px !important;
-          background: #f8fafc !important;
-          border: 1.5px solid #f1f5f9 !important;
+          background: ${isDarkMode ? '#1a1a1c' : '#f8fafc'} !important;
+          border: 1.5px solid ${isDarkMode ? '#333' : '#f1f5f9'} !important;
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
           font-weight: 500 !important;
+          color: ${isDarkMode ? 'white' : '#1e293b'} !important;
+        }
+        .modern-input::placeholder {
+          color: ${isDarkMode ? '#555' : '#cbd5e1'} !important;
         }
         .modern-input:focus, .modern-input:hover {
           border-color: #1e3ba1 !important;
-          background: white !important;
+          background: ${isDarkMode ? '#1f1f23' : 'white'} !important;
           box-shadow: 0 4px 12px rgba(30, 59, 161, 0.08) !important;
         }
         .modern-select .ant-select-selector {
           border-radius: 16px !important;
-          background: #f8fafc !important;
-          border: 1.5px solid #f1f5f9 !important;
+          background: ${isDarkMode ? '#1a1a1c' : '#f8fafc'} !important;
+          border: 1.5px solid ${isDarkMode ? '#333' : '#f1f5f9'} !important;
           height: 100% !important;
           display: flex !important;
           align-items: center !important;
+          color: ${isDarkMode ? 'white' : '#1e293b'} !important;
+        }
+        .modern-select .ant-select-selection-placeholder {
+          color: ${isDarkMode ? '#555' : '#cbd5e1'} !important;
         }
         .modern-select .ant-select-selection-item {
           font-weight: 600 !important;
-          color: #1e293b !important;
+          color: ${isDarkMode ? 'white' : '#1e293b'} !important;
+        }
+        .dark-mode .ant-select-dropdown {
+          background-color: #1a1a1c !important;
+          border: 1.5px solid #333 !important;
+        }
+        .dark-mode .ant-select-item {
+          color: white !important;
+        }
+        .dark-mode .ant-select-item-option-active {
+          background-color: #333 !important;
+        }
+        .dark-mode .ant-picker-panel-container {
+          background-color: #1a1a1c !important;
+          color: white !important;
+        }
+        .dark-mode .ant-picker-header, .dark-mode .ant-picker-content th {
+          color: white !important;
+        }
+        .dark-mode .ant-picker-cell {
+          color: #aaa !important;
+        }
+        .dark-mode .ant-picker-cell-in-view {
+          color: white !important;
         }
       `}</style>
     </Modal>

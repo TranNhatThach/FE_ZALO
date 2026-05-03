@@ -13,6 +13,7 @@ import { useThemeStore } from '../../stores/theme.store';
 import { useMobile } from '../../hooks/useMobile';
 import { useLocation, useNavigate } from 'zmp-ui';
 import { menuConfig, MenuItem } from '../../configs/menu.config';
+import { NotificationBell } from '../NotificationBell';
 
 const { Header: AntHeader } = Layout;
 
@@ -101,11 +102,7 @@ export const Header: React.FC = () => {
           checked={isDarkMode}
           onChange={toggleDarkMode}
         />
-        <Dropdown menu={{ items: notificationItems }} placement="bottomRight" arrow>
-          <Badge count={3} size="small" className="cursor-pointer">
-            <BellOutlined className={`text-xl transition-colors ${isDarkMode ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-blue-500'}`} />
-          </Badge>
-        </Dropdown>
+        <NotificationBell />
         <Dropdown menu={{ items: userMenuItems as any }} placement="bottomRight" arrow>
           <div className={`flex items-center cursor-pointer gap-2 p-1.5 rounded-xl transition-colors ${isDarkMode ? 'hover:bg-gray-800' : 'hover:bg-gray-50'}`}>
             <Avatar size={32} icon={<UserOutlined />} src={user?.avatar} className="border border-gray-100" />

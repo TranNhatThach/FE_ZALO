@@ -25,10 +25,13 @@ export const useNotificationStore = create<NotificationState>((set) => ({
   unreadCount: 0,
 
   addNotification: (noti) => set((state) => {
+    // Kiểm tra xem thông báo đã tồn tại chưa (tránh trùng lặp khi vừa fetch vừa nhận socket)
+    if (state.notifications.some(n => n.id === noti.id)) return state;
+    
     const updated = [noti, ...state.notifications];
     return {
       notifications: updated,
-      unreadCount: state.unreadCount + 1
+      unreadCount: updated.filter(n => !n.isRead).length
     };
   }),
 
