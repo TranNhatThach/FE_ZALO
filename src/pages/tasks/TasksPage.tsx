@@ -85,6 +85,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
     MARKETING: 'Tiếp thị',
     TECHNICAL: 'Kỹ thuật',
     DESIGN: 'Thiết kế',
+    SALES: 'Kinh doanh',
     DEFAULT: 'Khác',
   };
 

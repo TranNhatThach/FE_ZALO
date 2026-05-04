@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, Form, Input, Select, DatePicker, message, Divider, Typography } from 'antd';
+import { Modal, Form, Input, Select, DatePicker, message, Divider, Typography, Switch } from 'antd';
 import {
   PlusCircleOutlined,
   LoadingOutlined,
@@ -12,7 +12,8 @@ import {
   HomeOutlined,
   BankOutlined,
   DollarCircleOutlined,
-  FileTextOutlined
+  FileTextOutlined,
+  CameraOutlined
 } from '@ant-design/icons';
 import { useCreateTaskMutation } from '@/hooks/useTasks';
 import { useQuery } from '@tanstack/react-query';
@@ -211,6 +212,20 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
                 format="DD/MM/YYYY"
                 suffixIcon={<CalendarOutlined className="text-blue-600" />}
               />
+            </Form.Item>
+
+            <Form.Item
+              name="requirePhoto"
+              valuePropName="checked"
+              className={`p-3 rounded-2xl border transition-colors ${isDarkMode ? 'bg-indigo-900/10 border-indigo-900/20' : 'bg-indigo-50/50 border-indigo-100/50'}`}
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <CameraOutlined className="text-indigo-600" />
+                  <span className="text-[12px] font-bold text-indigo-900">Bắt buộc ảnh minh chứng</span>
+                </div>
+                <Switch size="small" />
+              </div>
             </Form.Item>
           </div>
 

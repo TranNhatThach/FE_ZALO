@@ -306,8 +306,13 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
                               </div>
                               <div className="py-0.5 flex-1">
                                  <div className={`text-[12px] font-black leading-none mb-1 ${isDarkMode ? 'text-gray-100' : 'text-gray-900'}`}>Check-in</div>
-                                 <div className="text-[9px] text-gray-400 font-bold uppercase">{dayjs(task.checkInTime).format('HH:mm - DD/MM/YYYY')}</div>
                                  {task.checkInNote && <div className={`text-[11px] mt-1 italic px-2 py-1 rounded-lg ${isDarkMode ? 'bg-gray-800 text-blue-400' : 'bg-blue-50 text-blue-700'}`}>"{task.checkInNote}"</div>}
+                                 {(task.checkInLatitude || task.checkInLongitude) && (
+                                    <div className="text-[9px] text-gray-400 mt-1 flex items-center gap-1">
+                                       <EnvironmentOutlined className="text-[8px]" />
+                                       GPS: {task.checkInLatitude?.toFixed(6)}, {task.checkInLongitude?.toFixed(6)}
+                                    </div>
+                                 )}
                               </div>
                            </div>
                         )}

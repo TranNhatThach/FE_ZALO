@@ -26,19 +26,7 @@ const Dashboard: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const today = dayjs().locale('vi').format('dddd, D [Tháng] M, YYYY');
 
-  // Mock data for fallbacks to make demo look premium
-  const activityData = [
-    { day: 'T2', value: 45 },
-    { day: 'T3', value: 52 },
-    { day: 'T4', value: 38 },
-    { day: 'T5', value: 65 },
-    { day: 'T6', value: 48 },
-    { day: 'T7', value: 35 },
-    { day: 'CN', value: 20 },
-  ];
-  const contractData = [
-    { value: 40 }, { value: 70 }, { value: 45 }, { value: 90 }, { value: 65 }, { value: 80 }
-  ];
+
 
   // Fetch real summary data
   const { data: stats, isLoading, error } = useQuery({
@@ -92,10 +80,12 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="inline-flex items-center bg-white/10 backdrop-blur-xl rounded-full px-4 py-1.5 text-[11px] font-bold border border-white/20">
-            <ArrowUpOutlined className="mr-1.5 text-emerald-400" />
-            <span>+12.5%</span>
-          </div>
+          {statsData.todayAttendance > 0 && (
+            <div className="inline-flex items-center bg-white/10 backdrop-blur-xl rounded-full px-4 py-1.5 text-[11px] font-bold border border-white/20">
+              <UserOutlined className="mr-1.5 text-emerald-400" />
+              <span>{statsData.todayAttendance} nhân sự đang làm</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -143,7 +133,7 @@ const Dashboard: React.FC = () => {
         </div>
         <div style={{ width: '100%', height: 40, minWidth: 100 }}>
           <ResponsiveContainer width="100%" height={40}>
-            <BarChart data={contractData.length > 0 ? contractData : [{value: 0}]}>
+            <BarChart data={statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : [{ day: '', value: 0 }]}>
               <Bar
                 dataKey="value"
                 fill={isDarkMode ? '#3b82f6' : '#1a3faf'}
@@ -169,7 +159,7 @@ const Dashboard: React.FC = () => {
 
         <div style={{ width: '100%', height: 192, minHeight: 192 }}>
           <ResponsiveContainer width="100%" height={192}>
-            <BarChart data={statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : activityData} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
+            <BarChart data={statsData.weeklyActivity} margin={{ top: 0, right: 0, left: -45, bottom: 0 }}>
               <XAxis
                 dataKey="day"
                 axisLine={false}
@@ -192,7 +182,7 @@ const Dashboard: React.FC = () => {
                 radius={[12, 12, 12, 12]}
                 barSize={34}
               >
-                {(statsData.weeklyActivity.length > 0 ? statsData.weeklyActivity : activityData).map((entry, index) => (
+                {statsData.weeklyActivity.map((entry, index) => (
                   <Cell
                     key={`cell-${index}`}
                     fill={entry.value > 0 ? (isDarkMode ? '#3b82f6' : '#1a3faf') : (isDarkMode ? '#1e293b' : '#e5e7eb')}
@@ -200,41 +190,16 @@ const Dashboard: React.FC = () => {
                 ))}
               </Bar>
             </BarChart>
+            {statsData.weeklyActivity.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-400 font-bold text-[11px] uppercase tracking-widest">
+                Chưa có hoạt động
+              </div>
+            )}
           </ResponsiveContainer>
         </div>
       </div>
 
-      {/* Business Health Section with Custom Progress UI */}
-      <div className="space-y-5 px-1 pt-2">
-        <Title level={5} style={{ margin: 0, fontSize: '13px' }} className={`font-extrabold uppercase tracking-[0.15em] ${isDarkMode ? 'text-gray-400' : 'text-[#1a1f36]'}`}>
-          Sức khỏe doanh nghiệp
-        </Title>
-        <div className={`rounded-[32px] p-6 border shadow-sm space-y-7 transition-all ${isDarkMode ? 'bg-[#121212] border-gray-800' : 'bg-white border-gray-50'}`}>
-          <div className="space-y-3.5">
-            <div className="flex justify-between items-end">
-              <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>HIỆU SUẤT VẬN HÀNH</Text>
-              <Text className={`text-[11px] font-black ${isDarkMode ? 'text-blue-400' : 'text-[#1a3faf]'}`}>{statsData.operationalEfficiency.toFixed(1)}%</Text>
-            </div>
-            <Progress percent={statsData.operationalEfficiency} showInfo={false} strokeColor={isDarkMode ? '#3b82f6' : '#1a3faf'} railColor={isDarkMode ? '#1e293b' : '#f1f5f9'} size={12} strokeLinecap="round" />
-          </div>
 
-          <div className="space-y-3.5">
-            <div className="flex justify-between items-end">
-              <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>ĐÁNH GIÁ RỦI RO</Text>
-              <Text className="text-[11px] font-black text-[#ef4444]">8%</Text>
-            </div>
-            <Progress percent={8} showInfo={false} strokeColor="#ef4444" railColor={isDarkMode ? '#1e293b' : '#f1f5f9'} size={12} strokeLinecap="round" />
-          </div>
-
-          <div className="space-y-3.5">
-            <div className="flex justify-between items-end">
-              <Text className={`text-[11px] font-extrabold tracking-wide ${isDarkMode ? 'text-gray-500' : 'text-[#475569]'}`}>TỶ LỆ GIỮ CHÂN</Text>
-              <Text className={`text-[11px] font-black ${isDarkMode ? 'text-gray-400' : 'text-[#64748b]'}`}>98.5%</Text>
-            </div>
-            <Progress percent={98.5} showInfo={false} strokeColor={isDarkMode ? '#64748b' : '#64748b'} railColor={isDarkMode ? '#1e293b' : '#f1f5f9'} size={12} strokeLinecap="round" />
-          </div>
-        </div>
-      </div>
 
       {/* Task List / Agenda Section */}
       <div className="space-y-5 px-1 pt-2">

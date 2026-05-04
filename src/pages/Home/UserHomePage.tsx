@@ -1,6 +1,7 @@
 import React from 'react';
 import { useThemeStore } from '@/stores/theme.store';
 import { useAuthStore } from '@/stores/auth.store';
+import dayjs from 'dayjs';
 import { useGetMyTasks, useUpdateTaskStatusMutation } from '@/hooks/useTasks';
 import { useGetMyProgress } from '@/hooks/useReports';
 import {
@@ -101,7 +102,13 @@ export const UserHomePage: React.FC = () => {
       <div className="px-5 pt-8 pb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-2xl border-2 border-white shadow-sm overflow-hidden bg-blue-50">
-            <img src={user?.avatar || 'https://i.pravatar.cc/150'} alt="avatar" className="w-full h-full object-cover" />
+            {user?.avatar ? (
+              <img src={user.avatar} alt="avatar" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">
+                {user?.fullName?.charAt(0) || user?.username?.charAt(0) || 'U'}
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
             <span className="text-[12px] font-bold text-gray-500 uppercase tracking-widest">Chào buổi sáng,</span>
@@ -114,7 +121,7 @@ export const UserHomePage: React.FC = () => {
       </div>
 
       {/* 2. Face Registration CTA chi khi nguoi dung chua dang ki mat*/}
-      {user?.isFaceRegistered && (
+      {!user?.isFaceRegistered && (
         <div className="px-5 mb-6">
           <div className={`p-5 rounded-[28px] flex items-center justify-between gap-4 border-2 border-dashed border-blue-400 bg-blue-50/50 shadow-sm transition-all hover:bg-blue-50`}>
             <div className="flex items-center gap-4">
@@ -371,8 +378,7 @@ export const UserHomePage: React.FC = () => {
                     <ClockCircleOutlined className="text-orange-600" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-[11px] font-bold text-gray-400 uppercase">Ngày ban hành</span>
-                    <span className={`text-[13px] font-black ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>22 tháng 04, 2024</span>
+                    <span className={`text-[13px] font-black ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedNews.createdAt ? dayjs(selectedNews.createdAt).format('DD [tháng] MM, YYYY') : 'Vừa xong'}</span>
                   </div>
                 </div>
               </div>
