@@ -140,17 +140,17 @@ const RegisterPage: React.FC = () => {
             </div>
           </div>
 
-          {/* FORM NHẬP SỐ ĐIỆN THOẠI / EMAIL */}
+          {/* FORM NHẬP SỐ ĐIỆN THOẠI */}
           <div className="w-full mb-5 shrink-0">
             <label className="block text-[14px] font-medium text-gray-700 mb-2">
-              Số điện thoại/Email <span className="text-red-500">*</span>
+              Số điện thoại <span className="text-red-500">*</span>
             </label>
 
             <div className="flex items-center w-full h-[52px] border border-gray-300 rounded-[12px] px-3.5 focus-within:border-[#1E40AF] focus-within:ring-1 focus-within:ring-[#1E40AF] transition-colors bg-white overflow-hidden">
               <img src="/icons/user.svg" alt="contact" className="w-5 h-5 mr-2.5 brightness-0" />
               <input
                 type="text"
-                placeholder="Email hoặc số điện thoại"
+                placeholder="Nhập số điện thoại của bạn"
                 className="flex-1 bg-transparent border-none outline-none text-[16px] text-gray-900 placeholder-gray-400 w-full"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}

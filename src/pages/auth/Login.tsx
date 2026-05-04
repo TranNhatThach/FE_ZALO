@@ -4,6 +4,7 @@ import { useLoginMutation, useZaloLoginMutation } from '@/hooks/useAuth';
 import { useAuthStore } from '@/stores/auth.store';
 import { getUserInfo } from 'zmp-sdk';
 import { User } from '@/types/auth.types';
+import { LoadingScreen } from '@/components/common/LoadingScreen';
 
 const LoginPage: React.FC = () => {
   const [phone, setPhone] = useState('');
@@ -37,19 +38,32 @@ const LoginPage: React.FC = () => {
   };
 
   const handleLogin = () => {
-    // NGƯỢC LẠI: Gọi API thực tế
+    setErrorMsg(null);
     const credentials = { username: phone, password };
-    /* 
-      TẠM THỜI COMMENT API:
-      const isEmail = phone.includes('@');
-      const credentials = isEmail ? { email: phone, password } : { phone: phone, password };*/
+
     loginMutation.mutate(credentials, {
       onSuccess: (data) => {
         login(data.user, data.accessToken, data.refreshToken);
         navigateByRole(data.user);
       },
       onError: (error: any) => {
-        setErrorMsg(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.');
+        console.error("Login Error:", error);
+        let msg = 'Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.';
+        
+        if (error.message) {
+          const errText = error.message.toLowerCase();
+          if (errText.includes('bad credentials') || 
+              errText.includes('user not found') || 
+              errText.includes('unauthorized')) {
+            msg = 'Tài khoản hoặc mật khẩu không chính xác.';
+          } else if (errText.includes('network error') || errText.includes('failed to fetch')) {
+            msg = 'Không thể kết nối tới máy chủ. Vui lòng kiểm tra mạng.';
+          } else {
+            msg = error.message;
+          }
+        }
+        
+        setErrorMsg(msg);
       },
     });
   };
@@ -103,6 +117,7 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
+      {(loginMutation.isPending || zaloLoginMutation.isPending) && <LoadingScreen />}
       {/* CẬP NHẬT: Thêm thẻ style để ẩn thanh cuộn trên mọi trình duyệt */}
       <style>
         {`
@@ -138,10 +153,10 @@ const LoginPage: React.FC = () => {
             Đăng nhập để sử dụng tiếp ứng dụng
           </p>
 
-          {/* FORM NHẬP SỐ ĐIỆN THOẠI / EMAIL */}
+          {/* FORM NHẬP SỐ ĐIỆN THOẠI */}
           <div className="w-full mb-5 shrink-0">
             <label className="block text-[14px] font-medium text-gray-700 mb-2">
-              Số điện thoại/Email <span className="text-red-500">*</span>
+              Số điện thoại <span className="text-red-500">*</span>
             </label>
 
             <div className="flex items-center w-full h-[52px] border border-gray-300 rounded-[12px] px-3.5 focus-within:border-[#1E40AF] focus-within:ring-1 focus-within:ring-[#1E40AF] transition-colors bg-white overflow-hidden">
@@ -150,7 +165,7 @@ const LoginPage: React.FC = () => {
 
               <input
                 type="text"
-                placeholder="Email hoặc số điện thoại"
+                placeholder="Nhập số điện thoại"
                 className="flex-1 bg-transparent border-none outline-none text-[16px] text-gray-900 placeholder-gray-400 w-full"
                 value={phone}
                 onChange={(e) => {

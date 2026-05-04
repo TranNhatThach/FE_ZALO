@@ -2,20 +2,16 @@ import React, { useState } from 'react';
 import { useThemeStore } from '@/stores/theme.store';
 import {
   SearchOutlined,
-  StarFilled,
   FilterOutlined,
   PlusOutlined,
   CalendarOutlined,
   LoadingOutlined,
-  CheckCircleOutlined,
-  PlayCircleOutlined,
-  CameraOutlined,
-  EnvironmentOutlined,
   RocketOutlined,
-  UsergroupAddOutlined,
   ExportOutlined,
   DeleteOutlined,
-  ExclamationCircleOutlined
+  ExclamationCircleOutlined,
+  LeftOutlined,
+  RightOutlined,
 } from '@ant-design/icons';
 import { message, Modal } from 'antd';
 import {
@@ -202,6 +198,16 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
 // TasksPage
 // ──────────────────────────────────────────────────────────────────────────────
 
+const ITEMS_PER_PAGE = 10;
+
+// Sort tasks: newest first (by createdAt desc, fallback dueDate)
+const sortNewest = (arr: Task[]) =>
+  [...arr].sort((a, b) => {
+    const da = new Date((a as any).createdAt || a.dueDate || 0).getTime();
+    const db = new Date((b as any).createdAt || b.dueDate || 0).getTime();
+    return db - da;
+  });
+
 export const TasksPage: React.FC = () => {
   const { isDarkMode } = useThemeStore();
   const { user } = useAuthStore();
@@ -210,7 +216,8 @@ export const TasksPage: React.FC = () => {
   const [tab, setTab] = useState<'MY' | 'UNASSIGNED'>('MY');
   const [viewMode, setViewMode] = useState<'TASKS' | 'PROJECTS'>('TASKS');
   const [page, setPage] = useState(0);
-  const [pageSize, setPageSize] = useState(20);
+  const [pageSize] = useState(20);
+  const [clientPage, setClientPage] = useState(0);
 
   const [workflowModal, setWorkflowModal] = useState<{ visible: boolean, mode: 'CHECK_IN' | 'COMPLETE', task: Task | null }>({
     visible: false,
@@ -248,13 +255,33 @@ export const TasksPage: React.FC = () => {
     return tab === 'MY' ? 'Bắt đầu ngày mới với các đầu việc đã được giao.' : 'Chọn thêm công việc phù hợp để tăng thu nhập.';
   };
 
-  const todoTasks = tasks.filter((t) => {
+  // Sort newest first
+  const sortedTasks = sortNewest(tasks);
+
+  const todoTasks = sortedTasks.filter((t) => {
     const s = normalizeStatus(t.status);
     return s === 'TO_DO' || s === 'IN_PROGRESS' || s === 'REJECTED';
   });
-  const activeTasks = tasks.filter((t) => normalizeStatus(t.status) === 'CHECKED_IN');
-  const reviewTasks = tasks.filter((t) => normalizeStatus(t.status) === 'REVIEW');
-  const doneTasks = tasks.filter((t) => normalizeStatus(t.status) === 'DONE');
+  const activeTasks = sortedTasks.filter((t) => normalizeStatus(t.status) === 'CHECKED_IN');
+  const reviewTasks = sortedTasks.filter((t) => normalizeStatus(t.status) === 'REVIEW');
+  const doneTasks = sortedTasks.filter((t) => normalizeStatus(t.status) === 'DONE');
+
+  // Merge all groups for single paginated list
+  const allGrouped = [...todoTasks, ...activeTasks, ...reviewTasks, ...doneTasks];
+  const clientTotalPages = Math.max(1, Math.ceil(allGrouped.length / ITEMS_PER_PAGE));
+  const pagedTasks = allGrouped.slice(clientPage * ITEMS_PER_PAGE, (clientPage + 1) * ITEMS_PER_PAGE);
+
+  // Re-split paged tasks into groups for rendering
+  const pagedTodo = pagedTasks.filter(t => { const s = normalizeStatus(t.status); return s === 'TO_DO' || s === 'IN_PROGRESS' || s === 'REJECTED'; });
+  const pagedActive = pagedTasks.filter(t => normalizeStatus(t.status) === 'CHECKED_IN');
+  const pagedReview = pagedTasks.filter(t => normalizeStatus(t.status) === 'REVIEW');
+  const pagedDone = pagedTasks.filter(t => normalizeStatus(t.status) === 'DONE');
+
+  const handleClientPageChange = (newPage: number) => {
+    setClientPage(newPage);
+    // Scroll to top of task list
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   const showWorkflow = (task: Task, mode: 'CHECK_IN' | 'COMPLETE') => {
     setWorkflowModal({ visible: true, mode, task });
@@ -263,6 +290,9 @@ export const TasksPage: React.FC = () => {
   const showDetails = (task: Task) => {
     setDetailsModal({ visible: true, task });
   };
+
+  // Reset client page when tab/data changes
+  React.useEffect(() => { setClientPage(0); }, [tab, viewMode, tasks.length]);
 
   const handleExportCSV = () => {
     if (!tasks || tasks.length === 0) {
@@ -448,8 +478,18 @@ export const TasksPage: React.FC = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              {/* NHÓM MỚI / ĐANG CHUẨN BỊ (Hoặc Tab Việc chưa nhận) */}
-              {(todoTasks.length > 0 || tab === 'UNASSIGNED') && (
+              {/* Counter bar */}
+              <div className={`flex items-center justify-between px-1 mb-1`}>
+                <span className={`text-[12px] font-bold ${isDarkMode ? 'text-gray-500' : 'text-gray-400'}`}>
+                  {allGrouped.length} công việc • Trang {clientPage + 1}/{clientTotalPages}
+                </span>
+                <span className={`text-[11px] font-bold ${isDarkMode ? 'text-gray-600' : 'text-gray-300'}`}>
+                  Mới nhất trước
+                </span>
+              </div>
+
+              {/* NHÓM SẴN SÀNG / ĐANG LÀM */}
+              {pagedTodo.length > 0 && (
                 <div>
                    <div className="flex items-center gap-2 mb-2">
                      <div className="w-4 h-1 rounded-full bg-blue-400" />
@@ -458,22 +498,22 @@ export const TasksPage: React.FC = () => {
                      </h4>
                    </div>
                   <div className="flex flex-col gap-2">
-                    {todoTasks.map(task => (
+                    {pagedTodo.map(task => (
                       <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* NHÓM ĐÃ CHECK_IN (Đang làm tại hiện trường) */}
-              {activeTasks.length > 0 && (
+              {/* NHÓM ĐÃ CHECK_IN */}
+              {pagedActive.length > 0 && (
                 <div>
                    <div className="flex items-center gap-2 mb-2">
                      <div className="w-4 h-1 rounded-full bg-orange-400" />
                      <h4 className={`text-[12px] font-black uppercase tracking-widest m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-900'}`}>Đang tại hiện trường</h4>
                    </div>
                   <div className="flex flex-col gap-2">
-                    {activeTasks.map(task => (
+                    {pagedActive.map(task => (
                       <TaskCard key={task.id} task={task} onWorkflowClick={showWorkflow} onDetailsClick={showDetails} />
                     ))}
                   </div>
@@ -481,17 +521,60 @@ export const TasksPage: React.FC = () => {
               )}
 
               {/* NHÓM CHỜ DUYỆT / XONG */}
-              {(reviewTasks.length > 0 || doneTasks.length > 0) && (
+              {(pagedReview.length > 0 || pagedDone.length > 0) && (
                 <div>
                    <div className="flex items-center gap-2 mb-2">
                      <div className="w-4 h-1 rounded-full bg-emerald-400" />
                      <h4 className={`text-[12px] font-black uppercase tracking-widest m-0 ${isDarkMode ? 'text-gray-400' : 'text-gray-900'}`}>Hoàn thành / Chờ duyệt</h4>
                    </div>
                   <div className="flex flex-col gap-2">
-                    {[...reviewTasks, ...doneTasks].map(task => (
+                    {[...pagedReview, ...pagedDone].map(task => (
                       <TaskCard key={task.id} task={task} onDetailsClick={showDetails} />
                     ))}
                   </div>
+                </div>
+              )}
+
+              {/* ── Pagination Bar ── */}
+              {clientTotalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-4 mb-6">
+                  <button
+                    onClick={() => handleClientPageChange(Math.max(0, clientPage - 1))}
+                    disabled={clientPage === 0}
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center border-none transition-all active:scale-90 ${
+                      clientPage === 0
+                        ? (isDarkMode ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300')
+                        : (isDarkMode ? 'bg-[#1a2a6c] text-blue-300' : 'bg-blue-50 text-[#1e3ba1] shadow-sm')
+                    }`}
+                  >
+                    <LeftOutlined className="text-[14px]" />
+                  </button>
+
+                  {Array.from({ length: clientTotalPages }, (_, i) => i).map(i => (
+                    <button
+                      key={i}
+                      onClick={() => handleClientPageChange(i)}
+                      className={`w-9 h-9 rounded-xl text-[13px] font-black border-none transition-all active:scale-90 ${
+                        i === clientPage
+                          ? 'bg-[#1e3ba1] text-white shadow-md shadow-blue-900/30'
+                          : (isDarkMode ? 'bg-gray-800 text-gray-400 hover:bg-gray-700' : 'bg-white text-gray-400 shadow-sm hover:bg-gray-50')
+                      }`}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+
+                  <button
+                    onClick={() => handleClientPageChange(Math.min(clientTotalPages - 1, clientPage + 1))}
+                    disabled={clientPage >= clientTotalPages - 1}
+                    className={`w-10 h-10 rounded-2xl flex items-center justify-center border-none transition-all active:scale-90 ${
+                      clientPage >= clientTotalPages - 1
+                        ? (isDarkMode ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300')
+                        : (isDarkMode ? 'bg-[#1a2a6c] text-blue-300' : 'bg-blue-50 text-[#1e3ba1] shadow-sm')
+                    }`}
+                  >
+                    <RightOutlined className="text-[14px]" />
+                  </button>
                 </div>
               )}
               </div>
@@ -499,26 +582,38 @@ export const TasksPage: React.FC = () => {
           )
         }
 
-        {/* Load More for Admin */}
+        {/* Server-side page nav for Admin (when backend has more pages) */}
         {isAdmin && totalPages > 1 && (
-          <div className="flex justify-center mt-6 mb-10">
-            <div className="flex items-center gap-4 bg-white p-2 rounded-2xl shadow-sm border border-gray-100">
-               <button 
-                disabled={page === 0}
-                onClick={() => setPage(p => p - 1)}
-                className="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-blue-50 text-blue-600 disabled:opacity-50"
-               >
-                 <RocketOutlined className="rotate-270" />
-               </button>
-               <span className="text-[12px] font-black text-gray-400">TRANG {page + 1} / {totalPages}</span>
-               <button 
-                disabled={page >= totalPages - 1}
-                onClick={() => setPage(p => p + 1)}
-                className="w-10 h-10 rounded-xl flex items-center justify-center border-none bg-blue-50 text-blue-600 disabled:opacity-50"
-               >
-                 <RocketOutlined className="rotate-90" />
-               </button>
-            </div>
+          <div className={`flex items-center justify-center gap-2 mt-2 mb-4 text-[12px] font-bold ${
+            isDarkMode ? 'text-gray-500' : 'text-gray-400'
+          }`}>
+            <button
+              disabled={page === 0}
+              onClick={() => { setPage(p => p - 1); setClientPage(0); }}
+              className={`px-4 py-2 rounded-xl border-none font-black transition-all active:scale-95 ${
+                page === 0
+                  ? (isDarkMode ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300')
+                  : (isDarkMode ? 'bg-[#1a2a6c] text-blue-300' : 'bg-blue-50 text-[#1e3ba1]')
+              }`}
+            >
+              ← Trang trước
+            </button>
+            <span className={`px-3 py-1 rounded-lg ${
+              isDarkMode ? 'bg-gray-800 text-gray-300' : 'bg-white text-gray-600 shadow-sm'
+            }`}>
+              {page + 1} / {totalPages}
+            </span>
+            <button
+              disabled={page >= totalPages - 1}
+              onClick={() => { setPage(p => p + 1); setClientPage(0); }}
+              className={`px-4 py-2 rounded-xl border-none font-black transition-all active:scale-95 ${
+                page >= totalPages - 1
+                  ? (isDarkMode ? 'bg-gray-800 text-gray-600' : 'bg-gray-100 text-gray-300')
+                  : (isDarkMode ? 'bg-[#1a2a6c] text-blue-300' : 'bg-blue-50 text-[#1e3ba1]')
+              }`}
+            >
+              Trang sau →
+            </button>
           </div>
         )}
       </div>

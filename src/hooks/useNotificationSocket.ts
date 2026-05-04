@@ -1,13 +1,13 @@
 import { useEffect } from 'react';
 import { Client } from '@stomp/stompjs';
-import { showToast, vibrate } from 'zmp-sdk';
+import { vibrate } from 'zmp-sdk';
 import SockJS from 'sockjs-client';
 import { useAuthStore } from '@/stores/auth.store';
 import {
     useNotificationStore,
     Notification
 } from '@/stores/notification.store';
-
+import { showNotificationToast } from '@/components/NotificationToast';
 import { useQueryClient } from '@tanstack/react-query';
 import { QUERY_KEYS } from '@/api/queryKeys';
 
@@ -85,9 +85,11 @@ export const useNotificationSocket = () => {
                                                 new Date().toISOString()
                                         });
 
-                                        // Hiển thị thông báo tức thời (Ting ting)
-                                        showToast({
-                                            message: notification.title
+                                        // Hiển thị banner thông báo tức thì kiểu Facebook
+                                        showNotificationToast({
+                                            title: notification.title,
+                                            message: notification.message,
+                                            type: notification.type
                                         });
                                         vibrate({});
 

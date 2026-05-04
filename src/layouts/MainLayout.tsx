@@ -86,7 +86,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 Enterprise OS
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 mr-24">
               <NotificationBell />
             </div>
           </div>

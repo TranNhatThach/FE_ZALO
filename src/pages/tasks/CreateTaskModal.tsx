@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Modal, Form, Input, Select, DatePicker, message, Divider, Typography, Switch } from 'antd';
 import {
   PlusCircleOutlined,
@@ -95,32 +95,57 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({ visible, onClo
       onCancel={onClose}
       footer={null}
       centered={false}
-      style={{ top: 100 }}
-      width={380}
+      style={{ top: 50 }}
+      width={400}
       styles={{
-        mask: { backdropFilter: 'blur(8px)', backgroundColor: 'rgba(0,0,0,0.4)' },
+        mask: { backdropFilter: 'blur(10px)', backgroundColor: 'rgba(0,0,0,0.5)' },
         body: { padding: 0 },
         header: { display: 'none' }
       }}
       closable={false}
       className={`premium-create-task-modal ${isDarkMode ? 'dark-mode' : ''}`}
     >
-      {/* Header Bar with Gradient */}
-      <div className="bg-gradient-to-r from-[#1e3ba1] to-[#2563eb] px-5 pb-5 relative overflow-hidden w-full m-0" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)' }}>
-        <div className="absolute top-[-10px] right-[-10px] w-24 h-24 bg-white/10 rounded-full blur-xl" />
-        <div className="relative z-10">
-          <div className="flex items-center justify-between">
-            <Title level={5} style={{ margin: 0, color: 'white', fontWeight: 900, letterSpacing: '-0.3px' }}>
-              Tạo Công Việc Mới
-            </Title>
-            <button
-              onClick={onClose}
-              className="w-9 h-9 rounded-full bg-white/20 border-none flex items-center justify-center text-white font-bold active:scale-95 transition-transform"
-            >✕</button>
+      {/* Premium Header */}
+      <div
+        className="relative overflow-hidden w-full m-0"
+        style={{
+          background: 'linear-gradient(135deg, #0f1f6e 0%, #1e3ba1 55%, #2563eb 100%)',
+          paddingTop: 'calc(env(safe-area-inset-top) + 22px)',
+          paddingBottom: 22,
+          paddingLeft: 20,
+          paddingRight: 20,
+        }}
+      >
+        <div className="absolute top-[-24px] right-[-24px] w-36 h-36 bg-white/5 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute bottom-[-12px] left-[-12px] w-28 h-28 bg-blue-300/10 rounded-full blur-xl pointer-events-none" />
+        <div className="relative z-10 flex items-start justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center shrink-0 border border-white/20">
+              <PlusCircleOutlined className="text-white text-[20px]" />
+            </div>
+            <div>
+              <div className="text-white font-black text-[17px] leading-tight tracking-tight">T&#7841;o C&#244;ng Vi&#7879;c M&#7899;i</div>
+              <div className="text-blue-200 text-[11px] font-medium opacity-80 mt-0.5">&#128203; Giao nhi&#7879;m v&#7909; &amp; qu&#7843;n l&#253; hi&#7879;n tr&#432;&#7901;ng</div>
+            </div>
           </div>
-          <Text className="text-blue-100 text-[11px] font-medium opacity-80">Thiết lập nhiệm vụ & khách hàng</Text>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full bg-white/15 border border-white/20 flex items-center justify-center text-white font-bold text-[15px] active:scale-90 transition-transform shrink-0"
+          >&#10005;</button>
+        </div>
+        <div className="relative z-10 flex gap-2.5">
+          <div className="flex-1 bg-white/10 rounded-2xl px-3 py-2 border border-white/10">
+            <div className="text-white font-black text-[18px] leading-none">{(users as any[]).filter((u: any) => u.isActive !== false).length}</div>
+            <div className="text-blue-200 text-[10px] font-bold mt-0.5 opacity-70">Nh&#226;n vi&#234;n</div>
+          </div>
+          <div className="flex-1 bg-white/10 rounded-2xl px-3 py-2 border border-white/10">
+            <div className="text-white font-black text-[18px] leading-none">{(projects as any[]).length}</div>
+            <div className="text-blue-200 text-[10px] font-bold mt-0.5 opacity-70">D&#7921; &#225;n</div>
+          </div>
         </div>
       </div>
+
+
 
       <div className={`p-5 transition-colors ${isDarkMode ? 'bg-[#121212]' : 'bg-white'}`}>
         <Form

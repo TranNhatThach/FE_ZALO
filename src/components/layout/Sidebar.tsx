@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Layout, Menu, Drawer } from 'antd';
+import { Menu, Drawer, Modal } from 'antd';
 import { useLocation, useNavigate } from 'zmp-ui';
 import { useThemeStore } from '../../stores/theme.store';
 import { useMobile } from '../../hooks/useMobile';
 import { menuConfig, MenuItem } from '../../configs/menu.config';
 import { useAuthStore } from '../../stores/auth.store';
-import { LogoutOutlined } from '@ant-design/icons';
+import { LogoutOutlined, ExclamationCircleOutlined } from '@ant-design/icons';
 
 export const Sidebar: React.FC = () => {
   const { isSidebarCollapsed, setSidebarCollapsed, isDarkMode } = useThemeStore();
@@ -82,12 +82,34 @@ export const Sidebar: React.FC = () => {
     }
   };
 
+  const handleLogout = () => {
+    Modal.confirm({
+      title: <span className="font-black text-[18px]">Xác nhận đăng xuất?</span>,
+      icon: <ExclamationCircleOutlined className="text-red-500" />,
+      content: <span className="text-gray-500 font-medium text-[14px]">Bạn sẽ phải đăng nhập lại để tiếp tục sử dụng hệ thống.</span>,
+      okText: 'ĐĂNG XUẤT',
+      cancelText: 'HỦY BỎ',
+      okButtonProps: { 
+        danger: true, 
+        className: 'rounded-xl h-10 font-black text-[12px] uppercase tracking-wider border-none bg-red-500' 
+      },
+      cancelButtonProps: { 
+        className: 'rounded-xl h-10 font-black text-[12px] uppercase tracking-wider' 
+      },
+      centered: true,
+      onOk: () => {
+        logout();
+        navigate('/login');
+      }
+    });
+  };
+
   const menuContent = (
     <div className={`flex flex-col h-full border-r relative transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-[#f4f5f8] border-gray-100'}`}>
       
       {/* Header Profile */}
       <div className="flex flex-col px-6 pt-10 pb-6">
-        <div className="w-[60px] h-[60px] rounded-[16px] border-[2px] border-[#1e3ba1] p-[2px] mb-4 bg-white flex items-center justify-center">
+        <div className="w-[60px] h-[60px] rounded-[16px] border-[2px] border-[#1e3ba1] p-[2px] mb-4 bg-white flex items-center justify-center shadow-sm">
           <img 
             src={user?.avatar || "https://api.dicebear.com/7.x/notionists/svg?seed=AdminPortal"} 
             alt="Avatar" 
@@ -135,10 +157,7 @@ export const Sidebar: React.FC = () => {
       {/* Footer Logout */}
       <div className="p-4 mb-2">
         <button 
-          onClick={() => {
-            logout();
-            navigate('/login');
-          }}
+          onClick={handleLogout}
           className="flex items-center justify-center w-full gap-2 py-4 bg-transparent border-none outline-none cursor-pointer active:scale-95 transition-transform"
         >
           <LogoutOutlined className="text-[18px] text-[#1d4ed8] font-bold" />

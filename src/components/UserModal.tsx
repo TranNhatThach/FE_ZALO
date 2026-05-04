@@ -7,8 +7,6 @@ import {
   SafetyCertificateOutlined, 
   IdcardOutlined,
   SaveOutlined,
-  CloseOutlined,
-  LockOutlined,
   CalendarOutlined,
   EnvironmentOutlined
 } from '@ant-design/icons';
@@ -38,40 +36,69 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
         form.setFieldsValue({
           ...user,
           name: user.fullName || user.name,
-          roles: user.roles || ['EMPLOYEE'],
+          roles: user.roleName ? [user.roleName] : (user.roles?.length ? user.roles : ['STAFF']),
         });
       } else {
         form.resetFields();
         form.setFieldsValue({
-          status: 'ACTIVE',
-          roles: ['EMPLOYEE'],
+          status: 'PENDING_ACTIVE',
+          roles: ['STAFF'],
+          gender: 'NAM',
         });
       }
     }
   }, [visible, user, form]);
+
+  const generatePassword = (fullName: string, birthday: string, phone: string) => {
+    if (!fullName) return '123456';
+    const nameParts = fullName.trim().split(' ');
+    let firstName = nameParts[nameParts.length - 1];
+    firstName = firstName
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D');
+    const bdayClean = birthday ? birthday.replace(/[/.-]/g, '') : '01012000';
+    const phoneSuffix = phone ? phone.toString().slice(-3) : '000';
+    return `${firstName}${bdayClean}@${phoneSuffix}`;
+  };
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
       setLoading(true);
 
+      const phone = (values.phone || '').toString().trim();
+      const birthday = values.birthday || '';
+
+      const payload: any = {
+        fullName: values.name || values.fullName,
+        email: values.email,
+        phone,
+        username: phone,
+        roles: values.roles || ['STAFF'],
+        gender: values.gender || 'NAM',
+        identityCard: values.identityCard,
+        address: values.address,
+        birthday: birthday || null,
+        status: values.status || 'PENDING_ACTIVE',
+      };
+
+      if (!isEdit) {
+        payload.password = generatePassword(payload.fullName, birthday, phone);
+      }
+
       if (isEdit && user) {
-        await userService.update(user.id, values);
-        message.success({
-          content: 'Cập nhật thông tin thành công',
-          style: { marginTop: '10vh' },
-        });
+        await userService.update(user.id, payload);
+        message.success({ content: 'Cập nhật thông tin thành công', style: { marginTop: '10vh' } });
       } else {
-        await userService.create(values);
-        message.success({
-          content: 'Tạo tài khoản mới thành công',
-          style: { marginTop: '10vh' },
-        });
+        await userService.create(payload);
+        message.success({ content: 'Tạo nhân viên thành công! Mật khẩu đã được cấp tự động.', style: { marginTop: '10vh' } });
       }
 
       onSuccess();
       onClose();
     } catch (error: any) {
+      if (error?.errorFields) return;
       console.error('Submit error:', error);
       message.error(error?.message || 'Thao tác thất bại. Vui lòng thử lại.');
     } finally {
@@ -220,18 +247,9 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
             </Form.Item>
    
             {!isEdit && (
-              <Form.Item
-                name="password"
-                label={<Text strong className="text-[12px] text-gray-500">Mật khẩu</Text>}
-                rules={[{ required: true, message: 'Bắt buộc' }]}
-                className="mb-2"
-              >
-                <Input.Password 
-                  prefix={<LockOutlined className="text-gray-400" />} 
-                  placeholder="********"
-                  className="rounded-lg h-9 text-[13px] border-gray-200"
-                />
-              </Form.Item>
+              <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 8, padding: '8px 12px', fontSize: 11, color: '#1e40af', marginBottom: 8 }}>
+                💡 Mật khẩu sẽ tự động tạo dựa trên tên, ngày sinh và SĐT của nhân viên.
+              </div>
             )}
    
             <div className="grid grid-cols-2 gap-3">
@@ -243,12 +261,13 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
               >
                 <Select 
                   mode="multiple" 
-                  placeholder="Chọn"
+                  placeholder="Chọn vai trò"
                   className="w-full text-[13px]"
                   maxTagCount="responsive"
                 >
-                  <Option value="TENANT_ADMIN">Quản trị</Option>
-                  <Option value="EMPLOYEE">Nhân viên</Option>
+                  <Option value="ADMIN"><span style={{ color: '#1d4ed8', fontWeight: 700 }}>🔑 Quản trị (ADMIN)</span></Option>
+                  <Option value="MANAGER"><span style={{ color: '#059669', fontWeight: 600 }}>📋 Quản lý (MANAGER)</span></Option>
+                  <Option value="STAFF"><span style={{ color: '#475569' }}>👷 Nhân viên (STAFF)</span></Option>
                 </Select>
               </Form.Item>
   
@@ -257,13 +276,10 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
                 label={<Text strong className="text-[12px] text-gray-500">Trạng thái</Text>}
                 className="mb-2"
               >
-                <Select className="w-full text-[13px]">
-                  <Option value="ACTIVE">
-                    <span className="text-green-600 text-[12px] font-bold">Hoạt động</span>
-                  </Option>
-                  <Option value="INACTIVE">
-                    <span className="text-red-500 text-[12px] font-bold">Khóa</span>
-                  </Option>
+                <Select className="w-full text-[13px]" disabled={!isEdit}>
+                  <Option value="ACTIVE"><span className="text-green-600 text-[12px] font-bold">✅ Hoạt động</span></Option>
+                  <Option value="PENDING_ACTIVE"><span className="text-amber-600 text-[12px] font-bold">⏳ Chờ kích hoạt</span></Option>
+                  <Option value="INACTIVE"><span className="text-red-500 text-[12px] font-bold">🔒 Đã khóa</span></Option>
                 </Select>
               </Form.Item>
             </div>
@@ -288,8 +304,9 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
                 className="mb-2"
               >
                 <Select className="w-full h-9 text-[13px]" placeholder="Chọn">
-                  <Option value="MALE">Nam</Option>
-                  <Option value="FEMALE">Nữ</Option>
+                  <Option value="NAM">Nam</Option>
+                  <Option value="NU">Nữ</Option>
+                  <Option value="KHAC">Khác</Option>
                 </Select>
               </Form.Item>
             </div>

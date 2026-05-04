@@ -67,7 +67,9 @@ export async function fetchData<T>(
     });
     clearTimeout(timeoutId);
 
-    if (response.status === 401 && !_retry) {
+    const isAuthEndpoint = endpoint.includes('/auth/login') || endpoint.includes('/auth/register');
+
+    if (response.status === 401 && !_retry && !isAuthEndpoint) {
       const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
       if (!refreshToken) {

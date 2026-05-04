@@ -12,6 +12,7 @@ import { RoleGuard } from '@/components/auth/RoleGuard';
 import { useAuthStore } from '@/stores/auth.store';
 import { useTenantResolver } from '@/hooks/useTenantResolver';
 import { useThemeStore } from '@/stores/theme.store';
+import { LoadingScreen } from '@/components/common/LoadingScreen';
 import dayjs from 'dayjs';
 import 'dayjs/locale/vi';
 
@@ -67,7 +68,9 @@ const AppContent = () => {
         }
     }, [tenantConfig, setPrimaryColor]);
 
-    // Không block UI khi tenant đang loading — cho app hiển thị luôn
+    if (isTenantLoading) {
+        return <LoadingScreen />;
+    }
     return (
         <ConfigProvider
             theme={{
@@ -81,6 +84,7 @@ const AppContent = () => {
                 <ZMPRouter>
                     <RouterContent />
                 </ZMPRouter>
+                <NotificationToastContainer />
             </App>
         </ConfigProvider>
     );
@@ -88,6 +92,7 @@ const AppContent = () => {
 
 import { useLocation, useNavigate } from 'zmp-ui';
 import { useNotificationSocket } from '../hooks/useNotificationSocket';
+import { NotificationToastContainer } from '@/components/NotificationToast';
 
 const RouterContent = () => {
     const location = useLocation();
