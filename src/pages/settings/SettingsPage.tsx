@@ -15,7 +15,11 @@ import {
   LogoutOutlined,
   ToolOutlined,
   CameraOutlined,
-  CheckCircleOutlined
+  CheckCircleOutlined,
+  TeamOutlined,
+  ShoppingOutlined,
+  CheckSquareOutlined,
+  CalculatorOutlined
 } from '@ant-design/icons';
 import { message, Switch, Modal, Input } from 'antd';
 import { authApi } from '../../api/auth.api';
@@ -30,6 +34,22 @@ const SettingsPage: React.FC = () => {
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
   const [newName, setNewName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isPasswordModalVisible, setIsPasswordModalVisible] = useState(false);
+  const [oldPassword, setOldPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isSendingOTP, setIsSendingOTP] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  // Countdown timer for OTP
+  React.useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
 
   // Cập nhật newName khi user thay đổi (vì user có thể được load sau)
   React.useEffect(() => {
@@ -60,6 +80,49 @@ const SettingsPage: React.FC = () => {
       message.error('Lỗi khi cập nhật tên!');
     } finally {
       setIsUpdating(false);
+    }
+  };
+  
+  const handleUpdatePassword = async () => {
+    if (!oldPassword || !newPassword || !confirmPassword || !otp) {
+      message.error('Vui lòng nhập đầy đủ thông tin và mã OTP!');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      message.error('Mật khẩu mới không khớp!');
+      return;
+    }
+    if (newPassword.length < 6) {
+      message.error('Mật khẩu mới phải có ít nhất 6 ký tự!');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await userService.changePassword({ oldPassword, newPassword, otp });
+      message.success('Đổi mật khẩu thành công!');
+      setIsPasswordModalVisible(false);
+      setOldPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setOtp('');
+    } catch (err: any) {
+      message.error(err.message || 'Lỗi khi đổi mật khẩu!');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleRequestOTP = async () => {
+    setIsSendingOTP(true);
+    try {
+      await userService.requestChangePasswordOTP();
+      message.success('Mã xác thực đã được gửi tới email của bạn!');
+      setCountdown(60); // Đợi 60s để gửi lại
+    } catch (err: any) {
+      message.error(err.message || 'Lỗi khi gửi mã OTP!');
+    } finally {
+      setIsSendingOTP(false);
     }
   };
 
@@ -231,6 +294,92 @@ const SettingsPage: React.FC = () => {
             </button>
           </div>
         </Modal>
+        
+        {/* Modal Đổi Mật Khẩu */}
+        <Modal
+          title={<span className="font-black text-gray-800">Bảo mật & Đổi mật khẩu</span>}
+          open={isPasswordModalVisible}
+          onCancel={() => {
+            setIsPasswordModalVisible(false);
+            setOldPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+          }}
+          onOk={handleUpdatePassword}
+          confirmLoading={isUpdating}
+          okText="Cập nhật mật khẩu"
+          cancelText="Hủy"
+          centered
+          className="rounded-2xl overflow-hidden"
+        >
+          <div className="space-y-4 py-4">
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-400 uppercase tracking-wider pl-1">Mật khẩu hiện tại</label>
+              <Input.Password
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                placeholder="Nhập mật khẩu hiện tại..."
+                className="h-12 rounded-xl bg-gray-50 border-none font-bold text-gray-800"
+              />
+            </div>
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-400 uppercase tracking-wider pl-1">Mật khẩu mới</label>
+              <Input.Password
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nhập mật khẩu mới..."
+                className="h-12 rounded-xl bg-gray-50 border-none font-bold text-gray-800"
+              />
+            </div>
+            
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-400 uppercase tracking-wider pl-1">Xác nhận mật khẩu mới</label>
+              <Input.Password
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu mới..."
+                className="h-12 rounded-xl bg-gray-50 border-none font-bold text-gray-800"
+              />
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label className="text-[12px] font-bold text-gray-400 uppercase tracking-wider pl-1">Mã xác thực (OTP)</label>
+              <div className="flex gap-2">
+                <Input
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  placeholder="Nhập mã 6 số"
+                  className="h-12 rounded-xl bg-gray-50 border-none font-bold text-gray-800 flex-1"
+                />
+                <button
+                  disabled={isSendingOTP || countdown > 0}
+                  onClick={handleRequestOTP}
+                  className={`px-4 rounded-xl font-bold text-[13px] border-none transition-all ${
+                    countdown > 0 ? 'bg-gray-100 text-gray-400' : 'bg-blue-600 text-white active:scale-95'
+                  }`}
+                >
+                  {countdown > 0 ? `${countdown}s` : 'Gửi mã'}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center px-1 mt-2">
+              <p className="text-[11px] text-gray-400 italic">
+                * Mã OTP được gửi về email đăng ký.
+              </p>
+              <button 
+                onClick={() => {
+                  setIsPasswordModalVisible(false);
+                  navigate('/forgot-password');
+                }}
+                className="text-[11px] text-blue-600 font-bold border-none bg-transparent underline"
+              >
+                Quên mật khẩu?
+              </button>
+            </div>
+          </div>
+        </Modal>
 
         {/* Group 1: Tuỳ chỉnh */}
         <div className="flex flex-col gap-2">
@@ -270,7 +419,13 @@ const SettingsPage: React.FC = () => {
             <div className={`h-[1px] ml-[50px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}></div>
             <SettingRow icon={<GlobalOutlined className="text-teal-500" />} label="Quản lý Tên miền / Website" isDarkMode={isDarkMode} showArrow />
             <div className={`h-[1px] ml-[50px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}></div>
-            <SettingRow icon={<LockOutlined className="text-red-500" />} label="Bảo mật & Phân quyền" isDarkMode={isDarkMode} showArrow />
+            <SettingRow 
+              icon={<LockOutlined className="text-red-500" />} 
+              label="Bảo mật & Phân quyền" 
+              isDarkMode={isDarkMode} 
+              showArrow 
+              onClick={() => setIsPasswordModalVisible(true)}
+            />
           </div>
         </div>
 
@@ -280,7 +435,13 @@ const SettingsPage: React.FC = () => {
           <div className={`rounded-[20px] flex flex-col overflow-hidden shadow-sm ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
             <SettingRow icon={<QuestionCircleOutlined className="text-gray-500" />} label="Trung tâm trợ giúp" isDarkMode={isDarkMode} showArrow onClick={() => navigate('/support')} />
             <div className={`h-[1px] ml-[50px] ${isDarkMode ? 'bg-gray-800' : 'bg-gray-50'}`}></div>
-            <SettingRow icon={<SettingOutlined className="text-gray-500" />} label="Về Zalo Mini App" isDarkMode={isDarkMode} showArrow />
+            <SettingRow 
+              icon={<SettingOutlined className="text-gray-500" />} 
+              label="Về Zalo Mini App" 
+              isDarkMode={isDarkMode} 
+              showArrow 
+              onClick={() => navigate('/about')}
+            />
           </div>
         </div>
 

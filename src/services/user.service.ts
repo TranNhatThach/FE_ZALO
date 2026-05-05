@@ -14,5 +14,7 @@ export const userService = {
     return api.patch<User>('/v1/users/profile/avatar', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
-  }
+  },
+  changePassword: (data: any) => api.post<void>('/v1/users/profile/change-password', data),
+  requestChangePasswordOTP: () => api.post<void>('/v1/users/profile/change-password/otp', {})
 };

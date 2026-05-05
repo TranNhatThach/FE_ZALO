@@ -26,6 +26,7 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPassword';
 import ResetPasswordPage from '@/pages/auth/ResetPassword';
 import Dashboard from '@/pages/Dashboard';
 import SettingsPage from '@/pages/settings/SettingsPage';
+import AboutPage from '@/pages/settings/AboutPage';
 
 // Lazy load feature pages
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'));
@@ -102,7 +103,8 @@ const RouterContent = () => {
     // Khởi tạo kết nối WebSocket lắng nghe thông báo
     useNotificationSocket();
 
-    const isAuthPage = ['/', '/login', '/register', '/error', '/forgot-password', '/reset-password'].includes(location.pathname);
+    const isLoginPage = ['/', '/login', '/register', '/error'].includes(location.pathname);
+    const isRecoveryPage = ['/forgot-password', '/reset-password'].includes(location.pathname);
 
     // Điều hướng gốc dựa trên Role
     useEffect(() => {
@@ -110,8 +112,8 @@ const RouterContent = () => {
             const allRoles = [...(user.roles || []), user.roleName || ''].join(',').toUpperCase();
             const isAdmin = allRoles.includes('ADMIN');
 
-            // Nếu đang ở trang Auth khi đã Login -> Đẩy về Dashboard/UserHome
-            if (isAuthPage) {
+            // Chỉ redirect nếu đang ở các trang đăng nhập/đăng ký
+            if (isLoginPage) {
                 if (isAdmin) {
                     navigate('/dashboard', { replace: true, animate: false });
                 } else {
@@ -119,16 +121,25 @@ const RouterContent = () => {
                 }
             }
         }
-    }, [isAuthenticated, location.pathname, user, navigate, isAuthPage]);
+    }, [isAuthenticated, location.pathname, user, navigate, isLoginPage]);
 
-    if (!isAuthenticated && isAuthPage) {
+    // Nếu là trang quên mật khẩu/đổi mật khẩu -> Cho phép hiển thị "naked" (không bọc MainLayout) 
+    // kể cả khi đã đăng nhập để giữ nguyên style như trang login
+    if (isRecoveryPage) {
+        return (
+            <AnimationRoutes>
+                <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
+                <Route path="/reset-password" element={<ResetPasswordPage />}></Route>
+            </AnimationRoutes>
+        );
+    }
+
+    if (!isAuthenticated && isLoginPage) {
         return (
             <AnimationRoutes>
                 <Route path="/" element={<LoginPage />}></Route>
                 <Route path="/login" element={<LoginPage />}></Route>
                 <Route path="/register" element={<RegisterPage />}></Route>
-                <Route path="/forgot-password" element={<ForgotPasswordPage />}></Route>
-                <Route path="/reset-password" element={<ResetPasswordPage />}></Route>
                 <Route path="/error" element={<HomePage />}></Route>
             </AnimationRoutes>
         );
@@ -209,6 +220,9 @@ const RouterContent = () => {
                     }></Route>
                     <Route path="/settings" element={
                         <SettingsPage />
+                    }></Route>
+                    <Route path="/about" element={
+                        <AboutPage />
                     }></Route>
                     <Route path="/finance" element={
                         <RoleGuard allowedRoles={['ADMIN', 'FINANCE', 'MANAGE']} fallbackPath="/user-home">

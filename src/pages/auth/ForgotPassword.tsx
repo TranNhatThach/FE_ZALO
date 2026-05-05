@@ -30,7 +30,7 @@ const ForgotPasswordPage: React.FC = () => {
 
   return (
     <Page className="bg-white">
-      <Header title="Quên mật khẩu" showBackIcon={false} className="text-center" onBackClick={() => navigate(-1)} />
+      <Header title="Quên mật khẩu" showBackIcon={true} className="text-center" onBackClick={() => navigate(-1)} />
       
       <div className="pt-14 px-6 pb-8 flex flex-col items-center">
         <img src="/Logo.png" alt="Vanguard Logo" style={{ width: 120, height: 120, marginBottom: 24, objectFit: 'contain' }} />

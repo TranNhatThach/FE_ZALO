@@ -52,7 +52,7 @@ const ResetPasswordPage: React.FC = () => {
 
   return (
     <Page className="bg-white">
-      <Header title="Đặt lại mật khẩu" showBackIcon={false} className="text-center" onBackClick={() => navigate(-1)} />
+      <Header title="Đặt lại mật khẩu" showBackIcon={true} className="text-center" onBackClick={() => navigate(-1)} />
       
       <div className="pt-14 px-6 pb-8">
         <div className="flex flex-col items-center mb-8">
