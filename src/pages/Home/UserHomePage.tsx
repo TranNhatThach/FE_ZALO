@@ -97,7 +97,7 @@ export const UserHomePage: React.FC = () => {
   };
 
   return (
-    <Page className={`flex flex-col w-full min-h-screen pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
+    <Page className={`flex flex-col w-full min-h-screen pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
       {/* 1. Top Header Profile */}
       <div className="px-5 pt-8 pb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">

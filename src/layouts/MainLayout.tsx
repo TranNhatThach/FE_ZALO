@@ -54,7 +54,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   }
 
   return (
-    <Layout className={`min-h-[100dvh] w-full transition-colors duration-300 relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}>
+    <Layout className={`min-h-[100dvh] w-full transition-colors duration-300 relative ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
 
       <Sidebar />
 
@@ -63,7 +63,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           marginLeft: 0,
           transition: 'all 0.3s'
         }}
-        className={`w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}
+        className={`w-full flex flex-col ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}
       >
         {/* Content Wrapper using safe-area-insent to avoid notch overlap */}
         {/* Premium Top Bar (Brand + Notifications) - Ẩn ở trang finance để tiết kiệm diện tích */}

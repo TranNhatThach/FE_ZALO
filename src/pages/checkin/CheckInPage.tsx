@@ -134,7 +134,7 @@ export const CheckInPage: React.FC = () => {
   };
 
   return (
-    <Page className={`flex flex-col w-full min-h-screen relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
+    <Page className={`flex flex-col w-full min-h-screen relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
       <Header title="Chấm Công Remote" showBackIcon />
 
       {!isCheckedIn ? (

@@ -16,8 +16,7 @@ import {
    TagOutlined
 } from '@ant-design/icons';
 import { message } from 'antd';
-import { Task } from '../../types/task.types';
-import { useDeleteTaskMutation } from '../../hooks/useTasks';
+import { useDeleteTaskMutation, useApproveTaskMutation } from '../../hooks/useTasks';
 import { useAuthStore } from '../../stores/auth.store';
 import dayjs from 'dayjs';
 
@@ -25,14 +24,39 @@ const { Title, Text, Paragraph } = Typography;
 
 interface TaskDetailsModalProps {
    visible: boolean;
-   task: Task | null;
+   task: any | null;
    onClose: () => void;
+   onSuccess?: () => void;
    isDarkMode: boolean;
 }
 
-export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, task, onClose, isDarkMode }) => {
+export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, task, onClose, onSuccess, isDarkMode }) => {
    const { user } = useAuthStore();
    const { mutate: deleteTitle } = useDeleteTaskMutation();
+   const { mutate: approveTask, isPending: isApproving } = useApproveTaskMutation();
+
+   const handleApprove = () => {
+      if (!task) return;
+      Modal.confirm({
+         title: 'Phê duyệt công việc?',
+         content: 'Bạn có chắc chắn muốn phê duyệt và hoàn thành công việc này?',
+         okText: 'XÁC NHẬN PHÊ DUYỆT',
+         cancelText: 'HỦY',
+         centered: true,
+         onOk: () => {
+            approveTask({ taskId: task.id, note: 'Phê duyệt qua chi tiết ZMA' }, {
+               onSuccess: () => {
+                  message.success('Đã phê duyệt công việc!');
+                  onSuccess?.();
+                  onClose();
+               },
+               onError: () => {
+                  message.error('Lỗi khi phê duyệt.');
+               }
+            });
+         }
+      });
+   };
 
    const handleDelete = () => {
       if (!task) return;
@@ -94,6 +118,7 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
       <Modal
          open={visible}
          onCancel={onClose}
+         title={null}
          footer={null}
          width={400}
          centered
@@ -104,7 +129,21 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
          closable={false}
          rootClassName="premium-details-modal"
       >
-         <div className={`overflow-hidden ${isDarkMode ? 'bg-[#121212] text-white' : 'bg-[#fcfdff]'}`}>
+         <style>{`
+            .premium-details-modal .ant-modal-content {
+               padding: 0 !important;
+               border-radius: 32px !important;
+               overflow: hidden !important;
+               background: ${isDarkMode ? '#121212' : '#fcfdff'} !important;
+            }
+            .premium-details-modal .ant-modal-header {
+               display: none !important;
+            }
+            .premium-details-modal .ant-modal-body {
+               background: transparent !important;
+            }
+         `}</style>
+         <div className={isDarkMode ? 'text-white' : ''}>
             {/* Modern Header with Identity Color */}
             <div className={`px-6 pb-8 relative ${task.status === 'REJECTED' ? 'bg-gradient-to-r from-red-600 to-red-500' : 'bg-gradient-to-r from-[#1e3ba1] to-[#2563eb]'}`} style={{ paddingTop: 'calc(env(safe-area-inset-top) + 20px)' }}>
                <div className="absolute top-[-20px] right-[-20px] w-40 h-40 bg-white/10 rounded-full blur-3xl" />
@@ -342,17 +381,30 @@ export const TaskDetailsModal: React.FC<TaskDetailsModalProps> = ({ visible, tas
                   </div>
                )}
 
-               <div className="flex gap-2">
-                  <button
-                     onClick={onClose}
-                     className={`flex-1 py-3.5 rounded-2xl font-black text-[13px] border-none active:scale-[0.98] transition-all ${isDarkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-900 text-white hover:bg-black shadow-md shadow-gray-200'}`}
-                  >ĐÓNG CHI TIẾT</button>
-                  {([...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase().includes('ADMIN')) && (
+               <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
                      <button
-                        onClick={handleDelete}
-                        className="w-12 h-12 rounded-2xl flex items-center justify-center bg-red-50 text-red-600 border-none hover:bg-red-100 active:scale-95 transition-all"
+                        onClick={onClose}
+                        className={`flex-1 py-3.5 rounded-2xl font-black text-[13px] border-none active:scale-[0.98] transition-all ${isDarkMode ? 'bg-gray-800 text-gray-300 hover:bg-gray-700' : 'bg-gray-900 text-white hover:bg-black shadow-md shadow-gray-200'}`}
+                     >ĐÓNG CHI TIẾT</button>
+                     {([...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase().includes('ADMIN')) && (
+                        <button
+                           onClick={handleDelete}
+                           className="w-12 h-12 rounded-2xl flex items-center justify-center bg-red-50 text-red-600 border-none hover:bg-red-100 active:scale-95 transition-all"
+                        >
+                           <DeleteOutlined className="text-lg" />
+                        </button>
+                     )}
+                  </div>
+
+                  {([...(user?.roles || []), user?.roleName || ''].join(',').toUpperCase().includes('ADMIN')) && task.status === 'REVIEW' && (
+                     <button
+                        onClick={handleApprove}
+                        disabled={isApproving}
+                        className="w-full py-4 rounded-2xl font-black text-[14px] bg-emerald-600 text-white border-none shadow-lg shadow-emerald-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-2"
                      >
-                        <DeleteOutlined className="text-lg" />
+                        <CheckCircleOutlined />
+                        {isApproving ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN PHÊ DUYỆT'}
                      </button>
                   )}
                </div>

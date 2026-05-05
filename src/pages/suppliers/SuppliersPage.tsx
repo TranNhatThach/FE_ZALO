@@ -5,7 +5,14 @@ import {
   MenuOutlined,
   SearchOutlined,
   FilterOutlined,
-  PlusOutlined
+  PlusOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  PhoneOutlined,
+  EnvironmentOutlined,
+  UserOutlined,
+  MailOutlined,
+  ArrowLeftOutlined
 } from '@ant-design/icons';
 import { Typography, Spin, message, Modal, Form, Input, Select } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -18,6 +25,9 @@ export const SuppliersPage: React.FC = () => {
   const { setSidebarCollapsed, isSidebarCollapsed, isDarkMode } = useThemeStore();
   const [searchTerm, setSearchTerm] = useState('');
   const [modalVisible, setModalVisible] = useState(false);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState<any>(null);
   const [form] = Form.useForm();
   const queryClient = useQueryClient();
 
@@ -26,21 +36,65 @@ export const SuppliersPage: React.FC = () => {
     queryFn: () => supplierApi.getSuppliers(),
   });
 
-  const handleCreateSupplier = async () => {
+  const handleOpenCreate = () => {
+    setIsEditMode(false);
+    form.resetFields();
+    setModalVisible(true);
+  };
+
+  const handleOpenEdit = (item: any) => {
+    setIsEditMode(true);
+    setSelectedSupplier(item);
+    form.setFieldsValue(item);
+    setModalVisible(true);
+  };
+
+  const handleOpenDetail = (item: any) => {
+    setSelectedSupplier(item);
+    setDetailModalVisible(true);
+  };
+
+  const handleSaveSupplier = async () => {
     try {
       const values = await form.validateFields();
-      await supplierApi.createSupplier({
-        ...values,
-        trangThai: values.trangThai || 'HOẠT ĐỘNG'
-      });
-      message.success('Thêm nhà cung cấp thành công!');
+      if (isEditMode && selectedSupplier) {
+        await supplierApi.updateSupplier(selectedSupplier.id, values);
+        message.success('Cập nhật nhà cung cấp thành công!');
+      } else {
+        await supplierApi.createSupplier({
+          ...values,
+          trangThai: values.trangThai || 'ACTIVE'
+        });
+        message.success('Thêm nhà cung cấp thành công!');
+      }
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUPPLIER.LIST });
       setModalVisible(false);
       form.resetFields();
     } catch (err) {
       console.error(err);
-      message.error('Lỗi khi thêm nhà cung cấp');
+      message.error('Lỗi khi lưu nhà cung cấp');
     }
+  };
+
+  const handleDeleteSupplier = (id: number) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa?',
+      content: 'Bạn có chắc muốn xóa nhà cung cấp này không?',
+      okText: 'Xóa ngay',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      centered: true,
+      onOk: async () => {
+        try {
+          await supplierApi.deleteSupplier(id);
+          message.success('Đã xóa nhà cung cấp!');
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.SUPPLIER.LIST });
+          setDetailModalVisible(false);
+        } catch (err) {
+          message.error('Lỗi khi xóa');
+        }
+      }
+    });
   };
 
   const filteredSuppliers = suppliers.filter(s =>
@@ -49,7 +103,7 @@ export const SuppliersPage: React.FC = () => {
   );
 
   return (
-    <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fa]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
 
       {/* Header Area */}
       <div className={`flex items-center justify-between px-4 pt-1 pb-4 sticky top-0 z-[100] shadow-md transition-colors duration-300 mt-[-10px] ${isDarkMode ? 'bg-[#1a1a1c] border-b border-gray-800 shadow-xl' : 'bg-[#1e3ba1]'}`}>
@@ -111,7 +165,11 @@ export const SuppliersPage: React.FC = () => {
           ) : (
             <div className="flex flex-col gap-3">
               {filteredSuppliers.map((item) => (
-                <div key={item.id} className={`rounded-2xl p-4 shadow-sm border flex items-center justify-between transition-colors duration-300 ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-50'}`}>
+                <div 
+                  key={item.id} 
+                  onClick={() => handleOpenDetail(item)}
+                  className={`rounded-2xl p-4 shadow-sm border flex items-center justify-between transition-all active:scale-[0.98] cursor-pointer ${isDarkMode ? 'bg-[#1a1a1c] border-gray-800' : 'bg-white border-gray-50'}`}
+                >
                   <div className="flex items-center gap-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${isDarkMode ? 'bg-blue-900/40 text-blue-400' : 'bg-blue-100 text-blue-600'}`}>
                       {item.name.charAt(0)}
@@ -134,7 +192,7 @@ export const SuppliersPage: React.FC = () => {
 
       {/* Floating Action Button (+) */}
       <button
-        onClick={() => setModalVisible(true)}
+        onClick={handleOpenCreate}
         className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-[#1e3ba1] text-white shadow-lg flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer hover:bg-blue-800"
       >
         <PlusOutlined className="text-[24px]" />
@@ -142,12 +200,12 @@ export const SuppliersPage: React.FC = () => {
 
       {/* Create Supplier Modal */}
       <Modal
-        title={<div className="font-black text-[#1e3ba1] uppercase">Thêm nhà cung cấp</div>}
+        title={<div className="font-black text-[#1e3ba1] uppercase">{isEditMode ? 'Chỉnh sửa nhà cung cấp' : 'Thêm nhà cung cấp mới'}</div>}
         open={modalVisible}
         onCancel={() => setModalVisible(false)}
         footer={[
           <button key="back" onClick={() => setModalVisible(false)} className="px-4 py-2 bg-gray-100 border-none rounded-xl mr-2 font-bold text-gray-500">Hủy</button>,
-          <button key="submit" onClick={handleCreateSupplier} className="px-4 py-2 bg-[#1e3ba1] border-none rounded-xl text-white font-bold">Thêm mới</button>
+          <button key="submit" onClick={handleSaveSupplier} className="px-4 py-2 bg-[#1e3ba1] border-none rounded-xl text-white font-bold">{isEditMode ? 'Lưu thay đổi' : 'Thêm mới'}</button>
         ]}
         centered
         width={350}
@@ -181,6 +239,99 @@ export const SuppliersPage: React.FC = () => {
           </Form.Item>
         </Form>
       </Modal>
+
+      {/* Supplier Detail Premium Modal */}
+      {selectedSupplier && detailModalVisible && (
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setDetailModalVisible(false)} />
+          <div className={`relative w-full max-w-sm rounded-[32px] overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 ${isDarkMode ? 'bg-[#1a1a1c]' : 'bg-white'}`}>
+            
+            <div className={`h-32 relative flex items-center justify-center ${isDarkMode ? 'bg-blue-900/20' : 'bg-[#1e3ba1]'}`}>
+              <div className="w-20 h-20 rounded-3xl bg-white/10 backdrop-blur-md flex items-center justify-center text-white text-3xl font-black border border-white/20">
+                {selectedSupplier.name.charAt(0)}
+              </div>
+              <div className="absolute top-5 right-5 flex gap-2">
+                <button
+                   onClick={() => { handleDeleteSupplier(selectedSupplier.id); }}
+                   className="w-9 h-9 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center border-none backdrop-blur-md"
+                >
+                  <DeleteOutlined style={{ fontSize: 16 }} />
+                </button>
+                <button
+                   onClick={() => { setDetailModalVisible(false); handleOpenEdit(selectedSupplier); }}
+                   className="w-9 h-9 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center border-none backdrop-blur-md"
+                >
+                  <EditOutlined style={{ fontSize: 16 }} />
+                </button>
+                <button
+                   onClick={() => setDetailModalVisible(false)}
+                   className="w-9 h-9 rounded-full bg-white/10 text-white flex items-center justify-center border-none backdrop-blur-md"
+                >
+                  <ArrowLeftOutlined rotate={90} style={{ fontSize: 16 }} />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="mb-6">
+                <h3 className={`text-[20px] font-black m-0 mb-1 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>{selectedSupplier.name}</h3>
+                <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${selectedSupplier.trangThai === 'ACTIVE' || selectedSupplier.trangThai === 'HOẠT ĐỘNG' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                  {selectedSupplier.trangThai}
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 flex-shrink-0">
+                    <PhoneOutlined />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase">Điện thoại</div>
+                    <div className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedSupplier.phone}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 flex-shrink-0">
+                    <MailOutlined />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase">Email</div>
+                    <div className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedSupplier.email || 'Chưa cập nhật'}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 flex-shrink-0">
+                    <UserOutlined />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase">Người liên hệ</div>
+                    <div className={`text-[14px] font-bold ${isDarkMode ? 'text-gray-200' : 'text-gray-800'}`}>{selectedSupplier.contactPerson || 'Chưa cập nhật'}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 flex-shrink-0">
+                    <EnvironmentOutlined />
+                  </div>
+                  <div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase">Địa chỉ</div>
+                    <div className={`text-[13px] font-medium leading-relaxed ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{selectedSupplier.address}</div>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setDetailModalVisible(false)}
+                className="w-full h-12 mt-8 rounded-2xl bg-[#1e3ba1] text-white font-black text-[13px] border-none shadow-lg active:scale-95 transition-all"
+              >
+                ĐÓNG
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Page>
   );
 };

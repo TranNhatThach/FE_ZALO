@@ -30,6 +30,9 @@ import { useNavigate, Page } from 'zmp-ui';
 import { useAuthStore } from '@/stores/auth.store';
 import { CreateTaskModal } from './CreateTaskModal';
 import { TaskDetailsModal } from './TaskDetailsModal';
+import { ProjectDetailsModal } from './ProjectDetailsModal';
+import { CreateProjectModal } from './CreateProjectModal';
+import { useDeleteProjectMutation } from '@/hooks/useProjects';
 import dayjs from 'dayjs';
 
 // Hàm chuẩn hóa trạng thái để so sánh (bỏ dấu cách, chuyển thành gạch dưới)
@@ -183,13 +186,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onWorkflowClick, onDetailsCli
         </div>
       )}
 
-      {/* Admin Quick Action (Approve) */}
-      {isAdmin && normalizeStatus(task.status) === 'REVIEW' && (
-        <button
-          onClick={(e) => { e.stopPropagation(); handleApprove(); }}
-          className="mt-3 w-full py-2 rounded-lg text-[11px] font-black bg-emerald-600 text-white border-none shadow-sm shadow-emerald-700/20"
-        >PHÊ DUYỆT NGAY</button>
-      )}
+      {/* Admin Quick Action (Approve) - Removed as per user request to approve via details */}
     </div>
   );
 };
@@ -229,6 +226,14 @@ export const TasksPage: React.FC = () => {
     visible: false,
     task: null
   });
+  const [projectDetailsModal, setProjectDetailsModal] = useState<{ visible: boolean, project: any | null }>({
+    visible: false,
+    project: null
+  });
+  const [createProjectModalVisible, setCreateProjectModalVisible] = useState(false);
+  const [editProject, setEditProject] = useState<any | null>(null);
+
+  const { mutate: deleteProject } = useDeleteProjectMutation();
 
   // ─── API Data ────────────────────────────────────────────────────────────────
   const myTasksQuery = useGetMyTasks();
@@ -289,6 +294,10 @@ export const TasksPage: React.FC = () => {
 
   const showDetails = (task: Task) => {
     setDetailsModal({ visible: true, task });
+  };
+
+  const showProjectDetails = (project: any) => {
+    setProjectDetailsModal({ visible: true, project });
   };
 
   // Reset client page when tab/data changes
@@ -358,7 +367,7 @@ export const TasksPage: React.FC = () => {
 
   // ─── Render ──────────────────────────────────────────────────────────────────
   return (
-    <Page className={`flex flex-col w-full h-full relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#fcfdff]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-[90px] ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
 
       {/* 1. Page Title Area */}
       <div className="px-5 pt-4 pb-2 flex items-center justify-between">
@@ -420,12 +429,24 @@ export const TasksPage: React.FC = () => {
         {/* Stats Overview (Brief) */}
         <div className="grid grid-cols-2 gap-3 mb-8">
            <div className={`p-4 rounded-3xl transition-colors ${isDarkMode ? 'bg-gray-800/50 border border-gray-700/50' : 'bg-[#eef2ff] border border-blue-50'}`}>
-             <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">Đang thực hiện</div>
-             <div className={`text-[28px] font-black leading-none ${isDarkMode ? 'text-blue-400' : 'text-[#1e3ba1]'}`}>{activeTasks.length + todoTasks.length}</div>
+             <div className="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1">
+               {viewMode === 'PROJECTS' ? 'Đang thực hiện' : 'Đang thực hiện'}
+             </div>
+             <div className={`text-[28px] font-black leading-none ${isDarkMode ? 'text-blue-400' : 'text-[#1e3ba1]'}`}>
+               {viewMode === 'PROJECTS' 
+                 ? projects.filter(p => p.status === 'ACTIVE').length 
+                 : (activeTasks.length + todoTasks.length)}
+             </div>
            </div>
            <div className={`p-4 rounded-3xl transition-colors ${isDarkMode ? 'bg-gray-800/50 border border-gray-700/50' : 'bg-[#f0fdf4] border border-emerald-50'}`}>
-             <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Đã xong</div>
-             <div className={`text-[28px] font-black leading-none ${isDarkMode ? 'text-emerald-500' : 'text-emerald-700'}`}>{doneTasks.length}</div>
+             <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">
+               {viewMode === 'PROJECTS' ? 'Đã xong' : 'Đã xong'}
+             </div>
+             <div className={`text-[28px] font-black leading-none ${isDarkMode ? 'text-emerald-500' : 'text-emerald-700'}`}>
+               {viewMode === 'PROJECTS' 
+                 ? projects.filter(p => p.status === 'COMPLETED').length 
+                 : doneTasks.length}
+             </div>
            </div>
         </div>
 
@@ -458,7 +479,10 @@ export const TasksPage: React.FC = () => {
                            </div>
                            <span className={`text-[11px] font-bold ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>{project.managerName}</span>
                         </div>
-                        <button className="text-[11px] font-black text-blue-600 bg-transparent border-none cursor-pointer">XEM CHI TIẾT</button>
+                        <button 
+                          onClick={() => showProjectDetails(project)}
+                          className="text-[11px] font-black text-blue-600 bg-transparent border-none cursor-pointer"
+                        >XEM CHI TIẾT</button>
                      </div>
                  </div>
                ))}
@@ -621,7 +645,14 @@ export const TasksPage: React.FC = () => {
       {/* Floating Action Button (+) - Admin Only */}
       {isAdmin && (
         <button
-          onClick={() => setCreateModalVisible(true)}
+          onClick={() => {
+            if (viewMode === 'PROJECTS') {
+              setEditProject(null);
+              setCreateProjectModalVisible(true);
+            } else {
+              setCreateModalVisible(true);
+            }
+          }}
           className="fixed right-5 bottom-[100px] w-14 h-14 rounded-full bg-[#1e3ba1] text-white shadow-lg shadow-blue-900/30 flex items-center justify-center border-none outline-none active:scale-90 transition-transform z-20 cursor-pointer"
         >
           <PlusOutlined className="text-[24px] font-bold" />
@@ -649,9 +680,48 @@ export const TasksPage: React.FC = () => {
           visible={detailsModal.visible}
           task={detailsModal.task}
           onClose={() => setDetailsModal({ visible: false, task: null })}
+          onSuccess={() => refetch()}
           isDarkMode={isDarkMode}
         />
       )}
+
+      {projectDetailsModal.project && (
+        <ProjectDetailsModal
+          visible={projectDetailsModal.visible}
+          project={projectDetailsModal.project}
+          onClose={() => setProjectDetailsModal({ visible: false, project: null })}
+          onEdit={(proj) => {
+            setProjectDetailsModal({ visible: false, project: null });
+            setEditProject(proj);
+            setCreateProjectModalVisible(true);
+          }}
+          onDelete={(id) => {
+            Modal.confirm({
+              title: 'Xác nhận xóa?',
+              content: 'Bạn có chắc chắn muốn xóa dự án này không?',
+              onOk: () => {
+                deleteProject(id, {
+                  onSuccess: () => {
+                    message.success('Đã xóa dự án!');
+                    setProjectDetailsModal({ visible: false, project: null });
+                  }
+                });
+              }
+            });
+          }}
+          isDarkMode={isDarkMode}
+        />
+      )}
+
+      {/* Create Project Modal */}
+      <CreateProjectModal 
+        visible={createProjectModalVisible}
+        project={editProject}
+        onClose={() => {
+          setCreateProjectModalVisible(false);
+          setEditProject(null);
+        }}
+      />
     </Page>
   );
 };

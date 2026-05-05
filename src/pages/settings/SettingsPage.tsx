@@ -28,8 +28,15 @@ const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState(true);
   const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  const [newName, setNewName] = useState(user?.fullName || user?.name || '');
+  const [newName, setNewName] = useState('');
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Cập nhật newName khi user thay đổi (vì user có thể được load sau)
+  React.useEffect(() => {
+    if (user && !newName) {
+      setNewName(user.fullName || user.name || '');
+    }
+  }, [user]);
   const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,10 +106,10 @@ const SettingsPage: React.FC = () => {
   };
 
   return (
-    <Page className={`flex flex-col w-full h-full relative pb-24 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f4f5f8]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-24 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
 
       {/* Header */}
-      <div className={`flex items-center px-5 pt-8 pb-4 sticky top-0 z-50 ${isDarkMode ? 'bg-[#121212] border-b border-gray-800' : 'bg-[#f4f5f8]'}`}>
+      <div className={`flex items-center px-5 pt-8 pb-4 sticky top-0 z-50 ${isDarkMode ? 'bg-[#121212] border-b border-gray-800' : 'bg-[#eff6ff]'}`}>
         <h1 className={`text-[22px] font-black tracking-tight m-0 ${isDarkMode ? 'text-white' : 'text-gray-900'}`}>
           Cài đặt hệ thống
         </h1>

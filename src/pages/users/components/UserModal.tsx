@@ -3,6 +3,17 @@ import { Modal, Form, Input, Select, message, DatePicker, Divider } from 'antd';
 import { User } from '../../../types/auth.types';
 import { userService } from '../../../services/user.service';
 import dayjs from 'dayjs';
+import { 
+  UserOutlined, 
+  EditOutlined, 
+  SafetyCertificateOutlined, 
+  SolutionOutlined, 
+  TeamOutlined,
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  LockOutlined,
+  BulbOutlined
+} from '@ant-design/icons';
 
 
 const { Option } = Select;
@@ -100,10 +111,22 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
   return (
     <Modal
       title={
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 20 }}>{isEdit ? '✏️' : '👤'}</span>
-          <span style={{ fontWeight: 700, fontSize: 16 }}>
-            {isEdit ? 'Chỉnh sửa nhân viên' : 'Thêm nhân viên mới'}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ 
+            width: 36, 
+            height: 36, 
+            borderRadius: 10, 
+            background: '#eff6ff', 
+            color: '#1d4ed8', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center',
+            fontSize: 18
+          }}>
+            {isEdit ? <EditOutlined /> : <UserOutlined />}
+          </div>
+          <span style={{ fontWeight: 900, fontSize: 18, letterSpacing: '-0.02em', color: '#111827' }}>
+            {isEdit ? 'Chỉnh sửa nhân sự' : 'Thêm nhân sự mới'}
           </span>
         </div>
       }
@@ -192,13 +215,22 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
         >
           <Select mode="multiple" placeholder="Chọn vai trò">
             <Option value="ADMIN">
-              <span style={{ color: '#1d4ed8', fontWeight: 700 }}>🔑 Quản trị viên (ADMIN)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SafetyCertificateOutlined style={{ color: '#1d4ed8' }} />
+                <span style={{ color: '#1d4ed8', fontWeight: 700 }}>Quản trị viên (ADMIN)</span>
+              </div>
             </Option>
             <Option value="MANAGER">
-              <span style={{ color: '#059669', fontWeight: 600 }}>📋 Quản lý (MANAGER)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <SolutionOutlined style={{ color: '#059669' }} />
+                <span style={{ color: '#059669', fontWeight: 600 }}>Quản lý (MANAGER)</span>
+              </div>
             </Option>
             <Option value="STAFF">
-              <span style={{ color: '#475569' }}>👷 Nhân viên (STAFF)</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <UserOutlined style={{ color: '#475569' }} />
+                <span style={{ color: '#475569', fontWeight: 600 }}>Nhân viên (STAFF)</span>
+              </div>
             </Option>
           </Select>
         </Form.Item>
@@ -207,24 +239,45 @@ const UserModal: React.FC<UserModalProps> = ({ visible, user, onClose, onSuccess
         {isEdit && (
           <Form.Item name="status" label="Trạng thái tài khoản">
             <Select>
-              <Option value="ACTIVE">✅ Đang hoạt động</Option>
-              <Option value="PENDING_ACTIVE">⏳ Chờ kích hoạt</Option>
-              <Option value="INACTIVE">🔒 Đã khóa</Option>
+              <Option value="ACTIVE">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <CheckCircleOutlined style={{ color: '#10b981' }} />
+                  <span>Đang hoạt động</span>
+                </div>
+              </Option>
+              <Option value="PENDING_ACTIVE">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <ClockCircleOutlined style={{ color: '#f59e0b' }} />
+                  <span>Chờ kích hoạt</span>
+                </div>
+              </Option>
+              <Option value="INACTIVE">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <LockOutlined style={{ color: '#ef4444' }} />
+                  <span>Đã khóa</span>
+                </div>
+              </Option>
             </Select>
           </Form.Item>
         )}
 
         {!isEdit && (
           <div style={{
-            background: '#eff6ff',
-            border: '1px solid #bfdbfe',
-            borderRadius: 8,
-            padding: '10px 14px',
+            background: '#f0f9ff',
+            border: '1px solid #e0f2fe',
+            borderRadius: 14,
+            padding: '12px 16px',
             fontSize: 12,
-            color: '#1e40af',
-            marginTop: 4,
+            color: '#0369a1',
+            marginTop: 8,
+            display: 'flex',
+            gap: 10,
+            alignItems: 'start'
           }}>
-            💡 Mật khẩu sẽ được tự động tạo dựa trên tên, ngày sinh và SĐT của nhân viên.
+            <BulbOutlined style={{ fontSize: 16, marginTop: 2 }} />
+            <div style={{ fontWeight: 600, lineHeight: 1.5 }}>
+              Mật khẩu sẽ được tự động tạo dựa trên tên, ngày sinh và SĐT của nhân viên để đảm bảo tính bảo mật và dễ nhớ.
+            </div>
           </div>
         )}
       </Form>

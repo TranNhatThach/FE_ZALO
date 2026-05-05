@@ -128,7 +128,7 @@ export const TaxInvoicesPage: React.FC = () => {
     };
 
     return (
-        <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fa]'}`}>
+        <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
 
             {/* Header Area - Tối ưu cho Safe Area của Zalo */}
             <div 

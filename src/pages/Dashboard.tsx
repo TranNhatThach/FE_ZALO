@@ -52,7 +52,7 @@ const Dashboard: React.FC = () => {
   return (
     <Page className={`
       min-h-screen pb-24 p-4 pt-2 space-y-6 max-w-lg mx-auto overflow-y-auto transition-all duration-300
-      ${isDarkMode ? 'bg-black text-white' : 'bg-[#fbfcff] text-gray-800'}
+      ${isDarkMode ? 'bg-black text-white' : 'bg-[#eff6ff] text-gray-800'}
     `}>
       {isLoading && <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/50 backdrop-blur-sm"><Spin /></div>}
       

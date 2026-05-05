@@ -25,6 +25,7 @@ import RegisterPage from '@/pages/auth/Register';
 import ForgotPasswordPage from '@/pages/auth/ForgotPassword';
 import ResetPasswordPage from '@/pages/auth/ResetPassword';
 import Dashboard from '@/pages/Dashboard';
+import SettingsPage from '@/pages/settings/SettingsPage';
 
 // Lazy load feature pages
 const UsersPage = lazy(() => import('@/pages/users/UsersPage'));
@@ -32,7 +33,6 @@ const GoodsPage = lazy(() => import('@/pages/goods/GoodsPage'));
 const SuppliersPage = lazy(() => import('@/pages/suppliers/SuppliersPage'));
 const TasksPage = lazy(() => import('@/pages/tasks/TasksPage'));
 const BranchesPage = lazy(() => import('@/pages/branches/BranchesPage'));
-const SettingsPage = lazy(() => import('@/pages/settings/SettingsPage'));
 const CheckInPage = lazy(() => import('@/pages/checkin/CheckInPage'));
 const RegisterFacePage = lazy(() => import('@/pages/checkin/RegisterFacePage'));
 const AttendanceHistoryPage = lazy(() => import('@/pages/checkin/AttendanceHistoryPage'));
@@ -208,9 +208,7 @@ const RouterContent = () => {
                         </Suspense>
                     }></Route>
                     <Route path="/settings" element={
-                        <Suspense fallback={<Skeleton active paragraph={{ rows: 10 }} className="p-4" />}>
-                            <SettingsPage />
-                        </Suspense>
+                        <SettingsPage />
                     }></Route>
                     <Route path="/finance" element={
                         <RoleGuard allowedRoles={['ADMIN', 'FINANCE', 'MANAGE']} fallbackPath="/user-home">

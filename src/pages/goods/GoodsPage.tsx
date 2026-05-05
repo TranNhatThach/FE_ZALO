@@ -10,7 +10,8 @@ import {
   ContainerOutlined,
   PlusOutlined,
   CheckOutlined,
-  EditOutlined
+  EditOutlined,
+  DeleteOutlined
 } from '@ant-design/icons';
 import { useGetProducts } from '@/hooks/useProducts';
 import { Spin, Modal, Form, InputNumber, message, Input, Select } from 'antd';
@@ -31,8 +32,9 @@ export const GoodsPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [fileList, setFileList] = useState<any[]>([]);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [form] = Form.useForm();
-  const [createForm] = Form.useForm();
+  const [productForm] = Form.useForm();
   const queryClient = useQueryClient();
 
   const { data: productsPage, isLoading } = useGetProducts();
@@ -66,21 +68,63 @@ export const GoodsPage: React.FC = () => {
     }
   };
 
-  const handleCreateProduct = async () => {
+  const handleOpenCreate = () => {
+    setIsEditMode(false);
+    productForm.resetFields();
+    setFileList([]);
+    setCreateModalVisible(true);
+  };
+
+  const handleOpenEdit = (item: any) => {
+    setIsEditMode(true);
+    setSelectedProduct(item);
+    productForm.setFieldsValue(item);
+    setFileList([]); // Clear or set if needed
+    setCreateModalVisible(true);
+  };
+
+  const handleSaveProduct = async () => {
     try {
-      const values = await createForm.validateFields();
+      const values = await productForm.validateFields();
       const imageFile = fileList.length > 0 ? fileList[0].originFileObj : undefined;
 
-      await productApi.createProduct(values, imageFile);
-      message.success('Thêm sản phẩm mới thành công!');
+      if (isEditMode && selectedProduct) {
+        await productApi.updateProduct(selectedProduct.id, values, imageFile);
+        message.success('Cập nhật sản phẩm thành công!');
+      } else {
+        await productApi.createProduct(values, imageFile);
+        message.success('Thêm sản phẩm mới thành công!');
+      }
+      
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LIST });
       setCreateModalVisible(false);
-      createForm.resetFields();
+      productForm.resetFields();
       setFileList([]);
     } catch (err) {
       console.error(err);
-      message.error('Lỗi khi thêm sản phẩm');
+      message.error('Lỗi khi lưu sản phẩm');
     }
+  };
+
+  const handleDeleteProduct = (id: number) => {
+    Modal.confirm({
+      title: 'Xác nhận xóa?',
+      content: 'Bạn có chắc chắn muốn xóa sản phẩm này không? Hành động này không thể hoàn tác.',
+      okText: 'Xóa ngay',
+      okType: 'danger',
+      cancelText: 'Huỷ',
+      centered: true,
+      onOk: async () => {
+        try {
+          await productApi.deleteProduct(id);
+          message.success('Đã xóa sản phẩm!');
+          queryClient.invalidateQueries({ queryKey: QUERY_KEYS.PRODUCTS.LIST });
+          setDetailModalVisible(false);
+        } catch (err) {
+          message.error('Lỗi khi xóa sản phẩm');
+        }
+      }
+    });
   };
 
   const filteredProducts = products.filter(item => {
@@ -100,7 +144,7 @@ export const GoodsPage: React.FC = () => {
   });
 
   return (
-    <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#f8f9fc]'}`}>
+    <Page className={`flex flex-col w-full h-full relative pb-20 transition-colors duration-300 ${isDarkMode ? 'bg-[#121212]' : 'bg-[#eff6ff]'}`}>
 
       {/* 1. Page Title Area (Non-sticky) */}
       <div className="px-4 pt-4 pb-2">
@@ -298,7 +342,7 @@ export const GoodsPage: React.FC = () => {
 
       {/* Floating Action Button (+) */}
       <button
-        onClick={() => setCreateModalVisible(true)}
+        onClick={handleOpenCreate}
         className="fixed right-5 bottom-[90px] w-[56px] h-[56px] rounded-full bg-[#1e3ba1] text-white shadow-lg flex items-center justify-center border-none outline-none active:scale-95 transition-transform z-20 cursor-pointer"
       >
         <PlusOutlined className="text-[24px]" />
@@ -306,18 +350,18 @@ export const GoodsPage: React.FC = () => {
 
       {/* Create Product Modal */}
       <Modal
-        title={<div className="font-black text-[#1e3ba1] uppercase">Thêm sản phẩm mới</div>}
+        title={<div className="font-black text-[#1e3ba1] uppercase">{isEditMode ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}</div>}
         open={createModalVisible}
         onCancel={() => setCreateModalVisible(false)}
         footer={[
           <button key="back" onClick={() => setCreateModalVisible(false)} className="px-4 py-2 bg-gray-100 border-none rounded-xl mr-2 font-bold text-gray-500">Hủy</button>,
-          <button key="submit" onClick={handleCreateProduct} className="px-4 py-2 bg-[#1e3ba1] border-none rounded-xl text-white font-bold">Thêm sản phẩm</button>
+          <button key="submit" onClick={handleSaveProduct} className="px-4 py-2 bg-[#1e3ba1] border-none rounded-xl text-white font-bold">{isEditMode ? 'Lưu thay đổi' : 'Thêm sản phẩm'}</button>
         ]}
         centered
         width={350}
         styles={{ body: { padding: '20px 10px' } }}
       >
-        <Form form={createForm} layout="vertical">
+        <Form form={productForm} layout="vertical">
           <Form.Item name="name" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Tên sản phẩm</span>} rules={[{ required: true }]}>
             <Input className="h-11 rounded-xl bg-gray-50 border-none font-bold" placeholder="VD: Máy khoan cầm tay..." />
           </Form.Item>
@@ -346,6 +390,10 @@ export const GoodsPage: React.FC = () => {
               <InputNumber className="w-full h-11 rounded-xl bg-gray-50 border-none font-bold" />
             </Form.Item>
           </div>
+          
+          <Form.Item name="description" label={<span className="text-[11px] font-bold text-gray-400 uppercase">Mô tả sản phẩm</span>}>
+            <Input.TextArea className="rounded-xl bg-gray-50 border-none font-medium" rows={3} placeholder="Mô tả chi tiết về sản phẩm..." />
+          </Form.Item>
 
           <Form.Item label={<span className="text-[11px] font-bold text-gray-400 uppercase">Ảnh sản phẩm</span>}>
             <Upload
@@ -395,27 +443,41 @@ export const GoodsPage: React.FC = () => {
 
       {/* 6. Product Detail Premium Modal */}
       {selectedProduct && detailModalVisible && (
-        <div className="fixed inset-0 z-[2000] flex items-end justify-center sm:items-center p-4">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setDetailModalVisible(false)} />
-          <div className={`relative w-full max-w-sm rounded-[36px] overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300 ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-white'}`}>
+          <div className={`relative w-full max-w-sm rounded-[36px] overflow-hidden shadow-[0_32px_64px_-12px_rgba(0,0,0,0.5)] animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col ${isDarkMode ? 'bg-[#1a1a1a]' : 'bg-white'}`}>
 
             {/* Visual Header: Image Container */}
-            <div className={`h-60 relative flex items-center justify-center p-8 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
+            <div className={`h-48 relative flex items-center justify-center p-6 flex-shrink-0 ${isDarkMode ? 'bg-gray-900' : 'bg-white'}`}>
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-500/5 to-transparent opacity-50" />
               <img
                 src={selectedProduct.imageUrl}
                 alt={selectedProduct.name}
                 className="w-full h-full object-contain relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.2)] transition-transform hover:scale-105 duration-500"
               />
-              <button
-                onClick={() => setDetailModalVisible(false)}
-                className="absolute top-5 right-5 w-10 h-10 rounded-full bg-gray-100/80 hover:bg-white backdrop-blur-xl text-gray-900 flex items-center justify-center border-none shadow-sm transition-all active:scale-90 z-20"
-              >
-                <ArrowLeftOutlined rotate={90} style={{ fontSize: 16, fontWeight: 'bold' }} />
-              </button>
+              <div className="absolute top-5 right-5 flex gap-2 z-20">
+                <button
+                  onClick={() => { setDetailModalVisible(false); handleDeleteProduct(selectedProduct.id); }}
+                  className="w-10 h-10 rounded-full bg-red-50 hover:bg-red-100 text-red-500 flex items-center justify-center border-none shadow-sm transition-all active:scale-90"
+                >
+                  <DeleteOutlined style={{ fontSize: 16 }} />
+                </button>
+                <button
+                  onClick={() => { setDetailModalVisible(false); handleOpenEdit(selectedProduct); }}
+                  className="w-10 h-10 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 flex items-center justify-center border-none shadow-sm transition-all active:scale-90"
+                >
+                  <EditOutlined style={{ fontSize: 16 }} />
+                </button>
+                <button
+                  onClick={() => setDetailModalVisible(false)}
+                  className="w-10 h-10 rounded-full bg-gray-100/80 hover:bg-white backdrop-blur-xl text-gray-900 flex items-center justify-center border-none shadow-sm transition-all active:scale-90"
+                >
+                  <ArrowLeftOutlined rotate={90} style={{ fontSize: 16, fontWeight: 'bold' }} />
+                </button>
+              </div>
             </div>
 
-            <div className="p-7">
+            <div className="p-7 overflow-y-auto">
               {/* Header Info */}
               <div className="flex justify-between items-start mb-6">
                 <div className="flex-1 pr-4">
@@ -471,7 +533,7 @@ export const GoodsPage: React.FC = () => {
                   <span className="text-[10px] font-black text-blue-500 uppercase tracking-widest">Thông tin hệ thống</span>
                 </div>
                 <p className={`text-[13px] leading-relaxed m-0 font-medium ${isDarkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                  Dòng sản phẩm {selectedProduct.name} thuộc hệ sinh thái {selectedProduct.category}. Đã được kiểm định chất lượng đầu vào, sẵn sàng xuất kho phục vụ công trình.
+                  {selectedProduct.description || `Dòng sản phẩm ${selectedProduct.name} thuộc hệ sinh thái ${selectedProduct.category}. Đã được kiểm định chất lượng đầu vào, sẵn sàng xuất kho phục vụ công trình.`}
                 </p>
               </div>
 
